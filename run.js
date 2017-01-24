@@ -12,61 +12,61 @@ ga('create', 'UA-90713326-1', 'auto');
 ga('send', 'pageview');
 
 var sources = {
-	'washingtonpost':{
-		'url':'washingtonpost.com',
-		'author-selector':'span[itemprop="author"]',
-		'author-selector-property':'',
-		'date-selector':'span.pb-timestamp',
-		'date-selector-property':'content',
-		'text-selector':'article[itemprop="articleBody"]',
-		'text-selector-property':'',
+  'washingtonpost':{
+    'url':'washingtonpost.com',
+    'author-selector':'span[itemprop="author"]',
+    'author-selector-property':'',
+    'date-selector':'span.pb-timestamp',
+    'date-selector-property':'content',
+    'text-selector':'article[itemprop="articleBody"]',
+    'text-selector-property':'',
     'title-selector':'meta[property="og:title"]',
-		'title-selector-property':'content'
-	},
-	'nytimes':{
-		'url':'nytimes.com',
-		'author-selector':'meta[name="byl"]',
-		'author-selector-property':'content',
-		'date-selector':'time',
-		'date-selector-property':'content',
-		'text-selector':'p.story-body-text',
-		'text-selector-property':'',
+    'title-selector-property':'content'
+  },
+  'nytimes':{
+    'url':'nytimes.com',
+    'author-selector':'meta[name="byl"]',
+    'author-selector-property':'content',
+    'date-selector':'time',
+    'date-selector-property':'content',
+    'text-selector':'p.story-body-text',
+    'text-selector-property':'',
     'title-selector':'h1[itemprop="headline"]',
-		'title-selector-property':''
-	},
-	'poltico':{
-		'url':'politico.com',
-		'author-selector':'dt.credits-author',
-		'author-selector-property':'',
-		'date-selector':'time',
-		'date-selector-property':'',
-		'text-selector':'',
-		'text-selector-property':'',
+    'title-selector-property':''
+  },
+  'politico':{
+    'url':'politico.com',
+    'author-selector':'dt.credits-author',
+    'author-selector-property':'',
+    'date-selector':'time',
+    'date-selector-property':'',
+    'text-selector':'',
+    'text-selector-property':'',
     'title-selector':'title',
-		'title-selector-property':''
-	},
-	'wsj':{
-		'url':'wsj.com',
-		'author-selector':'span.name',
-		'author-selector-property':'',
-		'date-selector':'meta[itemprop=\'datePublished\']',
-		'date-selector-property':'content',
-		'text-selector':'',
-		'text-selector-property':'',
+    'title-selector-property':''
+  },
+  'wsj':{
+    'url':'wsj.com',
+    'author-selector':'span.name',
+    'author-selector-property':'',
+    'date-selector':'meta[itemprop=\'datePublished\']',
+    'date-selector-property':'content',
+    'text-selector':'',
+    'text-selector-property':'',
     'title-selector':'h1.wsj-article-headline',
-		'title-selector-property':''
-	},
-	'vox':{
-		'url':'vox.com',
-		'author-selector':'meta[name="author"]',
-		'author-selector-property':'content',
-		'date-selector':'time.c-byline__item',
-		'date-selector-property':'',
-		'text-selector':'',
-		'text-selector-property':'',
+    'title-selector-property':''
+  },
+  'vox':{
+    'url':'vox.com',
+    'author-selector':'meta[name="author"]',
+    'author-selector-property':'content',
+    'date-selector':'time.c-byline__item',
+    'date-selector-property':'',
+    'text-selector':'',
+    'text-selector-property':'',
     'title-selector':'title',
-		'title-selector-property':''
-	},
+    'title-selector-property':''
+  },
   'cnn':{
     'url':'cnn.com',
     'author-selector':'span.metadata__byline__author',
@@ -82,14 +82,14 @@ var sources = {
 
 var data = {
   'source':'',
-	'author':'',
-	'date':'',
-	'text':'',
-	'title':''
+  'author':'',
+  'date':'',
+  'text':'',
+  'title':''
 };
 
 for (var prop in sources) {
-	if(window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
+  if(window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
     data.source = prop
 
     if(sources[prop]["date-selector-property"] == "") {
@@ -99,28 +99,28 @@ for (var prop in sources) {
     }
 
     if(sources[prop]["author-selector-property"] == "") {
-		  data.author = $(sources[prop]["author-selector"]).text();
+      data.author = $(sources[prop]["author-selector"]).text();
     } else {
       data.author = $(sources[prop]["author-selector"]).attr(sources[prop]["author-selector-property"]);
     }
-		
-		if(sources[prop]["title-selector-property"] == "") {
-			data.title = $(sources[prop]["title-selector"]).text();
-		} else {
-			data.title = $(sources[prop]["title-selector"]).attr(sources[prop]["title-selector-property"]);
-		}
-		
-		if(sources[prop]["text-selector"] !== "") {
-			if(sources[prop]["text-selector-property"] == "") {
-				data.text = $(sources[prop]["text-selector"]).text();	
-			} else {
-				data.text = $(sources[prop]["text-selector"]).attr(sources[prop]["text-selector-property"]);
-			}
-		} else {
-			data.text = $('p').text();
-		}
-		ga('send','event', 'articleView', data.title, data.url)
-	}	
+    
+    if(sources[prop]["title-selector-property"] == "") {
+      data.title = $(sources[prop]["title-selector"]).text();
+    } else {
+      data.title = $(sources[prop]["title-selector"]).attr(sources[prop]["title-selector-property"]);
+    }
+    
+    if(sources[prop]["text-selector"] !== "") {
+      if(sources[prop]["text-selector-property"] == "") {
+        data.text = $(sources[prop]["text-selector"]).text();  
+      } else {
+        data.text = $(sources[prop]["text-selector"]).attr(sources[prop]["text-selector-property"]);
+      }
+    } else {
+      data.text = $('p').text();
+    }
+    ga('send','event', 'articleView', data.title, data.url)
+  }  
 }
 
 
