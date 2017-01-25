@@ -93,7 +93,7 @@ for (var prop in sources) {
     data.source = prop
 
     if(sources[prop]["date-selector-property"] == "") {
-        data.date = $(sources[prop]["date-selector"]).text();
+      data.date = $(sources[prop]["date-selector"]).text();
     } else {
       data.date = $(sources[prop]["date-selector"]).attr(sources[prop]["date-selector-property"]);
     }
@@ -104,7 +104,7 @@ for (var prop in sources) {
       data.author = $(sources[prop]["author-selector"]).attr(sources[prop]["author-selector-property"]);
     }
     if(prop == "washingtonpost"){
-        data.author = data.author.replace(/By .*?By /,'').replace(" and ",", ").split(", ");
+      data.author = data.author.replace(/By .*?By /,'').replace(" and ",", ").split(", ");
     }
     
     if(sources[prop]["title-selector-property"] == "") {
@@ -128,6 +128,6 @@ for (var prop in sources) {
 
 
 chrome.runtime.sendMessage({
-    action: "getSource",
-    source: JSON.stringify(data)
+  action: "getSource",
+  source: JSON.stringify(data)
 });
