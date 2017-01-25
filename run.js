@@ -103,6 +103,9 @@ for (var prop in sources) {
     } else {
       data.author = $(sources[prop]["author-selector"]).attr(sources[prop]["author-selector-property"]);
     }
+    if(prop == "washingtonpost"){
+        data.author = data.author.replace(/By .*?By /,'').replace(" and ",", ").split(", ");
+    }
     
     if(sources[prop]["title-selector-property"] == "") {
       data.title = $(sources[prop]["title-selector"]).text();
