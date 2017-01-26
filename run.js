@@ -11,6 +11,16 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 ga('create', 'UA-90713326-1', 'auto');
 ga('send', 'pageview');
 
+var user_email, user_id;
+function setUser(id,email){
+  user_email=email;
+  user_id=id;
+}
+
+chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
+  setUser(response.id, response.email);
+});
+
 var sources = {
   'washingtonpost':{
     'url':'washingtonpost.com',
@@ -79,18 +89,18 @@ var sources = {
     'title-selector-property':''
   }
 };
-
 var data = {
   'source':'',
   'author':'',
   'date':'',
   'text':'',
-  'title':''
+  'title':'',
+  'user_email':user_email,
+  'user_id':user_id
 };
-
 for (var prop in sources) {
   if(window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
-    data.source = prop
+    data.source = prop;
 
     if(sources[prop]["date-selector-property"] == "") {
       data.date = $(sources[prop]["date-selector"]).text();

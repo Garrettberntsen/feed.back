@@ -1,4 +1,5 @@
 {
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArmMR5iJI58BdZQqoYw0hunpapk5yrmNIfzOkt260AlRgwhtYihzT0ZW80NfsLVaD0epyINOoDI+l81vLeXYyBbaO5iQAMrWnS3P1I3AA7O5NGoONtxBLBXDaCjczMYFIjCiMaO3ZdcQE9wxY5qDODCWFhadML/jo9JL5vW9zhG/sQdGU+ZKPkI2q+anRKxNugrlVuLAB2qnbyw/XtaoiNRIk3/nQO73Bvku73ARe3UY/p4Ljtltie/YtR6uJkIDarDVYd+yvwGb2lIupdajfuLJ9C+TuXlQd6LUALnjByvad2Htlxvw9lXsPoh3sVkXzYOkBEtC+msO4ysbnzsiGIQIDAQAB",
   "name": "feed.back",
   "version": "0.1",
   "manifest_version": 2,
@@ -7,5 +8,8 @@
     "default_icon": "icon.png",
     "default_popup": "index.html"
   },
-  "permissions": ["tabs", "<all_urls>"]
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": ["identity", "identity.email", "tabs", "<all_urls>"]
 }
