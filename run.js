@@ -12,13 +12,10 @@ ga('create', 'UA-90713326-1', 'auto');
 ga('send', 'pageview');
 
 var user_email, user_id;
-function setUser(id,email){
-  user_email=email;
-  user_id=id;
-}
 
 chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
-  setUser(response.id, response.email);
+  user_email = response.email;
+  user_id = response.id;
 });
 
 var sources = {
@@ -135,7 +132,6 @@ for (var prop in sources) {
     ga('send','event', 'articleView', data.title, data.url)
   }  
 }
-
 
 chrome.runtime.sendMessage({
   action: "getSource",
