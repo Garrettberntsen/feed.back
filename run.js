@@ -77,7 +77,19 @@ var sources = {
     'text-selector-property':'',
     'title-selector':'h1.pg-headline',
     'title-selector-property':''
+ },
+  'bbc':{
+    'url':'bbc.com',
+    'author-selector':'meta[name="title"]',
+    'author-selector-property':'content',
+    'date-selector':'date.date--v2 relative-time',
+    'date-selector-property':'',
+    'text-selector':'p.story-body-text',
+    'text-selector-property':'',
+    'title-selector':'meta[name="title"]',
+    'title-selector-property':'content'
   }
+
 };
 
 var data = {
