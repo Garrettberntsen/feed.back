@@ -632,11 +632,6 @@ String.prototype.hashCode = function() {
 
 firebase.initializeApp(config);
 var database = firebase.database();
-function writeUserData(user_id, user_email) {
-  database.ref('users/' + user_id).set({
-    email: user_email
-  });
-}
 function writeArticleData(article_data, user_id) {
   var article_key = article_data['url'].hashCode()
   database.ref('articles/' + article_key).set({
@@ -647,9 +642,11 @@ function writeArticleData(article_data, user_id) {
     author: article_data['author'],
     text: article_data['text']
   });
-  var reader_dict = {};
-  reader_dict[user_id] = true
-  database.ref('readers/' + article_key).set(reader_dict);
+  if (undefined != user_id) {
+    database.ref('readers/' + article_key + '/' + user_id).set(true);
+    database.ref('users/' + user_id + '/articles/' + article_key).set(true);
+    database.ref('users/' + user_id + '/email').set(user_email)
+  }
 }
 
 var user_email, user_id;
@@ -657,7 +654,7 @@ var user_email, user_id;
 chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
   user_email = response.email;
   user_id = response.id;
-  writeUserData(user_id, user_email);
+  // writeUserData(user_id, user_email);
 });
 
 var sources = {
@@ -734,9 +731,7 @@ var data = {
   'author':'',
   'date':'',
   'text':'',
-  'title':'',
-  'user_email':user_email,
-  'user_id':user_id
+  'title':''
 };
 for (var prop in sources) {
   if(window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
@@ -776,9 +771,10 @@ for (var prop in sources) {
     ga('send','event', 'articleView', data.title, data.url)
   }  
 }
-
-writeArticleData(data, user_id);
-
+if (undefined != user_id) {
+  writeArticleData(data, user_id);
+  alert("data reported!");
+}
 chrome.runtime.sendMessage({
   action: "getSource",
   source: JSON.stringify(data)
