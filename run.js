@@ -658,7 +658,6 @@ chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
   user_email = response.email;
   user_id = response.id;
   writeUserData(user_id, user_email);
-  writeUserData("1", "test@test.com");
 });
 
 var sources = {
