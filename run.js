@@ -38,15 +38,17 @@ String.prototype.hashCode = function() {
 function writeArticleData(article_data, user_id) {
   var article_key = article_data['url'].hashCode()
   database.ref('articles/' + article_key).set({
-    url: article_data['url'],
+    url:    article_data['url'],
     source: article_data['source'],
-    title: article_data['title'],
-    date: article_data['date'],
+    title:  article_data['title'],
+    date:   article_data['date'],
     author: article_data['author'],
-    text: article_data['text']
+    text:   article_data['text'],
+    lastRead: article_data['dateRead']
   });
   database.ref('readers/' + article_key + '/' + user_id).set(true);
   database.ref('users/' + user_id + '/articles/' + article_key).set(true);
+  database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data['dateRead']);
   database.ref('users/' + user_id + '/email').set(user_email)
 }
 
@@ -55,7 +57,6 @@ var user_email, user_id;
 chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
   user_email = response.email;
   user_id = response.id;
-  // writeUserData(user_id, user_email);
 });
 
 var sources = {
@@ -132,12 +133,15 @@ var data = {
   'author':'',
   'date':'',
   'text':'',
-  'title':''
+  'title':'',
+  'dateRead':''
 };
 for (var prop in sources) {
   if(window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
     data.source = prop;
-    data.url = window.location.href.replace(/\.html.*/,'\.html'); 
+    data.url = window.location.href.replace(/\.html.*/,'\.html');
+    var d=new Date()
+    data.dateRead = d.getTime()
 
     if(sources[prop]["date-selector-property"] == "") {
       data.date = $(sources[prop]["date-selector"]).text().trim();
