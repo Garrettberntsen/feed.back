@@ -642,11 +642,9 @@ function writeArticleData(article_data, user_id) {
     author: article_data['author'],
     text: article_data['text']
   });
-  if (undefined != user_id) {
-    database.ref('readers/' + article_key + '/' + user_id).set(true);
-    database.ref('users/' + user_id + '/articles/' + article_key).set(true);
-    database.ref('users/' + user_id + '/email').set(user_email)
-  }
+  database.ref('readers/' + article_key + '/' + user_id).set(true);
+  database.ref('users/' + user_id + '/articles/' + article_key).set(true);
+  database.ref('users/' + user_id + '/email').set(user_email)
 }
 
 var user_email, user_id;
