@@ -179,8 +179,8 @@ for (var prop in sources) {
     if(prop == "washingtonpost"){
       data.author = data.author.replace(/By .*?By /,'').replace(" and ",", ").split(", ");
     }
-    `data.author = data.author.split(" and ");`
-	}
+    data.author = data.author.split(" and ");
+	
     if(sources[prop]["title-selector-property"] == "") {
       data.title = $(sources[prop]["title-selector"]).text().trim();
     } else {
@@ -198,7 +198,6 @@ for (var prop in sources) {
     }
     ga('send','event', 'articleView', data.title, data.url)
   }  
-}
 if (undefined != user_id) {
   writeArticleData(data, user_id);
   alert("data reported!");
