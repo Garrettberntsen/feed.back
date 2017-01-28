@@ -125,7 +125,29 @@ var sources = {
     'text-selector-property':'',
     'title-selector':'h1.pg-headline',
     'title-selector-property':''
-  }
+  },
+  'nbcnews':{
+    'url':'nbcnews.com',
+    'author-selector':'span.byline_author.text',
+    'author-selector-property':'',
+    'date-selector':'time.timestampe_article',
+    'date-selector-property':'datetime',
+    'text-selector':'p',
+    'text-selector-property':'',
+    'title-selector':'h1',
+    'title-selector-property':''
+    },
+  'cbsnews':{
+    'url':'cbsnews.com',
+    'author-selector':'span.author.text',
+    'author-selector-property':'',
+    'date-selector':'span.time',
+    'date-selector-property':'',
+    'text-selector':'p',
+    'text-selector-property':'',
+    'title-selector':'h1.title',
+    'title-selector-property':''
+  },
 };
 var data = {
   'source':'',
@@ -157,7 +179,8 @@ for (var prop in sources) {
     if(prop == "washingtonpost"){
       data.author = data.author.replace(/By .*?By /,'').replace(" and ",", ").split(", ");
     }
-    
+    `data.author = data.author.split(" and ");`
+	}
     if(sources[prop]["title-selector-property"] == "") {
       data.title = $(sources[prop]["title-selector"]).text().trim();
     } else {
