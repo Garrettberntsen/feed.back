@@ -37,6 +37,8 @@ String.prototype.hashCode = function() {
 
 function writeArticleData(article_data, user_id) {
   var article_key = article_data['url'].hashCode()
+  if article_key == 0:
+    return False
   database.ref('articles/' + article_key).set({
     url:    article_data['url'],
     source: article_data['source'],
@@ -176,7 +178,7 @@ for (var prop in sources) {
     ga('send','event', 'articleView', data.title, data.url)
   }  
 }
-if (undefined != user_id) {
+if (undefined != user_id && data.url != '') {
   writeArticleData(data, user_id);
   alert("data reported!");
 }
