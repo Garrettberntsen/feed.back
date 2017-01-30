@@ -104,8 +104,8 @@ var sources = {
     'date-selector-property':'content',
     'text-selector':'',
     'text-selector-property':'',
-    'title-selector':'h1.wsj-article-headline',
-    'title-selector-property':''
+    'title-selector':'meta[name="article.origheadline"]',
+    'title-selector-property':'content'
   },
   'vox':{
     'url':'vox.com',
@@ -142,40 +142,46 @@ var data = {
 for (var prop in sources) {
   if(window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
     data.source = prop;
-    data.url = window.location.href.replace(/\.html.*/,'\.html');
-    var d=new Date()
-    data.dateRead = d.getTime()
+    data.url = window.location.href.replace(/.*?:\/\/(www\.)?/,'').replace(/(\.html?).*/,'$1');
+    var d=new Date();
+    data.dateRead = d.getTime();
 
     if(sources[prop]["date-selector-property"] == "") {
-      data.date = $(sources[prop]["date-selector"]).text().trim();
+      data.date = $(sources[prop]["date-selector"]).text();
     } else {
-      data.date = $(sources[prop]["date-selector"]).attr(sources[prop]["date-selector-property"]).trim();
+      data.date = $(sources[prop]["date-selector"]).attr(sources[prop]["date-selector-property"]);
     }
+    //Clean-up
+    data.date = data.date.trim();
 
     if(sources[prop]["author-selector-property"] == "") {
-      data.author = $(sources[prop]["author-selector"]).text().trim();
+      data.author = $(sources[prop]["author-selector"]).text();
     } else {
-      data.author = $(sources[prop]["author-selector"]).attr(sources[prop]["author-selector-property"]).trim();
+      data.author = $(sources[prop]["author-selector"]).attr(sources[prop]["author-selector-property"]);
     }
-    if(prop == "washingtonpost"){
-      data.author = data.author.replace(/By .*?By /,'').replace(" and ",", ").split(", ");
-    }
+    //Clean-up
+    data.author = data.author.trim().replace(/By .*?By /,'').replace(/By /,'').replace(" and ",", ").split(", ");
+    
     
     if(sources[prop]["title-selector-property"] == "") {
-      data.title = $(sources[prop]["title-selector"]).text().trim();
+      data.title = $(sources[prop]["title-selector"]).text();
     } else {
-      data.title = $(sources[prop]["title-selector"]).attr(sources[prop]["title-selector-property"]).trim();
+      data.title = $(sources[prop]["title-selector"]).attr(sources[prop]["title-selector-property"]);
     }
+    //Clean-up
+    data.title = data.title.trim().replace(/\s{3,}/,' ')
     
     if(sources[prop]["text-selector"] !== "") {
       if(sources[prop]["text-selector-property"] == "") {
         data.text = $(sources[prop]["text-selector"]).text().trim();  
       } else {
-        data.text = $(sources[prop]["text-selector"]).attr(sources[prop]["text-selector-property"]).trim();
+        data.text = $(sources[prop]["text-selector"]).attr(sources[prop]["text-selector-property"]);
       }
     } else {
-      data.text = $('p').text().trim();
+      data.text = $('p').text();
     }
+    //Clean-up
+    data.text= data.text.trim()
     ga('send','event', 'articleView', data.title, data.url)
   }  
 }
