@@ -37,8 +37,9 @@ String.prototype.hashCode = function() {
 
 function writeArticleData(article_data, user_id) {
   var article_key = article_data['url'].hashCode()
-  if article_key == 0:
-    return False
+  if (article_key == 0){
+    return False;
+  }
   database.ref('articles/' + article_key).set({
     url:    article_data['url'],
     source: article_data['source'],
