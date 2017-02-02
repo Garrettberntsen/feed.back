@@ -1,7 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src='firebase.js'></script>
+<script src='d3.min.js'></script>
 <script src='popup.js'></script>
+<style type='text/css'>
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+.arc path {
+  stroke: #fff;
+}
+</style>
 </head>
 <body style="width:700px;height:600px;margin:10px;padding:10px;">
 <div id='message'>Analyzing data...</div>

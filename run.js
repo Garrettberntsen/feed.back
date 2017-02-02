@@ -47,10 +47,11 @@ function writeArticleData(article_data, user_id) {
     date:   article_data['date'],
     author: article_data['author'],
     text:   article_data['text'],
-    lastRead: article_data['dateRead']
+    lastRead: article_data['dateRead'],
   });
   database.ref('readers/' + article_key + '/' + user_id).set(true);
   database.ref('users/' + user_id + '/articles/' + article_key).set(true);
+  database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data['source']);
   database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data['dateRead']);
   database.ref('users/' + user_id + '/email').set(user_email)
 }
