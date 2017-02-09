@@ -13,7 +13,13 @@
   },
   "content_scripts": [
       {
-        "matches": ["https://www.washingtonpost.com/*", "https://www.nytimes.com/*"],
+        "matches": ["https://www.washingtonpost.com/*",
+                    "https://www.nytimes.com/*",
+                    "http://www.vox.com/*",
+                    "http://www.politico.com/*",
+                    "https://www.wsj.com/*",
+                    "http://www.cnn.com/*",
+                    "http://www.washingtontimes.com/*"],
         "js": ["jquery-3.1.1.min.js", "firebase.js", "run.js"]
       }
     ],
