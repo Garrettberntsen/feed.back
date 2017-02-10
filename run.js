@@ -123,6 +123,17 @@ chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
       'text-selector-property':'',
       'title-selector':'h1.pg-headline',
       'title-selector-property':''
+    },
+    'newyorker':{
+      'url': 'newyorker.com',
+       'author-selector': 'span[itemprop="name"]',
+       'author-selector-property': '',
+       'date-selector':'time',
+       'date-selector-property':'content',
+       'text-selector': 'div[itemprop="articleBody"]',
+       'text-selector-property': '',
+       'title-selector': 'h1[itemprop="headline"]',
+       'title-selector-property': ''
     }
   };
   var data = {
