@@ -196,5 +196,6 @@ chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
   if (undefined != user_id && data.url != '') {
     writeArticleData(data, user_id);
   }
+  chrome.runtime.sendMessage({msg: "increaseReadCount"});
 });
 
