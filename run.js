@@ -32,7 +32,7 @@ String.prototype.hashCode = function() {
 
 function writeArticleData(article_data, user_id) {
   var article_key = article_data['url'].hashCode()
-  if (article_key == 0){
+  if (article_key == 0 || article_data['title'] == '' || article_data['text'] == ''){
     return False;
   }
   database.ref('articles/' + article_key).set({
@@ -134,6 +134,97 @@ chrome.runtime.sendMessage({msg: "getUser"}, function(response) {
        'text-selector-property': '',
        'title-selector': 'h1[itemprop="headline"]',
        'title-selector-property': ''
+    },
+    'vicemedia': {
+      'url': 'vice.com',
+      'author-selector': 'a.contributor__link',
+      'author-selector-property': '',
+      'date-selector':'div.contributor__content__date',
+      'date-selector-property':'',
+      'text-selector': 'div.article__body',
+      'text-selector-property': '',
+      'title-selector': 'h1.article__title',
+      'title-selector-property': ''
+    },
+    'fivethirtyeight': {
+      'url': 'fivethirtyeight.com',
+      'author-selector': 'a[rel="author"]',
+      'author-selector-property': '',
+      'date-selector':'span.datetime',
+      'date-selector-property':'',
+      'text-selector': 'div.entry-content',
+      'text-selector-property': '',
+      'title-selector': 'h1.article-title',
+      'title-selector-property': ''
+    },
+
+    'upworthy': {
+      'url': 'upworthy.com',
+      'author-selector': 'a.article-authors__profile',
+      'author-selector-property': '',
+      'date-selector':'div.article-header__date',
+      'date-selector-property':'',
+      'text-selector': 'div.layout__story-page--middle',
+      'text-selector-property': '',
+      'title-selector': 'h1.article-header__title',
+      'title-selector-property': ''
+    },
+
+    'buzzfeed': {
+      'url': 'buzzfeed.com',
+      'author-selector': 'a.byline__author',
+      'author-selector-property': '',
+      'date-selector':'span.buzz-datetime',
+      'date-selector-property':'',
+      'text-selector': 'div.buzz',
+      'text-selector-property': '',
+      'title-selector': 'h1#post-title',
+      'title-selector-property': ''
+    },
+    'theatlantic': {
+      'url': 'theatlantic.com',
+      'author-selector': 'span[itemprop="author"]',
+      'author-selector-property': '',
+      'date-selector':'time[itemprop="datePublished"]',
+      'date-selector-property':'',
+      'text-selector': 'div.article-body',
+      'text-selector-property': '',
+      'title-selector': 'h1.hed',
+      'title-selector-property': ''
+    },
+    
+    'mic': {
+      'url': 'mic.com',
+      'author-selector': 'a.link-author.name',
+      'author-selector-property': '',
+      'date-selector': 'time[itemprop="datePublished"]',
+      'date-selector-property':'',
+      'text-selector': 'div#article-body',
+      'text-selector-property': '',
+      'title-selector': 'h1[itemprop="headline"]',
+      'title-selector-property': ''
+    },
+    'slate': {
+      'url': 'slate.com',
+      'author-selector': 'a[rel="author"]',
+      'author-selector-property': '',
+      'date-selector': 'div.pub-date',
+      'date-selector-property':'',
+      'text-selector': 'div.newbody',
+      'text-selector-property': '',
+      'title-selector': 'h1.hed',
+      'title-selector-property': ''
+    },
+    'nationalreview': {
+      'url': 'nationalreview.com',
+      'author-selector': 'span.uppercase',
+      'author-selector-property': '',
+      'date-selector': 'time[itemprop="datePublished"]',
+      'date-selector-property':'',
+      'text-selector': 'div[itemprop="articleBody"]',
+      'text-selector-property': '',
+      'title-selector': 'h1.article-header',
+      'title-selector-property': ''
     }
   };
   var data = {
