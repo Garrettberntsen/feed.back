@@ -39,25 +39,25 @@ String.prototype.hashCode = function() {
 };
 
 function writeArticleData(article_data, user_id) {
-    var article_key = article_data['url'].hashCode()
-    if (article_key == 0 || article_data['title'] == '' || article_data['text'] == '') {
+    var article_key = article_data.url.hashCode();
+    if (article_key === 0 || article_data.title === '' || article_data.text === '') {
         return false;
     }
     database.ref('articles/' + article_key).set({
-        url: article_data['url'],
-        source: article_data['source'],
-        title: article_data['title'],
-        date: article_data['date'],
-        author: article_data['author'],
-        text: article_data['text'],
-        lastRead: article_data['dateRead'],
+        url: article_data.url,
+        source: article_data.source,
+        title: article_data.title,
+        date: article_data.date,
+        author: article_data.author,
+        text: article_data.text,
+        lastRead: article_data.dateRead,
     });
     database.ref('readers/' + article_key + '/' + user_id).set(true);
     database.ref('users/' + user_id + '/articles/' + article_key).set(true);
-    database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data['source']);
-    database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data['dateRead']);
-    database.ref('users/' + user_id + '/email').set(user_email)
-    console.log("feed.back data written to firebase!")
+    database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
+    database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
+    database.ref('users/' + user_id + '/email').set(user_email);
+    console.log("feed.back data written to firebase!");
 }
 
 var user_email, user_id;
@@ -451,13 +451,13 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
         'dateRead': ''
     };
     for (var prop in sources) {
-        if (window.location.hostname.indexOf(sources[prop]["url"]) != -1) {
+        if (window.location.hostname.indexOf(sources[prop].url) != -1) {
             data.source = prop;
             data.url = window.location.href.replace(/.*?:\/\/(www\.)?/, '').replace(/(\.html?).*/, '$1');
             var d = new Date();
             data.dateRead = d.getTime();
 
-            if (sources[prop]["date-selector-property"] == "") {
+            if (sources[prop]["date-selector-property"] === "") {
                 data.date = $(sources[prop]["date-selector"]).text();
             } else {
                 data.date = $(sources[prop]["date-selector"]).attr(sources[prop]["date-selector-property"]);
@@ -465,25 +465,24 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
             //Clean-up
             data.date = data.date.trim();
 
-            if (sources[prop]["author-selector-property"] == "") {
+            if (sources[prop]["author-selector-property"] === "") {
                 data.author = $(sources[prop]["author-selector"]).text();
             } else {
                 data.author = $(sources[prop]["author-selector"]).attr(sources[prop]["author-selector-property"]);
             }
             //Clean-up
-            data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").split(", ");
+            data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
 
-
-            if (sources[prop]["title-selector-property"] == "") {
+            if (sources[prop]["title-selector-property"] === "") {
                 data.title = $(sources[prop]["title-selector"]).text();
             } else {
                 data.title = $(sources[prop]["title-selector"]).attr(sources[prop]["title-selector-property"]);
             }
             //Clean-up
-            data.title = data.title.trim().replace(/\s{3,}/, ' ')
+            data.title = data.title.trim().replace(/\s{3,}/, ' ');
 
             if (sources[prop]["text-selector"] !== "") {
-                if (sources[prop]["text-selector-property"] == "") {
+                if (sources[prop]["text-selector-property"] === "") {
                     data.text = $(sources[prop]["text-selector"]).text().trim();
                 } else {
                     data.text = $(sources[prop]["text-selector"]).attr(sources[prop]["text-selector-property"]);
@@ -492,13 +491,23 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
                 data.text = $('p').text();
             }
             //Clean-up
-            data.text = data.text.trim()
-            ga('send', 'event', 'articleView', data.title, data.url)
+            //remove whitespace, tags, linebreaks
+            data.text = data.text.trim().replace("\n", "").replace("\t", "").replace(/\s\s+/g, " ");
+            //remove text between {} and <>
+            while(data.text.indexOf("{") > -1) {
+                data.text.replace(/{([^{}]+)}/g, "");
+            }
+            while(data.text.indexOf("<") > -1) {
+                data.text.replace(/<([^<>]+)>/g, "");
+            }
+
+            ga('send', 'event', 'articleView', data.title, data.url);
+            break;
         }
     }
     console.log(JSON.stringify(data));
     console.log("The user is: " + user_email);
-    if (undefined != user_id && data.url != '') {
+    if (user_id && data.url !== '') {
         writeArticleData(data, user_id);
     }
     chrome.runtime.sendMessage({ msg: "increaseReadCount" });
