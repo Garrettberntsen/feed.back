@@ -492,7 +492,7 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
             }
             //Clean-up
             //remove whitespace, tags, linebreaks
-            data.text = data.text.trim().replace("\n", "").replace("\t", "").replace(/\s\s+/g, " ");
+            data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\", "\").replace(/\s\s+/g, " ");
             //remove text between {} and <>
             while(data.text.indexOf("{") > -1) {
                 data.text.replace(/{([^{}]+)}/g, "");
