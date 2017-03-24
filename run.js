@@ -14,17 +14,6 @@
 ga('create', 'UA-90713326-1', 'auto');
 ga('send', 'pageview');
 
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
-    authDomain: "feedback-f33cf.firebaseapp.com",
-    databaseURL: "https://feedback-f33cf.firebaseio.com",
-    storageBucket: "feedback-f33cf.appspot.com",
-    messagingSenderId: "17295082044"
-};
-firebase.initializeApp(config);
-var database = firebase.database();
-
 // Function to create hashes for article keys
 String.prototype.hashCode = function() {
     var hash = 0,
@@ -65,6 +54,7 @@ var user_email, user_id;
 chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
     user_email = response.email;
     user_id = response.id;
+	var database = response.database;
     var sources = {
         'washingtonpost': {
             'url': 'washingtonpost.com',
@@ -463,7 +453,9 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
                 data.date = $(sources[prop]["date-selector"]).attr(sources[prop]["date-selector-property"]);
             }
             //Clean-up
-            data.date = data.date.trim();
+            if(data.date) {
+           		data.date = data.date.trim();
+            }
 
             if (sources[prop]["author-selector-property"] === "") {
                 data.author = $(sources[prop]["author-selector"]).text();
@@ -492,7 +484,7 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
             }
             //Clean-up
             //remove whitespace, tags, linebreaks
-            data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\", "\").replace(/\s\s+/g, " ");
+            data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\"", "\"").replace(/\s\s+/g, " ");
             //remove text between {} and <>
             while(data.text.indexOf("{") > -1) {
                 data.text.replace(/{([^{}]+)}/g, "");
