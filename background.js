@@ -5,6 +5,7 @@ var authToken;
 chrome.identity.getProfileUserInfo(function(userInfo) {
     user_id = userInfo.id;
     user_email = userInfo.email;
+	
 });
 
 	
@@ -17,6 +18,18 @@ chrome.identity.getAuthToken({
     }
 	
 	authToken = token;
+	var config = {
+		apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
+		authDomain: "feedback-f33cf.firebaseapp.com",
+		databaseURL: "https://feedback-f33cf.firebaseio.com",
+		storageBucket: "feedback-f33cf.appspot.com",
+		messagingSenderId: "17295082044"
+	};
+	firebase.initializeApp(config);
+	
+	firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, authToken)).then(function(user) {
+		database = firebase.database();
+	})
 });
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.msg === "getUser") {
