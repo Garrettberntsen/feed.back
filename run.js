@@ -14,8 +14,8 @@ String.prototype.hashCode = function() {
     return hash;
 };
 
-function writeArticleData(article_data, user_id) {;
-    var article_key = article_data['url'].hashCode();
+function writeArticleData(article_data, user_id) {
+    var article_key = article_data.url.hashCode();
 	
     if (!article_key || !article_data.title || !article_data.text) {
         return false;
@@ -34,20 +34,21 @@ function writeArticleData(article_data, user_id) {;
 		var database = firebase.database();
 			
 		database.ref('articles/' + article_key).set({
-			url: article_data['url'],
-			source: article_data['source'],
-			title: article_data['title'],
-			date: article_data['date'],
-			author: article_data['author'],
-			text: article_data['text'],
-			lastRead: article_data['dateRead'],
+			url: article_data.url,
+			source: article_data.source,
+			title: article_data.title,
+			date: article_data.date,
+			author: article_data.author,
+			text: article_data.text,
+			lastRead: article_data.dateRead,
 		});
 		database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
 		database.ref('users/' + user_id + '/articles/' + article_key).set(true);
-		database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data['source']);
-		database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data['dateRead']);
-		database.ref('users/' + user_id + '/email').set(user_email)
-		console.log("feed.back data written to firebase!")
+		database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
+		database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
+		database.ref('users/' + user_id + '/email').set(user_email);
+		chrome.runtime.sendMessage({ msg: "increaseReadCount" });
+		console.log("feed.back data written to firebase!");
 	}).catch(function(err) {
 		console.error(err);
 	});
@@ -510,5 +511,4 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
 	if (data.url) {
 		writeArticleData(data, user_id);
 	}
-	chrome.runtime.sendMessage({ msg: "increaseReadCount" });
 });
