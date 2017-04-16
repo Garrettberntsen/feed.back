@@ -18,7 +18,7 @@ bg.database.ref('/users/' + bg.user_id).once('value').then(function(snapshot) {
 	user = snapshot.val();
 	articles = user && user.articles;
 
-	for (article in articles){
+	for (var article in articles){
 	  source = articles[article].source;
 	  if(source !== undefined ) {
 		if(sourceDataCount[source] !== undefined) {
@@ -81,30 +81,77 @@ bg.database.ref('/users/' + bg.user_id).once('value').then(function(snapshot) {
 	  .text(function(d) { return d.data.count; });
 });
 
-$(function() {
-  $('#leanRating').barrating({
-	theme: 'bars-movie'
-  });
-  $('#starRating').barrating({
-	theme: 'fontawesome-stars'
-  });
-});
+function setLeanColor(value, text) {
+	var color;
+	switch(value) {
+		case '1':
+			color = '#0014E5';
+			break;
+		case '2':
+			color = '#2611BE';
+			break;
+		case '3':
+			color = '#4C0E98';
+			break;
+		case '4':
+			color = '#730B72';
+			break;
+		case '5':
+			color = '#99084C';
+			break;
+		case '6':
+			color = '#BF0526';
+			break;
+		case '7':
+			color = '#E60300';
+			break;
+		default:
+	}
+	$('.br-theme-bars-movie .br-widget a').css('background-color','');
+	$('.br-theme-bars-movie .br-widget a.br-selected').css('background-color',color);
+	$('.br-theme-bars-movie .br-widget .br-current-rating').css('color',color);
+}
 
 $(document).ready(function(){
-    $("form").submit(function(){
-        chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
-			var url = tabs[0].url.replace(/.*?:\/\/(www\.)?/, '').replace(/(\.html?).*/, '$1');
-			var article_key = url.hashCode();
-			bg.database.ref('/users/' + bg.user_id  + '/articles/' + article_key).once('value').then(function(snapshot) {
-				if(snapshot.exists()) {
-					bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
-					bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
-					alert("Ratings submitted!");
-				} else {
-					alert("Not a valid article");
-				}
-			});
+	var isArticle = false;
+	var article_key;
+		
+	chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
+		var url = tabs[0].url.replace(/.*?:\/\/(www\.)?/, '').replace(/(\.html?).*/, '$1');
+		article_key = url.hashCode();
+		bg.database.ref('/users/' + bg.user_id  + '/articles/' + article_key).once('value').then(function(snapshot) {
+			if(snapshot.exists()) {
+				isArticle = true;
+				
+				bg.database.ref('users/' + bg.user_id + '/articles/' + article_key).once('value').then(function(snapshot) {
+					$('#leanRating').barrating({
+						theme: 'bars-movie',
+						initialRating: snapshot.val().lean,
+						onSelect: setLeanColor
+					});
+					setLeanColor(snapshot.val().lean);
+					$('#starRating').barrating({
+						theme: 'fontawesome-stars',
+						initialRating: snapshot.val().stars
+					});
+					$("form").show();
+				});
+			} else {
+				$('starRating').barrating('destroy');
+				$('leanRating').barrating('destroy');
+				$("form").remove();
+			}
 		});
+	});
+	
+	$("form").submit(function(){
+        if(isArticle) {
+			bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
+			bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
+			alert("Ratings submitted!");
+		} else {
+			alert("Not a valid article");
+		}
 		return false;
     });
 });

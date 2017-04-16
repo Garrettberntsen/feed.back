@@ -3,6 +3,7 @@
 <head>
 <link rel="stylesheet" href="fontawesome-stars.css">
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css">
 <link rel="stylesheet" href="bars-movie.css">
 <style type='text/css'>
 .arc text {
@@ -16,17 +17,31 @@
 </style>
 </head>
 <body style="width:400px;height:400px;margin:10px;padding:10px;">
-<form>
-	<select id="leanRating" autocomplete="off">
-		<option value="1">Very Liberal</option>
-		<option value="2">Liberal</option>
-		<option value="3">Slightly Liberal</option>
-		<option value="4" selected="selected">Neutral</option>
-		<option value="5">Slightly Conservative</option>
-		<option value="6">Conservative</option>
-		<option value="7">Very Conservative</option>
-	</select>
+<form hidden>
+	<div class="level is-mobile">
+		<div class="level-item is-pulled-right">
+			<figure class="image is-64x64">
+			<img src="donkey.png">
+			</figure>
+		</div class="level-item">
+			<select id="leanRating" autocomplete="off">
+				<option value=""></option>
+				<option value="1">Very Liberal</option>
+				<option value="2">Liberal</option>
+				<option value="3">Slightly Liberal</option>
+				<option value="4">Neutral</option>
+				<option value="5">Slightly Conservative</option>
+				<option value="6">Conservative</option>
+				<option value="7">Very Conservative</option>
+			</select>
+		<div class="level-item is-pulled-left">
+			<figure class="image is-64x64">
+			<img src="elephant.png">
+			</figure>
+		</div>
+	</div>
 	<select id="starRating" autocomplete="off">
+		<option value=""></option>
 		<option value="1">1</option>
 		<option value="2">2</option>
 		<option value="3">3</option>

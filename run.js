@@ -43,7 +43,6 @@ function writeArticleData(article_data, user_id) {
 			lastRead: article_data.dateRead,
 		});
 		database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
-		database.ref('users/' + user_id + '/articles/' + article_key).set(true);
 		database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
 		database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
 		database.ref('users/' + user_id + '/email').set(user_email);
