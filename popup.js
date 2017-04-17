@@ -81,7 +81,7 @@ bg.database.ref('/users/' + bg.user_id).once('value').then(function(snapshot) {
 	  .text(function(d) { return d.data.count; });
 });
 
-function setLeanColor(value, text) {
+function setLeanColor(value) {
 	var color;
 	switch(value) {
 		case '1':
@@ -112,27 +112,29 @@ function setLeanColor(value, text) {
 	$('.br-theme-bars-movie .br-widget .br-current-rating').css('color',color);
 }
 
-$(document).ready(function(){
-	var isArticle = false;
-	var article_key;
-		
+$(document).ready(function(){	
 	chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
-		var url = tabs[0].url.replace(/.*?:\/\/(www\.)?/, '').replace(/(\.html?).*/, '$1');
-		article_key = url.hashCode();
-		bg.database.ref('/users/' + bg.user_id  + '/articles/' + article_key).once('value').then(function(snapshot) {
+		var url = tabs[0].url.replace(/.*?:\/\/(www\.)?/, '').replace(/\?(.*)$/, '');
+		var article_key = url.hashCode();
+		bg.database.ref('articles/' + article_key).once('value').then(function(snapshot) {
 			if(snapshot.exists()) {
-				isArticle = true;
-				
+				$('#title').text(snapshot.val().title);
 				bg.database.ref('users/' + bg.user_id + '/articles/' + article_key).once('value').then(function(snapshot) {
 					$('#leanRating').barrating({
 						theme: 'bars-movie',
 						initialRating: snapshot.val().lean,
-						onSelect: setLeanColor
+						onSelect: function(value, text) {
+							setLeanColor(value);
+							bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
+						}
 					});
 					setLeanColor(snapshot.val().lean);
 					$('#starRating').barrating({
 						theme: 'fontawesome-stars',
-						initialRating: snapshot.val().stars
+						initialRating: snapshot.val().stars,
+						onSelect: function(value, text) {
+							bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());		
+						}
 					});
 					$("form").show();
 				});
@@ -143,16 +145,5 @@ $(document).ready(function(){
 			}
 		});
 	});
-	
-	$("form").submit(function(){
-        if(isArticle) {
-			bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
-			bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
-			alert("Ratings submitted!");
-		} else {
-			alert("Not a valid article");
-		}
-		return false;
-    });
 });
 

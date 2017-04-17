@@ -451,7 +451,7 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
 	for (var prop in sources) {
 		if (window.location.hostname.indexOf(sources[prop].url) != -1) {
 			data.source = prop;
-			data.url = window.location.href.replace(/.*?:\/\/(www\.)?/, '').replace(/(\.html?).*/, '$1');
+			data.url = window.location.href.replace(/.*?:\/\/(www\.)?/, '').replace(/\?(.*)$/, '');
 			var d = new Date();
 			data.dateRead = d.getTime();
 

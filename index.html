@@ -18,6 +18,10 @@
 </head>
 <body style="width:400px;height:400px;margin:10px;padding:10px;">
 <form hidden>
+	<div class="has-text-centered">
+		<h4 id="title" class="title is-4"></h4>
+		<h6 class="subtitle is-6">Rate This Article</h6>
+	</div>
 	<div class="level is-mobile">
 		<div class="level-item is-pulled-right">
 			<figure class="image is-64x64">
@@ -40,6 +44,7 @@
 			</figure>
 		</div>
 	</div>
+	<div class="has-text-centered">
 	<select id="starRating" autocomplete="off">
 		<option value=""></option>
 		<option value="1">1</option>
@@ -48,7 +53,8 @@
 		<option value="4">4</option>
 		<option value="5">5</option>
 	</select>
-	<input type="submit" value="Submit">
+	</div>
+	<hr/>
 </form>
 <div id="donut"></div>
 <script src='firebase.js'></script>
