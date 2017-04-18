@@ -401,9 +401,9 @@ var restingPercentages = Object.keys(sources).reduce(function (percentages, sour
 }, {});
 */
 
-http://engineering.wingify.com/posts/e2e-testing-with-webdriverjs-jasmine/
-describe("basic test", function(done){
-    it("should be on correct page", function(){
+//http://engineering.wingify.com/posts/e2e-testing-with-webdriverjs-jasmine/
+describe("basic test", function(){
+    it("should be on correct page", function(done){
         driver.get("http://www.wingify.com");
         driver.getTitle().then(function(title){
             expect(title).toBe("Wingify");
