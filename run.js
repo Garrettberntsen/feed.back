@@ -43,7 +43,6 @@ function writeArticleData(article_data, user_id) {
 			lastRead: article_data.dateRead,
 		});
 		database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
-		database.ref('users/' + user_id + '/articles/' + article_key).set(true);
 		database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
 		database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
 		database.ref('users/' + user_id + '/email').set(user_email);
@@ -452,7 +451,7 @@ chrome.runtime.sendMessage({ msg: "getUser" }, function(response) {
 	for (var prop in sources) {
 		if (window.location.hostname.indexOf(sources[prop].url) != -1) {
 			data.source = prop;
-			data.url = window.location.href.replace(/.*?:\/\/(www\.)?/, '').replace(/(\.html?).*/, '$1');
+			data.url = window.location.href.replace(/.*?:\/\/(www\.)?/, '').replace(/\?(.*)$/, '');
 			var d = new Date();
 			data.dateRead = d.getTime();
 
