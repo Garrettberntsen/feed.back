@@ -14,12 +14,24 @@
       <script type="text/javascript" src="script.js"></script>
     </head>
     <body>
+
+
+<!--
+  *  Make a little thinner.
+  *  Pull names from colors, make them shorter (quick and easy to read).
+  *  Pie chartShow articles the last Monday (Weekely, starting monday morning). Weekly news graph. https://bl.ocks.org/mbostock/99f0a6533f7c949cf8b8
+  *  https://bl.ocks.org/mbostock/3886208
+  *  Stacked Bar chart - two weeks. X axis - 14 days. Y - else. Width between each bar chart.
+  *  Each column should be a day, with colors representing categorical data (news source). Eventually, sort by genera, author, etc. - https://bl.ocks.org/mbostock/3886208
+-->
+
       <!-- <div class="">
 
       </div> -->
       <div class="container">
         <h1>This is the Feedback Dashboard</h1>
-        <table id="feedback"
+        <table class="table"
+               id="feedback"
                data-toolbar="#toolbar"
                data-search="true"
                data-show-refresh="true"
@@ -37,6 +49,37 @@
                data-side-pagination="server"
                data-url="/examples/bootstrap_table/data"
                data-response-handler="responseHandler">
+
+          <caption>Sources Table For Users</caption>
+
+          <thead>
+            <tr>
+              <th>e:val</th>
+              <th>Date</th>
+              <th>Publisher</th>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Opinion</th>
+              <th>Confidence</th>
+              <th>Slant</th>
+              <th>% Read</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>Alpha</td>
+              <td>Beta</td>
+              <td>Centuri</td>
+              <td>Delta</td>
+              <td>Epislon</td>
+              <td>Gamma</td>
+              <td>Iota</td>
+              <td>Kappa</td>
+              <td>Lambda</td>
+            </tr>
+          </tbody>
+
         </table>
       </div>
       <div class="container" id="chart">
