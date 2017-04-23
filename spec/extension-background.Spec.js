@@ -96,8 +96,8 @@ describe("The plugin background script", function () {
             return context.extractPageData.returnValue;
         }).then(function () {
             expect(context.extractHistoryItemData.called).toBeTruthy();
-            console.log(databaseMock.ref().set.getCall(0).args[0]);
-            expect(databaseMock.ref().set.calledWith({
+            //TODO: Fragile, figure out how to retrieve the generated ids used to pass to firebase to validate args properly
+            expect(databaseMock.ref().set.getCall(0).calledWith({
                 url: "forbes.com",
                 source: "forbes",
                 title: "whatever",
@@ -106,6 +106,10 @@ describe("The plugin background script", function () {
                 text: "",
                 lastRead: now.getTime()
             })).toBeTruthy();
+            expect(databaseMock.ref().set.getCall(1).calledWith(true)).toBeTruthy();
+            expect(databaseMock.ref().set.getCall(2).calledWith("forbes")).toBeTruthy();
+            expect(databaseMock.ref().set.getCall(3).calledWith(now.getTime())).toBeTruthy();
+            expect(databaseMock.ref().set.getCall(4).calledWith("whatever")).toBeTruthy();
             done();
         });
     });
