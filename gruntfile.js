@@ -57,8 +57,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-download");
     grunt.loadNpmTasks("grunt-mkdir");
 
-    //Tasks for downloading chromedriver dependency for Selenium.
-    //These will install them in the expected locations as described under "Requirements" here: https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
+    //Tasks for downloading chromedriver dependency for Selenium. https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
     grunt.registerTask("linux32-install", ["mkdir:chromedriver", "download:chromewebdriver_linux32", "move", "unzip"]);
     grunt.registerTask("linux64-install", ["mkdir:chromedriver", "download:chromewebdriver_linux64", "move", "unzip"]);
     grunt.registerTask("windows-install", ["mkdir:chromedriver", "download:chromewebdriver_windows", "move", "unzip"]);

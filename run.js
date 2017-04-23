@@ -2,7 +2,7 @@ var user_email;
 var auth_token;
 
 // Function to create hashes for article keys
-String.prototype.hashCode = function() {
+String.prototype.hashCode = function () {
     var hash = 0,
         i, chr, len;
     if (this.length === 0) return hash;
