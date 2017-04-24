@@ -12,11 +12,10 @@ var _firebase = Promise.resolve(function () {
     firebase.initializeApp(config);
     return firebase;
 }());
-var database = Promise.resolve((function (database) {
+var database = _firebase.then(function (firebase) {
     return firebase.database();
-}()));
+});
 
-var authToken;
 //Duplication, figure out how to fix this.
 var sources = {
     'washingtonpost': {
@@ -424,15 +423,15 @@ chrome.identity.getAuthToken({
     //Guarantees initialization in one place.
     _firebase.then(function (firebase) {
         firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
-            database.then(function (database) {
-                database.ref("/users/" + user_id).once("value").then(function (snapshot) {
-                    //This is a new user; get their browser history and search through their browsing history.
+            database.then(function (db) {
+                db.ref("/users/" + user_id).once("value").then(function (snapshot) {
+                    //This is a new user; scrape their browser history.
                     if (!snapshot.exists()) {
                         var now = new Date();
                         //TODO: Get rid of these magic numbers.
                         var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
                         //Get the browsing history.
-                        //TODO: Try to find a way to push filtering to the api.
+                        //TODO: Try to find a way to push filtering to the api so we don't have to dig through loads of irrelevant entries.
                         chrome.history.search({
                             text: "",
                             startTime: cutoff.getTime()
@@ -447,7 +446,7 @@ chrome.identity.getAuthToken({
                                 });
                             })
                             //Discard duplicate visits to same url.
-                            //TODO: What about # fragments?
+                            //TODO: What about # fragments? Forbes at least seems to attach a per-visit unique fragment to their urls.
                                 .reduce(function (previousVisists, nextVisit) {
                                     if (!previousVisists.find(function (visit) {
                                             return visit.url === nextVisit.url;
@@ -456,17 +455,21 @@ chrome.identity.getAuthToken({
                                     }
                                     return previousVisists;
                                 }, [])
-                                //Scrape each remaining page.
+                                //Scrape and write.
                                 .forEach(function (historyItem) {
                                     writeArticleData(extractHistoryItemData(historyItem), user_id);
                                 });
                         });
                         //Write remaining entries.
                     }
+                }).catch(function(error){
+                    console.log(error);
                 });
+            }).catch(function (error) {
+                console.log(error);
             });
         });
-    })
+    });
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -484,7 +487,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             chrome.browserAction.setBadgeText({text: read_count.toString()});
             break;
         case "database_write":
-            writeArticleData(message.payload.data, message.payload.user_id);
+            writeArticleData(request.payload.data, request.payload.user_id);
             break;
     }
 })
@@ -492,22 +495,25 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 function writeArticleData(article_data, user_id) {
     var article_key = article_data.url.hashCode();
 
-    if (!article_key || !article_data.lastRead || !article_data.title) {
-        return false;
+    if (!article_key || !article_data.dateRead || article_data.title == undefined) {
+        throw "Attempted to write an article with insufficient data";
     }
 
-    database.then(function (database) {
-        database.ref('articles/' + article_key).once('value').then(function(snapshot){
-            if(!snapshot.exists() || snapshot.val().partial){
-                database.ref('articles/' + article_key).set(article_data);
+    database.then(function (db) {
+        db.ref('articles/' + article_key).once('value').then(function (snapshot) {
+            if (!snapshot.exists() || snapshot.val().partial) {
+                db.ref('articles/' + article_key).set(article_data);
             }
         })
-        database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
-        database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
-        database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.lastRead);
-        database.ref('users/' + user_id + '/email').set(user_email);
+
+        db.ref('articles/' + article_key + '/readers/' + user_id).set(true);
+        db.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
+        db.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
+        db.ref('users/' + user_id + '/email').set(user_email);
         chrome.runtime.sendMessage({msg: "increaseReadCount"});
         console.log("feed.back data written to firebase!");
+    }).catch(function(error){
+        console.log("Error resolving database to write article: " + error);
     });
 }
 
@@ -601,7 +607,7 @@ function reduceUrl(url) {
     return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/[\\/](.*)$/, '');
 }
 
-function ArticleData(url, source, title, lastRead, date, author, text) {
+function ArticleData(url, source, title, dateRead, date, author, text) {
     if (!url === undefined) {
         throw "url must be set";
     }
@@ -611,7 +617,7 @@ function ArticleData(url, source, title, lastRead, date, author, text) {
     if (!title === undefined) {
         throw "Title must be set"
     }
-    if (!lastRead === undefined) {
+    if (!dateRead === undefined) {
         throw "Date must be set";
     }
     this.url = url;
@@ -620,5 +626,5 @@ function ArticleData(url, source, title, lastRead, date, author, text) {
     this.date = date || "";
     this.author = author || "";
     this.text = text || "";
-    this.lastRead = lastRead;
+    this.dateRead = dateRead;
 }
