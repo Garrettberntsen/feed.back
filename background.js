@@ -1,3 +1,4 @@
+var only_scrape_new_user_history = false;
 var user_email;
 var user_id;
 var read_count = 0;
@@ -426,7 +427,7 @@ chrome.identity.getAuthToken({
             database.then(function (db) {
                 db.ref("/users/" + user_id).once("value").then(function (snapshot) {
                     //This is a new user; scrape their browser history.
-                    if (!snapshot.exists()) {
+                    if (!snapshot.exists() && only_scrape_new_user_history) {
                         var now = new Date();
                         //TODO: Get rid of these magic numbers.
                         var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
