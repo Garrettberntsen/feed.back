@@ -14,83 +14,88 @@ String.prototype.hashCode = function () {
 var sourceDataCount = {};
 
 var bg = chrome.extension.getBackgroundPage();
-bg.database.ref('/users/' + bg.user_id).once('value').then(function (snapshot) {
-    user = snapshot.val();
-    articles = user && user.articles;
+bg.database.then(function (database) {
+    console.log("Database resolved");
+    database.ref('/users/' + bg.user_id).once('value').then(function (snapshot) {
+        console.log("Snapshot resolved");
+        user = snapshot.val();
+        articles = user && user.articles;
 
-    for (var article in articles) {
-        source = articles[article].source;
-        if (source !== undefined) {
-            if (sourceDataCount[source] !== undefined) {
-                sourceDataCount[source] += 1;
-            } else {
-                sourceDataCount[source] = 1;
+        for (var article in articles) {
+            source = articles[article].source;
+            if (source !== undefined) {
+                if (sourceDataCount[source] !== undefined) {
+                    sourceDataCount[source] += 1;
+                } else {
+                    sourceDataCount[source] = 1;
+                }
             }
         }
-    }
-    sources = Object.keys(sourceDataCount);
-    pie_data = [];
+        sources = Object.keys(sourceDataCount);
+        console.log(sources);
+        pie_data = [];
 
-    for (var i = 0; i < sources.length; i++) {
-        pie_data.push({'source': sources[i], 'count': sourceDataCount[sources[i]], 'index': i});
-    }
-
-
-    var width = 400,
-        height = 400,
-        radius = Math.min(width, height) / 2;
-
-    var color = d3.scaleOrdinal(d3.schemeCategory10);
-
-    var arc = d3.arc()
-        .outerRadius(radius - 10)
-        .innerRadius(radius - 100);
-
-    var labelArc = d3.arc()
-        .outerRadius(radius - 40)
-        .innerRadius(radius - 40);
-
-    var pie = d3.pie()
-        .sort(null)
-        .padAngle(0.02)
-        .value(function (d) {
-            return d.count;
-        });
-
-    var svg = d3.select("#donut").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+        for (var i = 0; i < sources.length; i++) {
+            pie_data.push({'source': sources[i], 'count': sourceDataCount[sources[i]], 'index': i});
+        }
 
 
-    var g = svg.selectAll(".arc")
-        .data(pie(pie_data))
-        .enter().append("g")
-        .attr("class", "arc");
+        var width = 400,
+            height = 400,
+            radius = Math.min(width, height) / 2;
 
-    g.append("path")
-        .attr("d", arc)
-        .style("fill", function (d) {
-            return color(d.index);
-        });
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
 
-    g.append("text")
-        .attr("transform", function (d) {
-            return "translate(" + labelArc.centroid(d) + ")";
-        })
-        .attr("dy", ".35em")
-        .text(function (d) {
-            return d.data.source;
-        });
-    g.append("text")
-        .attr("transform", function (d) {
-            return "translate(" + labelArc.centroid(d) + ")";
-        })
-        .attr("dy", "1.35em")
-        .text(function (d) {
-            return d.data.count;
-        });
+        var arc = d3.arc()
+            .outerRadius(radius - 10)
+            .innerRadius(radius - 100);
+
+        var labelArc = d3.arc()
+            .outerRadius(radius - 40)
+            .innerRadius(radius - 40);
+
+        var pie = d3.pie()
+            .sort(null)
+            .padAngle(0.02)
+            .value(function (d) {
+                return d.count;
+            });
+
+        var svg = d3.select("#donut").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+
+        var g = svg.selectAll(".arc")
+            .data(pie(pie_data))
+            .enter().append("g")
+            .attr("class", "arc");
+
+        g.append("path")
+            .attr("d", arc)
+            .style("fill", function (d) {
+                return color(d.index);
+            });
+
+        g.append("text")
+            .attr("transform", function (d) {
+                return "translate(" + labelArc.centroid(d) + ")";
+            })
+            .attr("dy", ".35em")
+            .text(function (d) {
+                return d.data.source;
+            });
+        g.append("text")
+            .attr("transform", function (d) {
+                return "translate(" + labelArc.centroid(d) + ")";
+            })
+            .attr("dy", "1.35em")
+            .text(function (d) {
+                return d.data.count;
+            });
+    });
 });
 
 function setLeanColor(value) {
@@ -125,37 +130,41 @@ function setLeanColor(value) {
 }
 
 $(document).ready(function () {
-    chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
+    chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         var url = tabs[0].url.replace(/.*?:\/\/(www\.)?/, '').replace(/\?(.*)$/, '');
         var article_key = url.hashCode();
-        bg.database.ref('articles/' + article_key).once('value').then(function (snapshot) {
-            if (snapshot.exists()) {
-                $('#title').text(snapshot.val().title);
-                bg.database.ref('users/' + bg.user_id + '/articles/' + article_key).once('value').then(function (snapshot) {
-                    $('#leanRating').barrating({
-                        theme: 'bars-movie',
-                        initialRating: snapshot.val().lean,
-                        onSelect: function (value, text) {
-                            setLeanColor(value);
-                            bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
-                        }
+        bg.database.then(function (database) {
+            database.ref('articles/' + article_key).once('value').then(function (snapshot) {
+                if (snapshot.exists()) {
+                    $('#title').text(snapshot.val().title);
+                    bg.database.then(function (database) {
+                        database.ref('users/' + bg.user_id + '/articles/' + article_key).once('value').then(function (snapshot) {
+                            $('#leanRating').barrating({
+                                theme: 'bars-movie',
+                                initialRating: snapshot.val().lean,
+                                onSelect: function (value, text) {
+                                    setLeanColor(value);
+                                    database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
+                                }
+                            });
+                            setLeanColor(snapshot.val().lean);
+                            $('#starRating').barrating({
+                                theme: 'fontawesome-stars',
+                                initialRating: snapshot.val().stars,
+                                onSelect: function (value, text) {
+                                    database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
+                                }
+                            });
+                            $("form").show();
+                        });
                     });
-                    setLeanColor(snapshot.val().lean);
-                    $('#starRating').barrating({
-                        theme: 'fontawesome-stars',
-                        initialRating: snapshot.val().stars,
-                        onSelect: function (value, text) {
-                            bg.database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
-                        }
-                    });
-                    $("form").show();
-                });
-            } else {
-                $('starRating').barrating('destroy');
-                $('leanRating').barrating('destroy');
-                $("form").remove();
-            }
-        });
+                } else {
+                    $('starRating').barrating('destroy');
+                    $('leanRating').barrating('destroy');
+                    $("form").remove();
+                }
+            });
+        })
     });
 });
 
