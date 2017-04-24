@@ -29,7 +29,7 @@ module.exports = function (grunt) {
                 "/usr/bin/google-chrome": "chromedriver/chromedriver.zip"
             },
             mac: {
-                "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome" : "chromedriver/chromedriver.zip"
+                "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome": "chromedriver/chromedriver.zip"
             }
         },
         move: {
@@ -48,7 +48,26 @@ module.exports = function (grunt) {
                 options: {
                     create: ["chromedriver"]
                 }
+            },
+            dist: {
+                options:{
+                    create: ["dist"]
+                }
             }
+        },
+        copy: {
+            dist: {
+                files: [
+                    {
+                        expand: true,
+                        src: ["*", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!dist", "!package.json"],
+                        dest: "dist/"
+                    }
+                ]
+            }
+        },
+        clean: {
+            dist:["dist/"]
         }
     });
 
@@ -56,10 +75,12 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-zip");
     grunt.loadNpmTasks("grunt-download");
     grunt.loadNpmTasks("grunt-mkdir");
+    grunt.loadNpmTasks("grunt-contrib-clean");
 
     //Tasks for downloading chromedriver dependency for Selenium. https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
     grunt.registerTask("linux32-install", ["mkdir:chromedriver", "download:chromewebdriver_linux32", "move", "unzip"]);
     grunt.registerTask("linux64-install", ["mkdir:chromedriver", "download:chromewebdriver_linux64", "move", "unzip"]);
     grunt.registerTask("windows-install", ["mkdir:chromedriver", "download:chromewebdriver_windows", "move", "unzip"]);
     grunt.registerTask("mac-install", ["mkdir:chromedriver", "download:chromewebdriver_mac", "move", "unzip"]);
+    grunt.registerTask("default", ["clean:dist", "mkdir:dist", "copy:dist"])
 };
