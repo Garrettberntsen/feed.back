@@ -1,7 +1,21 @@
 var user_email;
 var user_id;
 var read_count = 0;
-var database;
+var _firebase = Promise.resolve(function () {
+    var config = {
+        apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
+        authDomain: "feedback-f33cf.firebaseapp.com",
+        databaseURL: "https://feedback-f33cf.firebaseio.com",
+        storageBucket: "feedback-f33cf.appspot.com",
+        messagingSenderId: "17295082044"
+    };
+    firebase.initializeApp(config);
+    return firebase;
+}());
+var database = Promise.resolve((function (database) {
+    return firebase.database();
+}()));
+
 var authToken;
 //Duplication, figure out how to fix this.
 var sources = {
@@ -407,53 +421,54 @@ chrome.identity.getAuthToken({
         return;
     }
 
-    var config = {
-        apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
-        authDomain: "feedback-f33cf.firebaseapp.com",
-        databaseURL: "https://feedback-f33cf.firebaseio.com",
-        storageBucket: "feedback-f33cf.appspot.com",
-        messagingSenderId: "17295082044"
-    };
-    firebase.initializeApp(config);
-
-    firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
-        database = firebase.database();
-        database.ref("/users/" + user_id).once("value").then(function (snapshot) {
-            //This is a new user; get their browser history and search through their browsing history.
-            if (!snapshot.exists()) {
-                var now = new Date();
-                //TODO: Get rid of these magic numbers.
-                var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-                //Get the browsing history.
-                chrome.history.search({
-                    startTime: cutoff.getTime()
-                }, function (results) {
-                    var sourceUrls = Object.keys(sources).map(function (sourceName) {
-                        return sources[sourceName].url;
-                    });
-                    //Discard any results not for a source site.
-                    results.filter(function (result) {
-                        return sourceUrls.find(function (sourceUrl) {
-                            return result.url.indexOf(sourceUrl) !== -1;
+    //Guarantees initialization in one place.
+    _firebase.then(function (firebase) {
+        firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
+            database.then(function (database) {
+                database.ref("/users/" + user_id).once("value").then(function (snapshot) {
+                    //This is a new user; get their browser history and search through their browsing history.
+                    if (!snapshot.exists()) {
+                        var now = new Date();
+                        //TODO: Get rid of these magic numbers.
+                        var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
+                        //Get the browsing history.
+                        //TODO: Try to find a way to push filtering to the api.
+                        chrome.history.search({
+                            text: "",
+                            startTime: cutoff.getTime()
+                        }, function (results) {
+                            var sourceUrls = Object.keys(sources).map(function (sourceName) {
+                                return sources[sourceName].url;
+                            });
+                            //Discard any results not for a source site.
+                            results.filter(function (result) {
+                                return sourceUrls.find(function (sourceUrl) {
+                                    return result.url.indexOf(sourceUrl) !== -1;
+                                });
+                            })
+                            //Discard duplicate visits to same url.
+                            //TODO: What about # fragments?
+                                .reduce(function (previousVisists, nextVisit) {
+                                    if (!previousVisists.find(function (visit) {
+                                            return visit.url === nextVisit.url;
+                                        })) {
+                                        previousVisists.push(nextVisit);
+                                    }
+                                    return previousVisists;
+                                }, [])
+                                //Scrape each remaining page.
+                                .forEach(function (historyItem) {
+                                    writeArticleData(extractHistoryItemData(historyItem), user_id);
+                                });
                         });
-                    })
-                    //Discard duplicate visits to same url
-                        .reduce(function (previousUrls, nextUrl) {
-                            if (previousUrls.indexOf(nextUrl) === -1) {
-                                previousUrls.push(nextUrl);
-                            }
-                            return previousUrls;
-                        }, [])
-                        //Scrape each remaining page.
-                        .forEach(function (historyItem) {
-                            writeArticleData(extractHistoryItemData(historyItem), user_id);
-                        });
+                        //Write remaining entries.
+                    }
                 });
-                //Write remaining entries.
-            }
+            });
         });
-    });
+    })
 });
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "getUser":
@@ -481,15 +496,19 @@ function writeArticleData(article_data, user_id) {
         return false;
     }
 
-    console.log("Getting database")
-    var database = firebase.database();
-    database.ref('articles/' + article_key).set(article_data);
-    database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
-    database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
-    database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
-    database.ref('users/' + user_id + '/email').set(user_email);
-    chrome.runtime.sendMessage({msg: "increaseReadCount"});
-    console.log("feed.back data written to firebase!");
+    database.then(function (database) {
+        database.ref('articles/' + article_key).once('value').then(function(snapshot){
+            if(!snapshot.exists() || snapshot.val().partial){
+                database.ref('articles/' + article_key).set(article_data);
+            }
+        })
+        database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
+        database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
+        database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.lastRead);
+        database.ref('users/' + user_id + '/email').set(user_email);
+        chrome.runtime.sendMessage({msg: "increaseReadCount"});
+        console.log("feed.back data written to firebase!");
+    });
 }
 
 function extractPageData(url, content) {
@@ -567,13 +586,14 @@ function extractPageData(url, content) {
 };
 
 function extractHistoryItemData(historyItem) {
-    console.log(historyItem.lastVisitTime);
-    return new ArticleData(reduceUrl(historyItem.url),
+    var articleData = new ArticleData(reduceUrl(historyItem.url),
         Object.keys(sources).find(function (source) {
             return historyItem.url.indexOf(source) !== -1;
         }),
         historyItem.title,
         historyItem.lastVisitTime);
+    articleData.partial = true;
+    return articleData;
 }
 
 //Cut out the protocol, subdomain and path from a url
@@ -582,16 +602,16 @@ function reduceUrl(url) {
 }
 
 function ArticleData(url, source, title, lastRead, date, author, text) {
-    if (!url) {
+    if (!url === undefined) {
         throw "url must be set";
     }
-    if (!source) {
+    if (!source === undefined) {
         throw "Source must be set";
     }
-    if (!title) {
+    if (!title === undefined) {
         throw "Title must be set"
     }
-    if (!lastRead) {
+    if (!lastRead === undefined) {
         throw "Date must be set";
     }
     this.url = url;
@@ -600,6 +620,5 @@ function ArticleData(url, source, title, lastRead, date, author, text) {
     this.date = date || "";
     this.author = author || "";
     this.text = text || "";
-    console.log("lastRead: " + lastRead);
     this.lastRead = lastRead;
 }
