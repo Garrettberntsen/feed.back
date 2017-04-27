@@ -3,10 +3,9 @@ https://github.com/antennaio/jquery-bar-rating/blob/master/dist/themes/bars-movi
   white-space: nowrap;
 }
 .br-theme-bars-movie .br-widget a {
-  display: block;
+  display: inline-block;
   width: 20px;
   height: 8px;
-  float: left;
   background-color: #D3D3D3;
   margin: 1px;
 }
@@ -22,7 +21,7 @@ https://github.com/antennaio/jquery-bar-rating/blob/master/dist/themes/bars-movi
   font-weight: 600;
   display: block;
   padding: .5em 0;
-  color: #4278F5;
+  color: #000000;
   font-weight: 400;
 }
 .br-theme-bars-movie .br-readonly a {
