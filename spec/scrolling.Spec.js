@@ -1,23 +1,15 @@
-var only_scrape_new_user_history = false;
-var user_email;
-var user_id;
-var read_count = 0;
-var _firebase = Promise.resolve(function () {
-    var config = {
-        apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
-        authDomain: "feedback-f33cf.firebaseapp.com",
-        databaseURL: "https://feedback-f33cf.firebaseio.com",
-        storageBucket: "feedback-f33cf.appspot.com",
-        messagingSenderId: "17295082044"
-    };
-    firebase.initializeApp(config);
-    return firebase;
-}());
-var database = _firebase.then(function (firebase) {
-    return firebase.database();
-});
+/**
+ * Created by Damie on 4/17/2017.
+ */
+//We need to put chromedriver on the path, this means the client environment won't require setting up before hand.
+//http://stackoverflow.com/a/27733960/1503554
+var webdriver = require("selenium-webdriver");
+var chrome = require("selenium-webdriver/chrome");
+var path = require("chromedriver").path;
+var service = new chrome.ServiceBuilder(path).build();
+chrome.setDefaultService(service);
 
-//Duplication, figure out how to fix this.
+//This will need manual updating, need to modularize sources.
 var sources = {
     'washingtonpost': {
         'url': 'washingtonpost.com',
@@ -395,237 +387,27 @@ var sources = {
     }
 };
 
-// Function to create hashes for article keys
-String.prototype.hashCode = function () {
-    var hash = 0,
-        i, chr, len;
-    if (this.length === 0) return hash;
-    for (i = 0, len = this.length; i < len; i++) {
-        chr = this.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-};
+var driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
 
-chrome.identity.getProfileUserInfo(function (userInfo) {
-    user_id = userInfo.id;
-    user_email = userInfo.email;
-});
+//Get the "resting" percentages for each source.
+/*
+var restingPercentages = Object.keys(sources).reduce(function (percentages, sourceName) {
+    session.url(sources[sourceName].url);
+    var contentElement = session.getText(sources[sourceName]["text-selector"]);
+    console.log(contentElement);
+    var scrollRatio = contentElement.scrollTop / contentElement.scrollHeight;
+    percentages[sourceName] = scrollRatio;
+    return percentages;
+}, {});
+*/
 
-chrome.identity.getAuthToken({
-    interactive: true
-}, function (token) {
-    if (chrome.runtime.lastError) {
-        alert(chrome.runtime.lastError.message);
-        return;
-    }
-
-    //Guarantees initialization in one place.
-    _firebase.then(function (firebase) {
-        firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
-            database.then(function (db) {
-                db.ref("/users/" + user_id).once("value").then(function (snapshot) {
-                    //This is a new user; scrape their browser history.
-                    if (!snapshot.exists() && only_scrape_new_user_history) {
-                        var now = new Date();
-                        //TODO: Get rid of these magic numbers.
-                        var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-                        //Get the browsing history.
-                        //TODO: Try to find a way to push filtering to the api so we don't have to dig through loads of irrelevant entries.
-                        chrome.history.search({
-                            text: "",
-                            startTime: cutoff.getTime()
-                        }, function (results) {
-                            var sourceUrls = Object.keys(sources).map(function (sourceName) {
-                                return sources[sourceName].url;
-                            });
-                            //Discard any results not for a source site.
-                            results.filter(function (result) {
-                                return sourceUrls.find(function (sourceUrl) {
-                                    return result.url.indexOf(sourceUrl) !== -1;
-                                });
-                            })
-                            //Discard duplicate visits to same url.
-                            //TODO: What about # fragments? Forbes at least seems to attach a per-visit unique fragment to their urls.
-                                .reduce(function (previousVisists, nextVisit) {
-                                    if (!previousVisists.find(function (visit) {
-                                            return visit.url === nextVisit.url;
-                                        })) {
-                                        previousVisists.push(nextVisit);
-                                    }
-                                    return previousVisists;
-                                }, [])
-                                //Scrape and write.
-                                .forEach(function (historyItem) {
-                                    writeArticleData(extractHistoryItemData(historyItem), user_id);
-                                });
-                        });
-                        //Write remaining entries.
-                    }
-                }).catch(function(error){
-                    console.log(error);
-                });
-            }).catch(function (error) {
-                console.log(error);
-            });
+//http://engineering.wingify.com/posts/e2e-testing-with-webdriverjs-jasmine/
+describe("basic test", function(){
+    it("should be on correct page", function(done){
+        driver.get("http://www.wingify.com");
+        driver.getTitle().then(function(title){
+            expect(title).toBe("Wingify");
+            done();
         });
     });
 });
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    switch (request.type) {
-        case "getUser":
-            chrome.identity.getAuthToken({
-                interactive: true
-            }, function (token) {
-                sendResponse({'email': user_email, 'id': user_id, 'authToken': token});
-            });
-            return true;
-        case "increaseReadCount":
-            read_count++;
-            chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 1]});
-            chrome.browserAction.setBadgeText({text: read_count.toString()});
-            break;
-        case "database_write":
-            writeArticleData(request.payload.data, request.payload.user_id);
-            break;
-    }
-})
-//TODO: Move database stuff in separate file maybe?
-function writeArticleData(article_data, user_id) {
-    var article_key = article_data.url.hashCode();
-
-    if (!article_key || !article_data.dateRead || article_data.title == undefined) {
-        throw "Attempted to write an article with insufficient data";
-    }
-
-    database.then(function (db) {
-        db.ref('articles/' + article_key).once('value').then(function (snapshot) {
-            if (!snapshot.exists() || snapshot.val().partial) {
-                db.ref('articles/' + article_key).set(article_data);
-            }
-        })
-
-        db.ref('articles/' + article_key + '/readers/' + user_id).set(true);
-        db.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
-        db.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
-        db.ref('users/' + user_id + '/email').set(user_email);
-        chrome.runtime.sendMessage({msg: "increaseReadCount"});
-        console.log("feed.back data written to firebase!");
-    }).catch(function(error){
-        console.log("Error resolving database to write article: " + error);
-    });
-}
-
-function extractPageData(url, content) {
-    content = $.parseHTML(content);
-    var data = {
-        'source': '',
-        'url': '',
-        'author': '',
-        'date': '',
-        'text': '',
-        'title': '',
-        'dateRead': ''
-    };
-    var url = window.location.href;
-    var sourceName = Object.keys(sources).find(function (sourceName) {
-        return url.indexOf(sources[sourceName].url) !== -1
-    });
-    if (sourceName) {
-        data.source = sourceName;
-        data.url = reduceUrl(url);
-        var d = new Date();
-        data.dateRead = d.getTime();
-
-        if (sources[sourceName]["date-selector-property"] === "") {
-            data.date = $(sources[sourceName]["date-selector"], content).text();
-        } else {
-            data.date = $(sources[sourceName]["date-selector"]["date-selector"], content).attr(sources[sourceName]["date-selector-property"]);
-        }
-        //Clean-up
-        if (data.date) {
-            data.date = data.date.trim();
-        }
-
-        if (sources[sourceName]["author-selector-property"] === "") {
-            data.author = $(sources[sourceName]["author-selector"], content).text();
-        } else {
-            data.author = $(sources[sourceName]["author-selector"], content).attr(sources[sourceName]["author-selector-property"]);
-        }
-
-        //Clean-up
-        data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
-
-        if (sources[sourceName]["title-selector-property"] === "") {
-            data.title = $(sources[sourceName]["title-selector"], content).text();
-        } else {
-            data.title = $(sources[sourceName]["title-selector"], content).attr(sources[sourceName]["title-selector-property"]);
-        }
-        //Clean-up
-        data.title = data.title.trim().replace(/\s{3,}/, ' ');
-
-        if (sources[sourceName]["text-selector"] !== "") {
-            if (sources[sourceName]["text-selector-property"] === "") {
-                data.text = $(sources[sourceName]["text-selector"], content).text().trim();
-            } else {
-                data.text = $(sources[sourceName]["text-selector"], content).attr(sources[sourceName]["text-selector-property"]);
-            }
-        } else {
-            data.text = $('p').text();
-        }
-        //Clean-up
-        //remove whitespace, tags, linebreaks
-        data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\"", "\"").replace(/\s\s+/g, " ");
-        //remove text between {} and <>
-        var index = data.text.search(/{([^{}]+)}/g);
-        //while(data.text.indexOf("{") > -1) {
-        while (data.text.search(/{([^{}]+)}/g) > -1) {
-            data.text = data.text.replace(/{([^{}]+)}/g, "");
-        }
-        while (data.text.search(/<([^<>]+)>/g) > -1) {
-            data.text = data.text.replace(/<([^<>]+)>/g, "");
-        }
-        return Promise.resolve(data);
-    }
-    return Promise.reject();
-};
-
-function extractHistoryItemData(historyItem) {
-    var articleData = new ArticleData(reduceUrl(historyItem.url),
-        Object.keys(sources).find(function (source) {
-            return historyItem.url.indexOf(source) !== -1;
-        }),
-        historyItem.title,
-        historyItem.lastVisitTime);
-    articleData.partial = true;
-    return articleData;
-}
-
-//Cut out the protocol, subdomain and path from a url
-function reduceUrl(url) {
-    return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/[\\/](.*)$/, '');
-}
-
-function ArticleData(url, source, title, dateRead, date, author, text) {
-    if (!url === undefined) {
-        throw "url must be set";
-    }
-    if (!source === undefined) {
-        throw "Source must be set";
-    }
-    if (!title === undefined) {
-        throw "Title must be set"
-    }
-    if (!dateRead === undefined) {
-        throw "Date must be set";
-    }
-    this.url = url;
-    this.source = source;
-    this.title = title;
-    this.date = date || "";
-    this.author = author || "";
-    this.text = text || "";
-    this.dateRead = dateRead;
-}

@@ -1,0 +1,33 @@
+{
+  "name": "feed.back",
+  "version": "1.0.0",
+  "description": "1. In Chrome, navigate to chrome://extensions\r 2. Download/clone this repository\r 3. Drag folder into chrome window",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Garrettberntsen/feed.back.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Garrettberntsen/feed.back/issues"
+  },
+  "homepage": "https://github.com/Garrettberntsen/feed.back#readme",
+  "devDependencies": {
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-mkdir": "^1.0.0",
+    "jasmine-node": "^1.14.5",
+    "jsdom": "^9.12.0",
+    "selenium-webdriver": "^3.3.0",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "dependencies": {
+    "grunt-download": "^0.2.0",
+    "grunt-zip": "^0.17.1"
+  }
+}
