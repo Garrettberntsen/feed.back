@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Garrettberntsen/feed.back#readme",
   "devDependencies": {
+    "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-mkdir": "^1.0.0",
     "jasmine-node": "^1.14.5",
