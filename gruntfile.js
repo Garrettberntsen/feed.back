@@ -55,16 +55,19 @@ module.exports = function (grunt) {
                 }
             }
         },
-        clean: {
-            dist: ["dist"]
-        },
         copy: {
             dist: {
-                src: [
-                    "*","!dist", "!node_modules", "!.gitignore", "!spec"
-                ],
-                dest: "dist/"
+                files: [
+                    {
+                        expand: true,
+                        src: ["*", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!dist", "!package.json"],
+                        dest: "dist/"
+                    }
+                ]
             }
+        },
+        clean: {
+            dist:["dist/"]
         }
     });
 
