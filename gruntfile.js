@@ -48,6 +48,22 @@ module.exports = function (grunt) {
                 options: {
                     create: ["chromedriver"]
                 }
+            },
+            dist: {
+                options: {
+                    create: ["dist"]
+                }
+            }
+        },
+        clean: {
+            dist: ["dist"]
+        },
+        copy: {
+            dist: {
+                src: [
+                    "*","!dist", "!node_modules", "!.gitignore", "!spec"
+                ],
+                dest: "dist/"
             }
         }
     });
@@ -56,10 +72,12 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-zip");
     grunt.loadNpmTasks("grunt-download");
     grunt.loadNpmTasks("grunt-mkdir");
+    grunt.loadNpmTasks("grunt-contrib-clean");
 
     //Tasks for downloading chromedriver dependency for Selenium. https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
     grunt.registerTask("linux32-install", ["mkdir:chromedriver", "download:chromewebdriver_linux32", "move", "unzip"]);
     grunt.registerTask("linux64-install", ["mkdir:chromedriver", "download:chromewebdriver_linux64", "move", "unzip"]);
     grunt.registerTask("windows-install", ["mkdir:chromedriver", "download:chromewebdriver_windows", "move", "unzip"]);
     grunt.registerTask("mac-install", ["mkdir:chromedriver", "download:chromewebdriver_mac", "move", "unzip"]);
+    grunt.registerTask("default", ["clean:dist", "mkdir:dist", "copy:dist"]);
 };
