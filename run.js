@@ -1,12 +1,9 @@
 var user_email;
+var user_id;
 var auth_token;
 var sources;
 
-chrome.runtime.sendMessage({type: "getUser"}, function (response) {
-    user_email = response.email;
-    var user_id = response.id;
-    authToken = response.authToken;
-
+function scrapePage(){
     if (!user_email || !user_id || !authToken) {
         if (!user_email) {
             console.log("No user email available");
@@ -99,6 +96,24 @@ chrome.runtime.sendMessage({type: "getUser"}, function (response) {
             });
         }
     });
+};
+chrome.runtime.onMessage.addListener(function(request, sender){
+    if(request.type == "userUpdated"){
+        console.log("User identity updated");
+        user_email = request.message.user_email;
+        user_id = request.message.user_id;
+        auth_token = request.message.auth_token;
+        scrapePage();
+    }
+});
+
+chrome.runtime.sendMessage({type:"getUser"}, function(response){
+    if(response) {
+        user_email = response.message.user_email;
+        user_id = response.message.user_id;
+        auth_token = response.message.auth_token;
+        scrapePage();
+    }
 });
 
 var content_scroll_ratio = 0;
@@ -118,7 +133,6 @@ function updateScrollRatio() {
         chrome.runtime.sendMessage({type: "updateScrollMetric", message: content_scroll_ratio});
     }
     console.log("new scroll ratio: " + content_scroll_ratio);
-
 }
 
 $(document).ready(function () {
