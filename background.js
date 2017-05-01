@@ -456,17 +456,20 @@ String.prototype.hashCode = function () {
     return hash;
 };
 
-
 function increaseReadCount() {
     read_count++;
     chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 1]});
     chrome.browserAction.setBadgeText({text: read_count.toString()});
 }
 
-chrome.identity.getProfileUserInfo(function (userInfo) {
+function setUserInfo(userInfo){
+    console.log("Login changed");
     user_id = userInfo.id;
     user_email = userInfo.email;
-});
+}
+
+chrome.identity.getProfileUserInfo(setUserInfo);
+chrome.identity.onSignInChanged.addListener(setUserInfo);
 
 chrome.identity.getAuthToken({
     interactive: true
@@ -513,7 +516,6 @@ chrome.identity.getAuthToken({
                                     writeArticleData(extractHistoryItemData(historyItem), user_id);
                                 });
                         });
-                        //Write remaining entries.
                     }
                 });
             });
@@ -555,7 +557,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             break;
     }
 })
-//TODO: Move database stuff in separate file maybe?
+
 function writeArticleData(article_data, user_id) {
     if (!article_data) {
         console.log("writeArticleData was called with no data");
@@ -568,7 +570,6 @@ function writeArticleData(article_data, user_id) {
         return false;
     }
 
-    console.log("Getting database")
     database.then(function (database) {
         //Check if the article has already been scraped or the new record is not a partial record.
         database.ref('articles/' + article_key).once("value").then(function (articleSnapshot) {
@@ -582,17 +583,17 @@ function writeArticleData(article_data, user_id) {
                 if (!articleSnapshot.exists()) {
                     console.log("Writing new article record");
                 } else if (articleSnapshot.val().partialRecord && !article_data.partialRecord) {
-                    console.log("Overwriting partial record")
+                    console.log("Overwriting partial record");
                 } else {
                     console.log("Overwriting full record");
                 }
                 database.ref('articles/' + article_key).set(article_data);
-                database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
-                database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
-                database.ref('users/' + user_id + '/email').set(user_email);
             }
             increaseReadCount();
+            database.ref('articles/' + article_key + '/readers/' + user_id).set(true);
+            database.ref('users/' + user_id + '/articles/' + article_key + '/source').set(article_data.source);
             database.ref('users/' + user_id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
+            database.ref('users/' + user_id + '/email').set(user_email);
             console.log("feed.back data written to firebase!");
         });
     });
