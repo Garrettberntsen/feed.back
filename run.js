@@ -100,9 +100,9 @@ function scrapePage(){
 chrome.runtime.onMessage.addListener(function(request, sender){
     if(request.type == "userUpdated"){
         console.log("User identity updated");
-        user_email = request.message.user_email;
-        user_id = request.message.user_id;
-        auth_token = request.message.auth_token;
+        user_email = request.message.email;
+        user_id = request.message.id;
+        auth_token = request.message.authToken;
         scrapePage();
     }
 });
@@ -110,7 +110,7 @@ chrome.runtime.onMessage.addListener(function(request, sender){
 chrome.runtime.sendMessage({type:"getUser"}, function(response){
     if(response) {
         user_email = response.email;
-        user_id = id.user_id;
+        user_id = id.id;
         auth_token = response.authToken;
         scrapePage();
     }
