@@ -462,10 +462,14 @@ function increaseReadCount() {
     chrome.browserAction.setBadgeText({text: read_count.toString()});
 }
 
-function setUserInfo(userInfo){
-    console.log("Login changed");
-    user_id = userInfo.id;
-    user_email = userInfo.email;
+function setUserInfo(userInfo) {
+    if (userInfo) {
+        console.log("Login changed");
+        user_id = userInfo.id;
+        user_email = userInfo.email;
+    } else {
+        user_email, user_id = null
+    }
 }
 
 chrome.identity.getProfileUserInfo(setUserInfo);
@@ -481,45 +485,47 @@ chrome.identity.getAuthToken({
 
     console.log(_firebase);
     _firebase.then(function (firebase) {
-        firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
-            database.then(function (database) {
-                database.ref("/users/" + user_id).once("value").then(function (userSnapshot) {
-                    //This is a new user; get their browser history and search through their browsing history.
-                    if (!userSnapshot.exists() || !only_scrape_new_user_history) {
-                        var now = new Date();
-                        //TODO: Get rid of these magic numbers.
-                        var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-                        //Get the browsing history.
-                        chrome.history.search({
-                            text: "",
-                            startTime: cutoff.getTime(),
-                            maxResults: 10000
-                        }, function (results) {
-                            var sourceUrls = Object.keys(sources).map(function (sourceName) {
-                                return sources[sourceName].url;
+        if (user_email && user_id) {
+            firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
+                database.then(function (database) {
+                    database.ref("/users/" + user_id).once("value").then(function (userSnapshot) {
+                        //This is a new user; get their browser history and search through their browsing history.
+                        if (!userSnapshot.exists() || !only_scrape_new_user_history) {
+                            var now = new Date();
+                            //TODO: Get rid of these magic numbers.
+                            var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
+                            //Get the browsing history.
+                            chrome.history.search({
+                                text: "",
+                                startTime: cutoff.getTime(),
+                                maxResults: 10000
+                            }, function (results) {
+                                var sourceUrls = Object.keys(sources).map(function (sourceName) {
+                                    return sources[sourceName].url;
+                                });
+                                //Discard any results not for a source site.
+                                results.filter(function (result) {
+                                    return sourceUrls.find(function (sourceUrl) {
+                                        return result.url.indexOf(sourceUrl) !== -1;
+                                    });
+                                })
+                                //Discard duplicate visits to same url
+                                    .reduce(function (previousUrls, nextUrl) {
+                                        if (previousUrls.indexOf(nextUrl) === -1) {
+                                            previousUrls.push(nextUrl);
+                                        }
+                                        return previousUrls;
+                                    }, [])
+                                    //Scrape each remaining page.
+                                    .forEach(function (historyItem) {
+                                        writeArticleData(extractHistoryItemData(historyItem), user_id);
+                                    });
                             });
-                            //Discard any results not for a source site.
-                            results.filter(function (result) {
-                                return sourceUrls.find(function (sourceUrl) {
-                                    return result.url.indexOf(sourceUrl) !== -1;
-                                });
-                            })
-                            //Discard duplicate visits to same url
-                                .reduce(function (previousUrls, nextUrl) {
-                                    if (previousUrls.indexOf(nextUrl) === -1) {
-                                        previousUrls.push(nextUrl);
-                                    }
-                                    return previousUrls;
-                                }, [])
-                                //Scrape each remaining page.
-                                .forEach(function (historyItem) {
-                                    writeArticleData(extractHistoryItemData(historyItem), user_id);
-                                });
-                        });
-                    }
+                        }
+                    });
                 });
             });
-        });
+        }
     })
 });
 
@@ -574,7 +580,7 @@ function writeArticleData(article_data, user_id) {
         //Check if the article has already been scraped or the new record is not a partial record.
         database.ref('articles/' + article_key).once("value").then(function (articleSnapshot) {
             var existing_article;
-            if(articleSnapshot.exists()){
+            if (articleSnapshot.exists()) {
                 existing_article = articleSnapshot.val();
             }
             console.log("Writing for article " + article_key);
