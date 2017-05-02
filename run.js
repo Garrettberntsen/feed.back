@@ -4,7 +4,7 @@ var auth_token;
 var sources;
 
 function scrapePage(){
-    if (!user_email || !user_id || !authToken) {
+    if (!user_email || !user_id || !auth_token) {
         if (!user_email) {
             console.log("No user email available");
         }
