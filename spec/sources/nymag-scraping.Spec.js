@@ -9,7 +9,7 @@ var service = new chrome.ServiceBuilder(path).build();
 chrome.setDefaultService(service);
 var options = new chrome.Options();
 var path = require("path");
-options.addArguments("load-extension=" + path.resolve(__dirname, "..", ".."));
+options.addArguments("load-extension=" + path.resolve(__dirname, "..", "..", "test-dist"));
 options.addArguments("user-data-dir=" + path.resolve(require("os").homedir(), "feedback-test-profile"));
 
 var sinon = require("sinon");
@@ -33,49 +33,22 @@ function haltAndCatchFire(problem) {
 
 describe("The webpage scraper", function () {
     it("will correctly scrape the text, title, date and author of an article on nymag.com", function (done) {
-        //Google will randomly pick one of two login pages to display with different html layouts.
-        //We need to handle both.
-        browser.get("https://accounts.google.com")
-            .catch(haltAndCatchFire)
-            .then(function () {
-                return browser.findElement(webdriver.By.id("Email"));
-            })
-            .catch(function () {
-                return browser.findElement(webdriver.By.name("identifier"));
-            })
-            .then(function (email) {
-                email.sendKeys(test_username);
-                email.sendKeys(webdriver.Key["ENTER"]);
-            })
-            .then(function () {
-                console.log("Looking for element Passwd")
-                return browser.wait(webdriver.until.elementLocated(webdriver.By.name("Passwd")), 1000)
-            })
-            .catch(function () {
-                console.log("Unable to find element Passwd, looking for password")
-                return browser.wait(webdriver.until.elementLocated(webdriver.By.name("password")));
-            })
-            .then(function (password) {
-                return browser.wait(webdriver.until.elementIsVisible(password));
-            })
-            .then(function (password) {
-                console.log("Entering password");
-                password.sendKeys(test_password);
-                password.sendKeys(webdriver.Key["ENTER"]);
-            })
-            .catch(haltAndCatchFire)
-            .then(function () {
+        var parentWindow;
+        browser.get("chrome://extensions").then(function () {
+            return browser.switchTo().frame("extensions")
+        }).catch(haltAndCatchFire)
+            .then(function (background) {
+                return browser.wait(webdriver.until.elementLocated(webdriver.By.css("#fjmjfjkiigcdeiaeofkappkccmcedeeb > div > div.extension-details > div.developer-extras > div.active-views > a")))
+            }).catch(haltAndCatchFire)
+            .then(function (background) {
+                parentWindow = browser.getWindowHandle();
+                background.click()
                 browser.executeScript(function(){
-                    console.log(chrome.runtime.sendMessage);
-                });
+                    console.log("firebase");
+                })
             }).catch(haltAndCatchFire)
             .then(function () {
-                console.log("Navigating");
-                browser.get(target_url).then(function () {
-                    done();
-                });
-            }).catch(haltAndCatchFire)
 
-
+            })
     });
 });

@@ -29,7 +29,7 @@ module.exports = function (grunt) {
                 "/usr/bin/google-chrome": "chromedriver/chromedriver.zip"
             },
             mac: {
-                "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome" : "chromedriver/chromedriver.zip"
+                "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome": "chromedriver/chromedriver.zip"
             }
         },
         move: {
@@ -53,6 +53,11 @@ module.exports = function (grunt) {
                 options: {
                     create: ["dist"]
                 }
+            },
+            testBuild: {
+                options: {
+                    create: ["test-dist"]
+                }
             }
         },
         copy: {
@@ -60,14 +65,30 @@ module.exports = function (grunt) {
                 files: [
                     {
                         expand: true,
-                        src: ["*", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!dist", "!package.json"],
+                        src: ["*", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json"],
                         dest: "dist/"
+                    }
+                ]
+            },
+            testBuild: {
+                files: [
+                    {
+                        expand: true,
+                        src: ["*", "!firebase.js","!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json"],
+                        dest: "test-dist/",
+                        rename: function(dest, src){
+                            if(src.indexOf("test-") !== -1){
+                                return dest + src.replace("test-", "");
+                            }
+                            return dest + src;
+                        }
                     }
                 ]
             }
         },
         clean: {
-            dist:["dist/"]
+            dist: ["dist/", "*.pem", "*.crx"],
+            testBuild: ["test-dist"]
         }
     });
 
@@ -82,5 +103,8 @@ module.exports = function (grunt) {
     grunt.registerTask("linux64-install", ["mkdir:chromedriver", "download:chromewebdriver_linux64", "move", "unzip"]);
     grunt.registerTask("windows-install", ["mkdir:chromedriver", "download:chromewebdriver_windows", "move", "unzip"]);
     grunt.registerTask("mac-install", ["mkdir:chromedriver", "download:chromewebdriver_mac", "move", "unzip"]);
+    //Create dist directory
     grunt.registerTask("default", ["clean:dist", "mkdir:dist", "copy:dist"]);
+    //Create a test distribution
+    grunt.registerTask("testBuild", ["clean:testBuild", "mkdir:testBuild","copy:testBuild"]);
 };
