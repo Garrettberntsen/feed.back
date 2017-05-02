@@ -109,9 +109,9 @@ chrome.runtime.onMessage.addListener(function(request, sender){
 
 chrome.runtime.sendMessage({type:"getUser"}, function(response){
     if(response) {
-        user_email = response.user_email;
-        user_id = response.user_id;
-        auth_token = response.auth_token;
+        user_email = response.email;
+        user_id = id.user_id;
+        auth_token = response.authToken;
         scrapePage();
     }
 });
