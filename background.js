@@ -477,13 +477,12 @@ chrome.identity.onSignInChanged.addListener(setUserInfo);
 
 chrome.identity.getAuthToken({
     interactive: true
-}, function (token) {
+}, function(token) {
     if (chrome.runtime.lastError) {
         alert(chrome.runtime.lastError.message);
         return;
     }
 
-    console.log(_firebase);
     _firebase.then(function (firebase) {
         if (user_email && user_id) {
             firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token)).then(function (user) {
