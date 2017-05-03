@@ -9,4 +9,6 @@
     a.src = g;
     m.parentNode.insertBefore(a, m)
 })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+window.ga_debug = {trace:true};
+ga("create", "UA-90713326-2", "auto");
 console.log("Initialized analytics.");
