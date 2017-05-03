@@ -21,8 +21,15 @@ var database = Promise.resolve(_firebase).then(function (firebase) {
     return firebase.database();
 });
 var authToken;
-
-ga("send", "event", "Startup");
+ga(function(tracker){
+    ga("send", "event", "Lifecycle", "Started", {
+        transport: "beacon"
+    });
+    tracker.send("event", "Lifecycle", "Started", {
+        transport: "beacon"
+    });
+    console.log("Sending analytics event.");
+});
 
 // Function to create hashes for article keys
 String.prototype.hashCode = function () {
@@ -258,7 +265,6 @@ function extractPageData(url, content) {
 };
 
 function extractHistoryItemData(historyItem) {
-    console.log(historyItem.lastVisitTime);
     var article_data = new ArticleData(reduceUrl(historyItem.url),
         Object.keys(sources).find(function (sourceName) {
             return historyItem.url.indexOf(sources[sourceName].url) !== -1;
@@ -294,7 +300,6 @@ function ArticleData(url, source, title, dateRead, date, author, text, partialRe
     this.date = date || "";
     this.author = author || "";
     this.text = text || "";
-    console.log("dateRead: " + dateRead);
     this.dateRead = dateRead;
     this.partialRecord = partialRecord || false;
 }
