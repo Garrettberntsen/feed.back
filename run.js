@@ -1,8 +1,9 @@
 var user_email;
 var user_id;
 var auth_token;
-var page_source = new Promise(function (resolve, reject) {
+var sources = new Promise(function (resolve, reject) {
     chrome.runtime.sendMessage({type: "getSources"}, function (sources) {
+        var sourceName
         if (sources) {
             resolve(sources);
         }
@@ -25,22 +26,18 @@ function scrapePage() {
         }
         return;
     }
-    page_source.then(function (sources) {
-        var data = {
-            'source': '',
-            'url': '',
-            'author': '',
-            'date': '',
-            'text': '',
-            'title': '',
-            'dateRead': ''
-        };
-        var sourceName = Object.keys(sources).find(function (sourceName) {
-            return window.location.hostname.indexOf(sources[sourceName].url) !== -1;
-        });
-        page_source = sources[sourceName];
-
-        if (page_source) {
+    sources.then(function (sources) {
+        
+        if (source_name) {
+            var data = {
+                'source': '',
+                'url': '',
+                'author': '',
+                'date': '',
+                'text': '',
+                'title': '',
+                'dateRead': ''
+            };
             data.source = sourceName;
             data.url = window.location.href.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
             var d = new Date();
@@ -108,8 +105,8 @@ function scrapePage() {
                 });
             }
         }
-    });
-};
+    })
+}
 chrome.runtime.onMessage.addListener(function (request, sender) {
     if (request.type == "userUpdated") {
         console.log("User identity updated");
@@ -149,7 +146,7 @@ function updateScrollRatio() {
 }
 
 $(document).ready(function () {
-    page_source.then(function (source) {
+    sources.then(function (source) {
         content_element = $(source["text-selector"]);
         if (content_element.length) {
             $(document).scroll(updateScrollRatio);
