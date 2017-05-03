@@ -22,6 +22,8 @@ var database = Promise.resolve(_firebase).then(function (firebase) {
 });
 var authToken;
 
+ga("send", "event", "Startup");
+
 // Function to create hashes for article keys
 String.prototype.hashCode = function () {
     var hash = 0,
