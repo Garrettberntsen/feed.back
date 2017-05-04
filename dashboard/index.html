@@ -1,0 +1,67 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Feedback - Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.1/css/bulma.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/vanilla-datatables/1.1.6/vanilla-dataTables.min.css">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+        <link rel="stylesheet" href="styles.css">
+        
+        <!--<link rel="stylesheet" href="css/main.css"> -->
+    </head>
+  <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+    <div class="container">
+    <nav class="nav">
+      <div class="nav-left">
+        <a class="nav-item is-active">Dashboard</a>
+<!--         <a class="nav-item">Goals</a>
+        <a class="nav-item">Analysis</a> -->
+      </div>
+      <div class="nav-right">
+        <a class="nav-item">
+          <img class="nav-logo" src="logo.svg" alt="Feedback logo">
+        </a>
+      </div>
+    </nav>
+      <div class="columns">
+        <div class="column bar-chart"></div>
+        <div class="column donut-chart"></div>
+      </div>
+      <table id="table">
+        <thead>
+          <tr>
+            <th class="table-header--eval">Eval</th>
+            <th class="table-header--date">Date</th>
+            <th class="table-header--publisher">Publisher</th>
+            <th class="table-header--title">Title</th>
+            <th class="table-header--type">Type</th>
+            <th class="table-header--author">Author</th>
+<!--             <th class="table-header--slant">Slant</th> -->
+            <th class="table-header--read">% Read</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+      </table>
+    </div>
+
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/vanilla-datatables/1.1.6/vanilla-dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
+
+    <script src="feedback-f33cf-export.json"></script>
+
+    <script src="script.js"></script>
+  </body>
+</html>
