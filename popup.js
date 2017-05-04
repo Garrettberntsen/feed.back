@@ -1,3 +1,8 @@
+ga(function(tracker){
+    ga(function(tracker){
+        tracker.send("event", "Lifecycle", "Popup Opened");
+    });
+});
 // Function to create hashes for article keys
 String.prototype.hashCode = function () {
     var hash = 0,
@@ -70,6 +75,9 @@ $(document).ready(function () {
                             theme: 'bars-movie',
                             initialRating: snapshot.val().lean,
                             onSelect: function (value, text) {
+                                tracker.send("event", "Action", "Set Article Lean", {
+                                    transport: "beacon"
+                                });
                                 setLeanColor(value);
                                 database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
                             }
@@ -81,6 +89,9 @@ $(document).ready(function () {
                             theme: 'fontawesome-stars',
                             initialRating: snapshot.val().stars,
                             onSelect: function (value, text) {
+                                ga(function(tracker){
+                                    tracker.send("event", "Action", "Set Article Rating");
+                                });
                                 database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
                                 $('#avg-rating-message').show();
                             }
