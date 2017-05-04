@@ -9,11 +9,22 @@
     a.src = g;
     m.parentNode.insertBefore(a, m)
 })(window, document, 'script', 'https://www.google-analytics.com/analytics_debug.js', 'ga');
-window.ga_debug = {trace:true};
-ga("create", "UA-90713326-2", "auto");
+window.ga_debug = {trace: true};
+chrome.identity.getProfileUserInfo(function (userInfo) {
+    ga("create", "UA-90713326-2", {
+        storage: "none",
+        userId: userInfo.id
+    });
+    ga("set", "checkProtocolTask", null);
+    ga(function (tracker) {
+        console.log("Initialized analytics.");
+    });
+});
+var analytics = new Promise(function(resolve,reject){
+    ga(function(tracker){
+        resolve(tracker);
+    });
+});
 //Need to disable protocol check, GA only allows from http/https by default.
-ga("set", "checkProtocolTask", null);
-ga(function(tracker){
-    console.log("Initialized analytics.");
-})
+
 
