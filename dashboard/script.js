@@ -3,7 +3,7 @@
 getData("103440541182310425020");
 
 function getData(id) {
-  var daysBack = 7;
+  var daysBack = 10 ;
   var userData = totalData.users[id];
   var email = userData.email;
   var articlesRead = userData.articles;
@@ -132,8 +132,8 @@ function createPieChart(data, obj, timeBack) {
 
   var donutWidth = 75;
 
-  var width = 600,
-      height = 360;
+  var width = 480,
+      height = 288;
   var radius = Math.min(width, height) / 2;
 
   var pie = d3.layout.pie()
@@ -153,7 +153,7 @@ function createPieChart(data, obj, timeBack) {
     .attr("width", width)
     .attr("height", height)
     .append("g")
-    .attr("transform", "translate("+ 200+","+(height/2)+ ")"); 
+    .attr("transform", "translate("+ 150+","+(height/2)+ ")"); 
 
   var path = svg.selectAll("path")
     .data(pie(dataset))
@@ -235,13 +235,13 @@ function createBarChart(data, obj, timeBack) {
 
   var margin = {
     top: 10,
-    right: 150,
+    right: 30,
     bottom: 25,
     left: 30
   };
 
-  var width = 800 - margin.left - margin.right,
-    height = 360 - margin.top - margin.bottom;
+  var width = 640 - margin.left - margin.right,
+    height = 288 - margin.top - margin.bottom;
 
   var svg = d3.select("div.bar-chart")
     .append("svg")
@@ -335,28 +335,28 @@ function createBarChart(data, obj, timeBack) {
       tooltip.select("text").text(d.y);
     });
 
-  //Draw the Legend
-  var legend = svg.selectAll(".legend")
-    .data(color.domain())
-    .enter().append("g")
-    .attr("class", "legend")
-    .attr("transform", function(d,i) {
-      return "translate(30, " + i * 20 + ")";
-    });
+  // //Draw the Legend
+  // var legend = svg.selectAll(".legend")
+  //   .data(color.domain())
+  //   .enter().append("g")
+  //   .attr("class", "legend")
+  //   .attr("transform", function(d,i) {
+  //     return "translate(30, " + i * 20 + ")";
+  //   });
 
-  legend.append("rect")
-    .attr("x", width - 10)
-    .attr("width", 10)
-    .attr("height", 10)
-    .style("fill", color)
-    .style("stroke", color);
+  // legend.append("rect")
+  //   .attr("x", width - 10)
+  //   .attr("width", 10)
+  //   .attr("height", 10)
+  //   .style("fill", color)
+  //   .style("stroke", color);
 
-  legend.append("text")
-    .attr("x", width + 5)
-    .attr("y", 5)
-    .attr("dy", ".35em")
-    .style("text-anchor", "start")
-    .text(function(d) {return categoryKeys[d] ; });
+  // legend.append("text")
+  //   .attr("x", width + 5)
+  //   .attr("y", 5)
+  //   .attr("dy", ".35em")
+  //   .style("text-anchor", "start")
+  //   .text(function(d) {return categoryKeys[d] ; });
 
     var tooltip = svg.append("g")
       .attr("class", "tooltip")
