@@ -235,7 +235,7 @@ function createBarChart(data, obj, timeBack) {
 
   var margin = {
     top: 10,
-    right: 30,
+    right: 0,
     bottom: 25,
     left: 30
   };
@@ -264,7 +264,7 @@ function createBarChart(data, obj, timeBack) {
     .domain(dataset[0].map(function(d) {
       return d.x;
     }))
-    .rangeRoundBands([10, width - 10], 0.02);
+    .rangeRoundBands([10, width - 10], 0.2);
 
   var y = d3.scale.linear()
     .domain([0, d3.max(dataset, function(d){
