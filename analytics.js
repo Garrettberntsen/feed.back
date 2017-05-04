@@ -1,3 +1,14 @@
+/**
+ * This module is responsible for receiving Google Analytics related messages and dispatching them.
+ *
+ * This module responds to the following messages:
+ * - type: "analytics"
+ * - message: array
+ *      - command: string, type of command
+ *          allowed: "send"
+ *      - category: string, event category, e.g. "Lifecycle"
+ *      - action: string, the action that occured, e.g. "Extension Started"
+ */
 (function (i, s, o, g, r, a, m) {
     i['GoogleAnalyticsObject'] = r;
     i[r] = i[r] || function () {
@@ -27,4 +38,16 @@ var analytics = new Promise(function(resolve,reject){
 });
 //Need to disable protocol check, GA only allows from http/https by default.
 
-
+chrome.runtime.onMessage.addListener(function(request, sender, sendReponse){
+    switch (request.type){
+        case "analytics":
+            switch (request.message.command){
+                case "send":
+                    analytics.then(function(){
+                        request.message.hitType = "event";
+                        ga("send", request.message);
+                    });
+                    break;
+            }
+    }
+})

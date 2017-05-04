@@ -1,7 +1,10 @@
-analytics.then(function () {
-    ga("send", "event", "Lifecycle", "Popup Opened", {
-            nonInteraction: true
-        });
+chrome.runtime.sendMessage({
+    type: "analytics",
+    message: {
+        command: "send",
+        category: "User Action",
+        action: "Popup Opened"
+    }
 });
 // Function to create hashes for article keys
 String.prototype.hashCode = function () {
@@ -75,12 +78,13 @@ $(document).ready(function () {
                             theme: 'bars-movie',
                             initialRating: snapshot.val().lean,
                             onSelect: function (value, text) {
-                                analytics.then(function () {
-                                    ga(function (tracker) {
-                                        tracker.send("event", "Action", "Set Article Rating", {
-                                            nonInteraction: true
-                                        });
-                                    });
+                                chrome.runtime.sendMessage({
+                                    type: "analytics",
+                                    message: {
+                                        command: "send",
+                                        category: "User Action",
+                                        action: "Article Lean Set"
+                                    }
                                 });
                                 setLeanColor(value);
                                 database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
@@ -93,12 +97,13 @@ $(document).ready(function () {
                             theme: 'fontawesome-stars',
                             initialRating: snapshot.val().stars,
                             onSelect: function (value, text) {
-                                analytics.then(function () {
-                                    ga(function (tracker) {
-                                        tracker.send("event", "Action", "Set Article Rating", {
-                                            nonInteraction: true
-                                        });
-                                    });
+                                chrome.runtime.sendMessage({
+                                    type: "analytics",
+                                    message: {
+                                        command: "send",
+                                        category: "User Action",
+                                        action: "Article Rating Set"
+                                    }
                                 });
                                 database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
                                 $('#avg-rating-message').show();

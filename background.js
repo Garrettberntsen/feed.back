@@ -21,8 +21,12 @@ var database = Promise.resolve(_firebase).then(function (firebase) {
     return firebase.database();
 });
 var authToken;
-analytics.then(function () {
-    ga("send", "event", "Lifecycle", "Extension Started");
+analytics.then(function(){
+    ga("send", {
+        hitType: "event",
+        eventCategory : "Lifecycle",
+        eventAction: "Extension Startup"
+    });
 });
 // Function to create hashes for article keys
 String.prototype.hashCode = function () {
