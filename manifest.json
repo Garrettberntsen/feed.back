@@ -9,18 +9,40 @@
     "default_popup": "index.html"
   },
   "background": {
-    "scripts" : ["analytics.js", "firebase.js", "sources.js", "background.js"]
+    "scripts": [
+      "firebase.js",
+      "database.js",
+      "identity.js",
+      "analytics.js",
+      "background.js",
+      "sources.js",
+      "history.js"
+    ]
   },
   "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["jquery-3.1.1.min.js", "run.js"]
-      }
-    ],
-  "content_security_policy":"script-src 'self' https://www.google-analytics.com/ https://www.gstatic.com/ https://*.firebaseio.com https://*.googleapis.com; object-src 'self'",
-  "permissions": ["history","identity", "identity.email", "tabs", "activeTab", "<all_urls>"],
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "jquery-3.1.1.min.js",
+        "run.js"
+      ]
+    }
+  ],
+  "content_security_policy": "script-src 'self' https://www.google-analytics.com/ https://www.gstatic.com/ https://*.firebaseio.com https://*.googleapis.com; object-src 'self'",
+  "permissions": [
+    "history",
+    "identity",
+    "identity.email",
+    "tabs",
+    "activeTab",
+    "<all_urls>"
+  ],
   "oauth2": {
-	"client_id": "17295082044-paq2uf4r9nv5nbougm3ctnip1pbl1e72.apps.googleusercontent.com",
-	"scopes": ["profile"]
+    "client_id": "17295082044-paq2uf4r9nv5nbougm3ctnip1pbl1e72.apps.googleusercontent.com",
+    "scopes": [
+      "profile"
+    ]
   }
 }
