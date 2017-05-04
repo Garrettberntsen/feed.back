@@ -1,3 +1,5 @@
+(function(){ 
+
 getData("103440541182310425020");
 
 function getData(id) {
@@ -22,6 +24,7 @@ function createArticleObject(articles) {
 
   for (var key in articles) {
     if (articles.hasOwnProperty(key)) {
+
       var article = articles[key];
       var source = article.source;
       
@@ -250,9 +253,8 @@ function createBarChart(data, obj, timeBack) {
 
   var dataset = d3.layout.stack()( categoryKeys.map(function(objective) {
     return finalData.map(function(d) {
-      console.log(Date.parse(d.date).toString('MMM d'));
       return {
-        x: d.date,
+        x: Date.parse(d.date).toString('MMM d'),
         y: +d[objective]
       };
     });
@@ -417,3 +419,5 @@ function getLastDays(days) {
   }
   return lastDays;
 }
+
+})();
