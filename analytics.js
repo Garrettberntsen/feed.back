@@ -1,7 +1,7 @@
 /**
- * This module is responsible for receiving Google Analytics related messages and dispatching them.
+ * This module is responsible for dispatching Google Analytics events.
  *
- * This module responds to the following messages:
+ * Non-background scripts can interact with this module via the following messages:
  * - type: "analytics"
  * - message: array
  *      - command: string, type of command
