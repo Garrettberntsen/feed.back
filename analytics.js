@@ -11,6 +11,8 @@
 })(window, document, 'script', 'https://www.google-analytics.com/analytics_debug.js', 'ga');
 window.ga_debug = {trace:true};
 ga("create", "UA-90713326-2", "auto");
+//Need to disable protocol check, GA only allows from http/https by default.
+ga("set", "checkProtocolTask", null);
 ga(function(tracker){
     console.log("Initialized analytics.");
 })
