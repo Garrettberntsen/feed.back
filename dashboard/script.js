@@ -400,6 +400,10 @@ function createTable(data) {
     }
   }
 
+  articlesRead.sort(function (a, b) {
+    return Date.parse(b[1]) - Date.parse(a[1]);
+  });
+
   for(var i = 0; i < articlesRead.length; i++) {
     var tr = document.createElement("TR");
     for(var j = 0; j < articlesRead[j].length; j++) {
