@@ -22,12 +22,7 @@ var database = Promise.resolve(_firebase).then(function (firebase) {
 });
 var authToken;
 ga(function(tracker){
-    ga("send", "event", "Lifecycle", "Started", {
-        transport: "beacon"
-    });
-    tracker.send("event", "Lifecycle", "Started", {
-        transport: "beacon"
-    });
+    tracker.send("event", "Lifecycle", "Extension Started");
     console.log("Sending analytics event.");
 });
 
