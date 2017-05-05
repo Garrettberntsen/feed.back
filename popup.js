@@ -19,6 +19,7 @@ String.prototype.hashCode = function () {
     return hash;
 };
 
+
 var sourceDataCount = {};
 
 var bg = chrome.extension.getBackgroundPage();
@@ -55,7 +56,15 @@ function setLeanColor(value) {
     $('#avg-lean-message').show();
 }
 
+
+
+
+
 $(document).ready(function () {
+    $('#dashboard-link').on('click', function(){
+        chrome.tabs.create({url: '../dashboard/dashboard.html'});
+    });
+
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         bg.database.then(function (database) {
