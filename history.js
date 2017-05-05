@@ -43,7 +43,7 @@ _firebase.then(function (firebase) {
 function extractHistoryItemData(historyItem) {
     var reducedUrl = reduceUrl(historyItem.url);
     var sourceName = Object.keys(sources).find(function (sourceName) {
-        return new RegExp(sources[sourceName].url + "/.+").test(reducedUrl);
+        return new RegExp(sources[sourceName].url).test(reducedUrl);
     });
     var source = sources[sourceName];
     if (source) {
@@ -52,7 +52,7 @@ function extractHistoryItemData(historyItem) {
             })) {
             console.log(historyItem.url + " matches an excluded url for " + sourceName);
             return;
-        } else if (!new RegExp(source.url + "/.*").test(reducedUrl)){
+        } else if (!new RegExp(source.url + "/.+").test(reducedUrl)){
             console.log(historyItem.url + " looks like the home page for " + sourceName);
             return;
         }
