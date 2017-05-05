@@ -66,32 +66,21 @@ function writeArticleData(article_data, user) {
         return false;
     }
 
-    current_user.then(function (user) {
+    _firebase.then(function (firebase) {
         //Check if the article has already been scraped or the new record is not a partial record.
         firebase.database().ref('articles/' + article_key).once("value").then(function (articleSnapshot) {
             var existing_article;
             if (articleSnapshot.exists()) {
                 existing_article = articleSnapshot.val();
             }
-            console.log("Writing for article " + article_key);
-            //Write new records and overwrite partial ones
-            if (!articleSnapshot.exists() || (articleSnapshot.val().partialRecord && !article_data.partialRecord)) {
-                if (!articleSnapshot.exists()) {
-                    console.log("Writing new article record");
-                } else if (articleSnapshot.val().partialRecord && !article_data.partialRecord) {
-                    console.log("Overwriting partial record");
-                } else {
-                    console.log("Overwriting full record");
-                }
-                firebase.database().ref('articles/' + article_key).set(article_data);
-            }
-            increaseReadCount();
-            firebase.database().ref('articles/' + article_key + '/readers/' + user.id).set(true);
-            firebase.database().ref('users/' + user.id + '/articles/' + article_key + '/source').set(article_data.source);
-            firebase.database().ref('users/' + user.id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
-            firebase.database().ref('users/' + user.id + '/email').set(user.email);
-            console.log("feed.back data written to firebase!");
+            firebase.database().ref('articles/' + article_key).set(article_data);
         });
+        increaseReadCount();
+        firebase.database().ref('articles/' + article_key + '/readers/' + user.id).set(true);
+        firebase.database().ref('users/' + user.id + '/articles/' + article_key + '/source').set(article_data.source);
+        firebase.database().ref('users/' + user.id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
+        firebase.database().ref('users/' + user.id + '/email').set(user.email);
+        console.log("feed.back data written to firebase!");
     });
 }
 
@@ -203,8 +192,8 @@ function ArticleData(url, source, title, dateRead, date, author, text, partialRe
 function tabChangeHandler(tabId, changeInfo) {
     if (current_article && (changeInfo.url || changeInfo.isWindowClosing !== undefined)) {
         console.log("Navigating away from source page, persisting article data");
-        current_article.then(function (user) {
-            writeArticleData(current_article, user);
+        Promise.all([current_article, current_user]).then(function (resolved) {
+            writeArticleData(resolved[0], resolved[1]);
         });
     }
 }
