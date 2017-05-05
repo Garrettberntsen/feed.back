@@ -9,7 +9,7 @@
  */
 var sources = {
     'washingtonpost': {
-        'url': 'washingtonpost.com',
+        'url': 'washingtonpost.com/news',
         'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
@@ -21,6 +21,7 @@ var sources = {
     },
     'nytimes': {
         'url': 'nytimes.com',
+        'excludedUrls' :["subscribe.nytimes.com"],
         'author-selector': 'meta[name="byl"]',
         'author-selector-property': 'content',
         'date-selector': 'time',
@@ -31,7 +32,7 @@ var sources = {
         'title-selector-property': ''
     },
     'politico': {
-        'url': 'politico.com',
+        'url': 'politico.com/story',
         'author-selector': 'dt.credits-author',
         'author-selector-property': '',
         'date-selector': 'time',
@@ -197,6 +198,7 @@ var sources = {
     },
     'forbes': {
         'url': 'forbes.com',
+        "excluded_urls" : ["forbes.com/home.*"],
         'author-selector': 'p.contrib-byline-author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
