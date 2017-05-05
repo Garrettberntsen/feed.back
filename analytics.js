@@ -23,7 +23,7 @@
     m.parentNode.insertBefore(a, m)
 })(window, document, 'script', 'https://www.google-analytics.com/analytics_debug.js', 'ga');
 window.ga_debug = {trace: true};
-var analytics = Promise.resolve(firebase).then(function (firebase) {
+var analytics = Promise.resolve(_firebase).then(function (firebase) {
     return new Promise(function (resolve, reject) {
         chrome.identity.getProfileUserInfo(function (userInfo) {
             firebase.database().ref("users/" + userInfo.id).once("value").then(function (userSnapshot) {
