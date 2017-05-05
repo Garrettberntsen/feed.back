@@ -62,9 +62,9 @@ function setLeanColor(value) {
 
 $(document).ready(function () {
     $('#dashboard-link').on('click', function(){
-        chrome.tabs.create({url: '../dashboard/index.html'});
+        chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
-    
+
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         bg.database.then(function (database) {
