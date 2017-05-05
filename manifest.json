@@ -11,8 +11,8 @@
   "background": {
     "scripts": [
       "firebase.js",
-      "database.js",
       "identity.js",
+      "database.js",
       "analytics.js",
       "background.js",
       "sources.js",
