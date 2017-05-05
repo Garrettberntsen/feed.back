@@ -32,7 +32,7 @@ var sources = {
         'title-selector-property': ''
     },
     'politico': {
-        'url': 'politico.com/story',
+        'url': 'politico.com',
         'author-selector': 'dt.credits-author',
         'author-selector-property': '',
         'date-selector': 'time',
