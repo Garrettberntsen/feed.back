@@ -7,9 +7,9 @@
 var only_scrape_new_user_history = false;
 
 _firebase.then(function (firebase) {
-    chrome.identity.getProfileUserInfo(function (userInfo) {
+    current_user.then(function (user) {
         var database = firebase.database();
-        database.ref("/users/" + userInfo.id).once("value").then(function (userSnapshot) {
+        database.ref("/users/" + user.id).once("value").then(function (userSnapshot) {
             if (!userSnapshot.exists() || !only_scrape_new_user_history) {
                 Object.values(sources).forEach(function (source) {
                     var now = new Date();
@@ -28,7 +28,7 @@ _firebase.then(function (firebase) {
                         results.forEach(function (historyItem) {
                             var extractedItem = extractHistoryItemData(historyItem);
                             if (extractedItem) {
-                                writeArticleData(extractedItem, userInfo.id);
+                                writeArticleData(extractedItem, user);
                             }
                         });
                     });
