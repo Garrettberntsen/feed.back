@@ -161,8 +161,8 @@ function extractPageData(url, content) {
 
 //Cut out the protocol, subdomain and path from a url
 function reduceUrl(url) {
-    //Replace leading www. and http and https and trailing # fragment
-    return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
+    //Replace leading www. and http: and https:, trailing # fragment and query parameters
+    return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/\?.*/, '').replace(/#.*/, '');
 }
 
 function ArticleData(url, source, title, dateRead, date, author, text, partialRecord) {
