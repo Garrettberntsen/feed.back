@@ -9,7 +9,7 @@
  */
 var sources = {
     'washingtonpost': {
-        'url': 'washingtonpost.com/news',
+        'url': 'washingtonpost.com',
         'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
@@ -198,7 +198,7 @@ var sources = {
     },
     'forbes': {
         'url': 'forbes.com',
-        "excluded_urls" : ["forbes.com/home.*"],
+        "excluded_urls" : ["forbes.com/home.*", "forbes.com/forbes/welcome/"],
         'author-selector': 'p.contrib-byline-author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
