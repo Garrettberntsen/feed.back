@@ -192,8 +192,8 @@ function ArticleData(url, source, title, dateRead, date, author, text, partialRe
 function tabChangeHandler(tabId, changeInfo) {
     if (current_article && (changeInfo.url || changeInfo.isWindowClosing !== undefined)) {
         console.log("Navigating away from source page, persisting article data");
-        Promise.all([current_article, current_user]).then(function (resolved) {
-            writeArticleData(resolved[0], resolved[1]);
+        current_user.then(function (user) {
+            writeArticleData(current_article, user);
         });
     }
 }
