@@ -19,6 +19,7 @@ var current_user = new Promise(function (resolve, reject) {
             userInfo.auth_token = token;
             resolve(userInfo);
         });
+        firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token));
     });
 });
 
@@ -43,4 +44,4 @@ chrome.runtime.onMessage.addListener(function (request, requester, sendResponse)
             })
             return true;
     }
-})
+});
