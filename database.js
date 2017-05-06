@@ -24,6 +24,12 @@ var _firebase = Promise.all([firebase, current_user]).then(function (resolved) {
     };
     firebase.initializeApp(config);
     firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
+    firebase.database().ref("users/" + user.id).once("value").then(function(snapshot){
+        if(!snapshot.exists()){
+            firebase.database().ref("users/" + user.id).set(user);
+        }
+    });
+
     return firebase;
 });
 
