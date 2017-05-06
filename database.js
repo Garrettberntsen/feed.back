@@ -2,14 +2,13 @@
  * This modules handles reading from, writing to and initializing the backing firebase data store.
  *
  * This modules responds to the following messages
- *  - type : "writeArticle"
- *  - message: {article_data, current_user}
- *  - response: none
+ *  - type : "getUser"
+ *  - message: user_id
+ *  - response: the user matching the given id from the database
  *
- *  - type: "signInWithCredential"
- *  - message: credential
- *  - response: resolved user
- * Created by Damie on 5/1/2017.
+ *  - type: "setUser"
+ *  - message: {user_id, user}
+ *  - response: a promise that resolves after the write completes
  */
 //We guarantee that firebase is initialized before trying to access.
 var _firebase = Promise.all([firebase, current_user]).then(function (resolved) {
@@ -24,20 +23,44 @@ var _firebase = Promise.all([firebase, current_user]).then(function (resolved) {
     };
     firebase.initializeApp(config);
     firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
-    firebase.database().ref("users/" + user.id).once("value").then(function(snapshot){
-        if(!snapshot.exists()){
+    firebase.database().ref("users/" + user.id).once("value").then(function (snapshot) {
+        if (!snapshot.exists()) {
             firebase.database().ref("users/" + user.id).set(user);
         }
     });
-
     return firebase;
 });
 
+chrome.runtime.onMessage(function (request, sender, sendResponse) {
+    switch (request.type) {
+        case "getUser":
+            getUser(request.message).then(function (user) {
+                sendResponse(user);
+            });
+            return true;
+    }
+})
+
 /**
- * Returns a Promise that resolves to the firebase snapshot for the user with the given id.
+ * Returns a Promise that resolves to the user with the given id pulled from.
  */
-function getUser(user_id){
-    return _firebase.then(function(firebase){
-        firebase.database().ref("users/" + user_id)
+function getUser(user_id) {
+    return _firebase.then(function (firebase) {
+        return firebase.database().ref("users/" + user_id).once("value");
+    }).then(function (snapshot) {
+        return snapshot.val();
+    });
+}
+
+/**
+ * Sets the user at the location users/user_id with the given user information.
+ * @param user_id
+ * @param user
+ */
+function setUser(user_id, user) {
+    return _firebase.then(function (firebase) {
+        firebase.database().ref("users/" + user_id).set(user);
+    }).then(function(){
+        return true;
     });
 }
