@@ -1,5 +1,4 @@
 var current_article;
-//To avoid duplication and global scope, we'll initialize firebase and make it accessible via a promise.
 var read_count = 0;
 analytics.then(function () {
     ga("send", {
@@ -33,36 +32,36 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             increaseReadCount();
             break;
         case "update_current_article":
-            current_article = new ArticleData(
-                request.message.data.url,
-                request.message.data.source,
-                request.message.data.title,
-                new Date().getTime(),
-                request.message.data.date,
-                request.message.data.author,
-                request.message.data.text
-            );
+            current_article = Promise.resolve(request.message);
             current_user.then(function (user) {
-                writeArticleData(current_article, user);
+                writeArticleData(request.message, user);
             });
             break;
-        case "updateScrollMetric":
-            if (current_article) {
-                current_article.scrolled_content_ratio = request.message;
-            }
+        case "getCurrentArticle":
+            current_article.then(function (current_article) {
+                sendResponse(current_article);
+            })
+            return true;
+        case
+        "updateScrollMetric"
+        :
+            current_article.then(function (article) {
+                article.scrolled_content_ratio = request.message;
+            });
             break;
     }
 })
 
-function writeArticleData(article_data, user) {
-    if (!article_data) {
+function writeArticleData(article, user) {
+    if (!article || !article.article_data) {
         console.log("writeArticleData was called with no data");
         return;
     }
+    var article_data = article.article_data;
 
     var article_key = article_data.url.hashCode();
 
-    if (!article_key || !article_data.dateRead) {
+    if (!article_key || !article.user_metadata.dateRead) {
         return false;
     }
 
@@ -73,12 +72,14 @@ function writeArticleData(article_data, user) {
             if (articleSnapshot.exists()) {
                 existing_article = articleSnapshot.val();
             }
-            firebase.database().ref('articles/' + article_key).set(article_data);
+            if (!existing_article || !article_data.partial_record) {
+                firebase.database().ref('articles/' + article_key).set(article_data);
+            }
         });
         increaseReadCount();
-        firebase.database().ref('articles/' + article_key + '/readers/' + user.id).set(true);
-        firebase.database().ref('users/' + user.id + '/articles/' + article_key + '/source').set(article_data.source);
-        firebase.database().ref('users/' + user.id + '/articles/' + article_key + '/dateRead').set(article_data.dateRead);
+        if (article.user_metadata) {
+            firebase.database().ref('users/' + user.id + '/articles/' + article_key).set(article.user_metadata);
+        }
         firebase.database().ref('users/' + user.id + '/email').set(user.email);
         console.log("feed.back data written to firebase!");
     });
@@ -165,7 +166,12 @@ function reduceUrl(url) {
     return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/\?.*/, '').replace(/#.*/, '');
 }
 
-function ArticleData(url, source, title, dateRead, date, author, text, partialRecord) {
+function Article(article_data, user_metadata) {
+    this.article_data = article_data;
+    this.user_metadata = user_metadata;
+}
+
+function ArticleData(url, source, title, date, author, text, readers, partialRecord) {
     if (url == undefined) {
         throw "url must be set";
     }
@@ -178,23 +184,44 @@ function ArticleData(url, source, title, dateRead, date, author, text, partialRe
         throw "Title must be set"
     }
     this.title = title;
-    if (!dateRead == undefined) {
-        throw "Date must be set";
-    }
-    this.dateRead = dateRead;
 
     this.date = date || "";
     this.author = author || "";
     this.text = text || "";
+    this.readers = readers || [];
     this.partialRecord = partialRecord || false;
 }
 
+function UserMetadata(dateRead, lean, stars) {
+    this.dateRead = dateRead;
+    this.lean = lean;
+    this.rating = stars;
+}
+
 function tabChangeHandler(tabId, changeInfo) {
-    if (current_article && (changeInfo.url || changeInfo.isWindowClosing !== undefined)) {
-        console.log("Navigating away from source page, persisting article data");
-        current_user.then(function (user) {
-            writeArticleData(current_article, user);
+    if (changeInfo.url || changeInfo.isWindowClosing !== undefined) {
+        //Persist the current article as we navigate away
+        Promise.all([current_article, current_user]).then(function (resolved) {
+            if (resolved[0]) {
+                writeArticleData(resolved[0], resolved[1]);
+            }
         });
+        //Try to find an existing entry for the new page
+        Promise.all([_firebase, current_user]).then(function (resolved) {
+                var firebase = resolved[0];
+                var user = resolved[1];
+                var reduced_url = reduceUrl(changeInfo.url);
+                current_article = new Promise(function (resolve, reject) {
+                    Promise.all([
+                        firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
+                        firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
+                        var article_data = resolved[0].val();
+                        var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                        resolve(new Article(article_data, user_metadata));
+                    });
+                });
+            }
+        )
     }
 }
 

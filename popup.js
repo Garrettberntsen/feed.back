@@ -56,75 +56,72 @@ function setLeanColor(value) {
     $('#avg-lean-message').show();
 }
 
-
-
-
-
 $(document).ready(function () {
-    $('#dashboard-link').on('click', function(){
+    $('#dashboard-link').on('click', function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
-        bg.database.then(function (database) {
-            var article_key = url.hashCode();
-            database.ref('articles/' + article_key).once('value').then(function (snapshot) {
-                if (snapshot.exists()) {
-                    var article = snapshot.val();
-                    $('#title').text(article.title);
-                    if (article.author) {
-                        var authors = '';
-                        for (var author in article.author) {
-                            authors += article.author[author] + ', ';
+        var article_key = url.hashCode();
+        chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
+            $('#title').text(article.article_data.title);
+            if (article.article_data.author) {
+                var authors = '';
+                for (var author in article.article_data.author) {
+                    authors += article.article_data.author[author] + ', ';
+                }
+                authors = authors.substring(0, authors.length - 2);
+                $('#author').text('by ' + authors);
+            }
+            $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
+            $('#leanRating').barrating({
+                theme: 'bars-movie',
+                initialRating: article.user_metadata.lean,
+                onSelect: function (value, text) {
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            command: "send",
+                            category: "User Action",
+                            action: "Article Lean Set"
                         }
-                        authors = authors.substring(0, authors.length - 2);
-                        $('#author').text('by ' + authors);
-                    }
-                    $('#read-count').text(Object.keys(article.readers).length);
-                    database.ref('users/' + bg.user_id + '/articles/' + article_key).once('value').then(function (snapshot) {
-                        $('#leanRating').barrating({
-                            theme: 'bars-movie',
-                            initialRating: snapshot.val().lean,
-                            onSelect: function (value, text) {
-                                chrome.runtime.sendMessage({
-                                    type: "analytics",
-                                    message: {
-                                        command: "send",
-                                        category: "User Action",
-                                        action: "Article Lean Set"
-                                    }
-                                });
-                                setLeanColor(value);
-                                database.ref('users/' + bg.user_id + '/articles/' + article_key + '/lean').set($('#leanRating').val());
-                            }
-                        });
-                        if (snapshot.val().lean) {
-                            setLeanColor(snapshot.val().lean);
-                        }
-                        $('#starRating').barrating({
-                            theme: 'fontawesome-stars',
-                            initialRating: snapshot.val().stars,
-                            onSelect: function (value, text) {
-                                chrome.runtime.sendMessage({
-                                    type: "analytics",
-                                    message: {
-                                        command: "send",
-                                        category: "User Action",
-                                        action: "Article Rating Set"
-                                    }
-                                });
-                                database.ref('users/' + bg.user_id + '/articles/' + article_key + '/stars').set($('#starRating').val());
-                                $('#avg-rating-message').show();
-                            }
-                        });
-                        if (snapshot.val().stars) {
-                            $('#avg-rating-message').show();
-                        }
-                        $("form").show();
+                    });
+                    setLeanColor(value);
+                    article.user_metadata.lean = $('#leanRating').val();
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article",
+                        message: current_article
                     });
                 }
             });
+            if (article.user_metadata.lean) {
+                setLeanColor(article.user_metadata.lean);
+            }
+            $('#starRating').barrating({
+                theme: 'fontawesome-stars',
+                initialRating: article.user_metadata.stars,
+                onSelect: function (value, text) {
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            command: "send",
+                            category: "User Action",
+                            action: "Article Rating Set"
+                        }
+                    });
+                    article.user_metadata.stars = $('#starRating').val();
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article",
+                        message: current_article
+                    });
+                    $('#avg-rating-message').show();
+                }
+            });
+            if (article.user_metadata.stars) {
+                $('#avg-rating-message').show();
+            }
+            $("form").show();
         });
     });
 });

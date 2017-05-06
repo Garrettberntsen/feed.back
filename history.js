@@ -59,9 +59,8 @@ function extractHistoryItemData(historyItem) {
 
         var article_data = new ArticleData(reduceUrl(historyItem.url),
             sourceName,
-            historyItem.title,
-            historyItem.lastVisitTime);
+            historyItem.title);
         article_data.partialRecord = true;
-        return article_data;
+        return new Article(article_data, new UserMetadata(historyItem.lastVisitTime));
     }
 }
