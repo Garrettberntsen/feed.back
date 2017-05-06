@@ -193,9 +193,9 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
 }
 
 function UserMetadata(dateRead, lean, stars) {
-    this.dateRead = dateRead;
-    this.lean = lean;
-    this.rating = stars;
+    this.dateRead = dateRead !== undefined? dateRead : null;
+    this.lean = lean !== undefined ? lean : null;
+    this.stars = stars !== undefined ? stars : null;
 }
 
 function tabChangeHandler(tabId, changeInfo) {
