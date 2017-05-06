@@ -39,10 +39,11 @@ chrome.runtime.onMessage(function (request, sender, sendResponse) {
             });
             return true;
     }
-})
+});
 
 /**
- * Returns a Promise that resolves to the user with the given id pulled from.
+ * Returns a Promise that resolves to the user with the given id pulled from the database.
+ * @param   user_id the id of the user to get
  */
 function getUser(user_id) {
     return _firebase.then(function (firebase) {
@@ -60,7 +61,33 @@ function getUser(user_id) {
 function setUser(user_id, user) {
     return _firebase.then(function (firebase) {
         firebase.database().ref("users/" + user_id).set(user);
-    }).then(function(){
+    }).then(function () {
+        return true;
+    });
+}
+
+/**
+ * Returns the article information for the article with the given key.
+ * @param article_id
+ */
+function getArticle(article_id){
+    return _firebase.then(function (firebase) {
+        return firebase.database().ref("articles/" + article_id).once("value");
+    }).then(function (snapshot) {
+        return snapshot.val();
+    });
+}
+
+/**
+ * Writes the given article into the database at the location indicated as a child of articles at the given id.
+ * @param article_id
+ * @param article_data
+ * @returns {!Thenable.<R>}
+ */
+function setArticle(article_id, article_data){
+    return _firebase.then(function (firebase) {
+        firebase.database().ref("articles/" + article_id).set(article_data);
+    }).then(function () {
         return true;
     });
 }

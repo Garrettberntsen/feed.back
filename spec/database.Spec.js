@@ -68,7 +68,7 @@ describe("The database module", function () {
             }
         });
     });
-    it("will return a null for a non-existent id", function (done) {
+    it("will return a null for a non-existent user id", function (done) {
         firebase_snapshot.val.returns(null);
         var file = fs.readFile(script, "utf-8", function (err, out) {
             try {
@@ -83,7 +83,7 @@ describe("The database module", function () {
             }
         });
     });
-    it("will save a new given user to the databse", function (done) {
+    it("will save a new given user to the database", function (done) {
         firebase_snapshot.val.returns(null);
         var file = fs.readFile(script, "utf-8", function (err, out) {
             try {
@@ -92,6 +92,51 @@ describe("The database module", function () {
                 expect(context.getUser).toBeDefined();
                 context.setUser(123, {}).then(function(){
                     expect(firebase_database.ref.calledWith("users/123")).toBeTruthy();
+                    done();
+                });
+            } catch (ex) {
+                console.log(ex);
+            }
+        });
+    });
+    it("will return an article object for an existing id", function (done) {
+        var file = fs.readFile(script, "utf-8", function (err, out) {
+            try {
+                vm.runInNewContext(out, context);
+                expect(context.getUser).toBeDefined();
+                context.getArticle(123).then(function (article) {
+                    expect(article).toBeDefined();
+                    done();
+                });
+            } catch (ex) {
+                console.log(ex);
+            }
+        });
+    });
+    it("will return a null for a non-existent article id", function (done) {
+        firebase_snapshot.val.returns(null);
+        var file = fs.readFile(script, "utf-8", function (err, out) {
+            try {
+                vm.runInNewContext(out, context);
+                expect(context.getArticle).toBeDefined();
+                context.getArticle(123).then(function (article) {
+                    expect(article).toBeNull();
+                    done();
+                });
+            } catch (ex) {
+                console.log(ex);
+            }
+        });
+    });
+    it("will save a new given article to the database", function (done) {
+        firebase_snapshot.val.returns(null);
+        var file = fs.readFile(script, "utf-8", function (err, out) {
+            try {
+                vm.runInNewContext(out, context);
+                expect(context.chrome).toBeDefined();
+                expect(context.getUser).toBeDefined();
+                context.setArticle(123, {}).then(function(){
+                    expect(firebase_database.ref.calledWith("articles/123")).toBeTruthy();
                     done();
                 });
             } catch (ex) {
