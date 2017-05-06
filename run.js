@@ -137,7 +137,7 @@ $(document).ready(function () {
         var source_name = Object.keys(sources).find(function (source_name) {
             return window.location.href.indexOf(sources[source_name].url) !== -1;
         });
-        content_element = $(source_name["text-selector"]);
+        content_element = $(sources[source_name]["text-selector"]);
         if (content_element.length) {
             $(document).scroll(updateScrollRatio);
             updateScrollRatio();
