@@ -1,4 +1,4 @@
-var current_article;
+var current_article = Promise.resolve();
 var read_count = 0;
 analytics.then(function () {
     ga("send", {
