@@ -61,6 +61,6 @@ function extractHistoryItemData(historyItem) {
             sourceName,
             historyItem.title);
         article_data.partialRecord = true;
-        return new Article(article_data, new UserMetadata(historyItem.lastVisitTime));
+        return new Article(article_data, new UserMetadata(historyItem.lastVisitTime, sourceName));
     }
 }

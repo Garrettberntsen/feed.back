@@ -176,11 +176,11 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
         throw "url must be set";
     }
     this.url = url;
-    if (!source == undefined) {
+    if (source === undefined) {
         throw "Source must be set";
     }
     this.source = source;
-    if (!title == undefined) {
+    if (title === undefined) {
         throw "Title must be set"
     }
     this.title = title;
@@ -192,8 +192,12 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
     this.partialRecord = partialRecord || false;
 }
 
-function UserMetadata(dateRead, lean, stars) {
+function UserMetadata(dateRead, source, lean, stars) {
     this.dateRead = dateRead !== undefined? dateRead : null;
+    if (source == undefined) {
+        throw "Source must be set";
+    }
+    this.source = source;
     this.lean = lean !== undefined ? lean : null;
     this.stars = stars !== undefined ? stars : null;
 }
