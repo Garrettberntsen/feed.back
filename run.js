@@ -1,6 +1,3 @@
-var user_email;
-var user_id;
-var auth_token;
 var sources = new Promise(function (resolve, reject) {
     chrome.runtime.sendMessage({type: "getSources"}, function (sources) {
         var sourceName
@@ -14,98 +11,92 @@ var sources = new Promise(function (resolve, reject) {
 });
 
 function scrapePage() {
-    if (!user_email || !user_id || !auth_token) {
-        if (!user_email) {
-            console.log("No user email available");
-        }
-        if (!user_id) {
-            console.log("No user id available");
-        }
-        if (!auth_token) {
-            console.log("No auth token available");
-        }
-        return;
-    }
-    sources.then(function (sources) {
-        
-        if (source_name) {
-            var data = {
-                'source': '',
-                'url': '',
-                'author': '',
-                'date': '',
-                'text': '',
-                'title': '',
-                'dateRead': ''
-            };
-            data.source = sourceName;
-            data.url = window.location.href.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
-            var d = new Date();
-            data.dateRead = d.getTime();
-            if (sources[sourceName]["date-selector-property"] === "") {
-                data.date = $(sources[sourceName]["date-selector"]).text();
-            } else {
-                data.date = $(sources[sourceName]["date-selector"]).attr(sources[sourceName]["date-selector-property"]);
-            }
-            //Clean-up
-            if (data.date) {
-                data.date = data.date.trim();
-            }
-
-            if (sources[sourceName]["author-selector-property"] === "") {
-                data.author = $(sources[sourceName]["author-selector"]).text();
-            } else if (typeof sources[sourceName]["author-selector"] === "function") {
-                data.author = sources[sourceName]["author-selector"]();
-            } else {
-                data.author = $(sources[sourceName]["author-selector"]).attr(sources[sourceName]["author-selector-property"]);
-            }
-            //Clean-up
-            data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
-
-            if (sources[sourceName]["title-selector-property"] === "") {
-                data.title = $(sources[sourceName]["title-selector"]).text();
-            } else {
-                data.title = $(sources[sourceName]["title-selector"]).attr(sources[sourceName]["title-selector-property"]);
-            }
-            //Clean-up
-            data.title = data.title.trim().replace(/\s{3,}/, ' ');
-
-            if (sources[sourceName]["text-selector"] !== "") {
-                if (sources[sourceName]["text-selector-property"] === "") {
-                    data.text = $(sources[sourceName]["text-selector"]).text().trim();
+    chrome.runtime.sendMessage({type: "getUser"}, function (response) {
+        sources.then(function (sources) {
+            var source_name = Object.keys(sources).find(function(source_name){
+                return window.location.href.indexOf(sources[source_name].url) !== -1;
+            });
+            if (source_name) {
+                var data = {
+                    'source': '',
+                    'url': '',
+                    'author': '',
+                    'date': '',
+                    'text': '',
+                    'title': '',
+                    'dateRead': ''
+                };
+                data.source = source_name;
+                data.url = window.location.href.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
+                var d = new Date();
+                data.dateRead = d.getTime();
+                if (sources[source_name]["date-selector-property"] === "") {
+                    data.date = $(sources[source_name]["date-selector"]).text();
                 } else {
-                    data.text = $(sources[sourceName]["text-selector"]).attr(sources[sourceName]["text-selector-property"]);
+                    data.date = $(sources[source_name]["date-selector"]).attr(sources[source_name]["date-selector-property"]);
+                }
+                //Clean-up
+                if (data.date) {
+                    data.date = data.date.trim();
+                }
+
+                if (sources[source_name]["author-selector-property"] === "") {
+                    data.author = $(sources[source_name]["author-selector"]).text();
+                } else if (typeof sources[source_name]["author-selector"] === "function") {
+                    data.author = sources[source_name]["author-selector"]();
+                } else {
+                    data.author = $(sources[source_name]["author-selector"]).attr(sources[source_name]["author-selector-property"]);
+                }
+                //Clean-up
+                data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
+
+                if (sources[source_name]["title-selector-property"] === "") {
+                    data.title = $(sources[source_name]["title-selector"]).text();
+                } else {
+                    data.title = $(sources[source_name]["title-selector"]).attr(sources[source_name]["title-selector-property"]);
+                }
+                //Clean-up
+                data.title = data.title.trim().replace(/\s{3,}/, ' ');
+
+                if (sources[source_name]["text-selector"] !== "") {
+                    if (sources[source_name]["text-selector-property"] === "") {
+                        data.text = $(sources[source_name]["text-selector"]).text().trim();
+                    } else {
+                        data.text = $(sources[source_name]["text-selector"]).attr(sources[source_name]["text-selector-property"]);
+                    }
+                } else {
+                    data.text = $('p').text();
+                }
+                //Clean-up
+                //remove whitespace, tags, linebreaks
+                data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\"", "\"").replace(/\s\s+/g, " ");
+                //remove text between {} and <>
+                var index = data.text.search(/{([^{}]+)}/g);
+                //while(data.text.indexOf("{") > -1) {
+                while (data.text.search(/{([^{}]+)}/g) > -1) {
+                    data.text = data.text.replace(/{([^{}]+)}/g, "");
+                }
+                while (data.text.search(/<([^<>]+)>/g) > -1) {
+                    data.text = data.text.replace(/<([^<>]+)>/g, "");
+                }
+
+
+                console.log(JSON.stringify(data));
+                console.log("The user is: " + user_email);
+                if (data.url) {
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article", message: {
+                            is_new: true,
+                            data: data,
+                            user_id: user_id
+                        }
+                    });
                 }
             } else {
-                data.text = $('p').text();
+                console.log("No source was found matching " + window.location.href);
             }
-            //Clean-up
-            //remove whitespace, tags, linebreaks
-            data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\"", "\"").replace(/\s\s+/g, " ");
-            //remove text between {} and <>
-            var index = data.text.search(/{([^{}]+)}/g);
-            //while(data.text.indexOf("{") > -1) {
-            while (data.text.search(/{([^{}]+)}/g) > -1) {
-                data.text = data.text.replace(/{([^{}]+)}/g, "");
-            }
-            while (data.text.search(/<([^<>]+)>/g) > -1) {
-                data.text = data.text.replace(/<([^<>]+)>/g, "");
-            }
-
-
-            console.log(JSON.stringify(data));
-            console.log("The user is: " + user_email);
-            if (data.url) {
-                chrome.runtime.sendMessage({
-                    type: "update_current_article", message: {
-                        is_new: true,
-                        data: data,
-                        user_id: user_id
-                    }
-                });
-            }
-        }
-    })
+        });
+    });
 }
 chrome.runtime.onMessage.addListener(function (request, sender) {
     if (request.type == "userUpdated") {
@@ -113,15 +104,6 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
         user_email = request.message.email;
         user_id = request.message.id;
         auth_token = request.message.authToken;
-        scrapePage();
-    }
-});
-
-chrome.runtime.sendMessage({type: "getUser"}, function (response) {
-    if (response) {
-        user_email = response.email;
-        user_id = response.id;
-        auth_token = response.authToken;
         scrapePage();
     }
 });
@@ -159,4 +141,5 @@ $(document).ready(function () {
             }
         }
     });
+    scrapePage()
 });
