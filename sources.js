@@ -26,7 +26,7 @@ var sources = {
         'author-selector-property': 'content',
         'date-selector': 'time',
         'date-selector-property': 'content',
-        'text-selector': 'p.story-body-text',
+        'text-selector': 'article#story',
         'text-selector-property': '',
         'title-selector': 'h1[itemprop="headline"]',
         'title-selector-property': ''
