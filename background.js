@@ -32,10 +32,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             increaseReadCount();
             break;
         case "update_current_article":
-            current_articles[sender.tab.id] = Promise.resolve(request.message);
-            current_user.then(function (user) {
-                writeArticleData(request.message, user);
-            });
+            if (!sender.tab) {
+                chrome.tabs.query({
+                    active: true,
+                    currentWindow: true
+                }, function (tabs) {
+                    current_articles[tabs[0].id] = Promise.resolve(request.message);
+                });
+            } else {
+                current_articles[sender.tab.id] = Promise.resolve(request.message);
+                current_user.then(function (user) {
+                    writeArticleData(request.message, user);
+                });
+            }
             break;
         case "getCurrentArticle":
             //Request is coming from a non-content script origin
