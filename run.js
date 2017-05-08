@@ -140,7 +140,6 @@ $(document).ready(function () {
         content_element = $(sources[source_name]["text-selector"]);
         if (content_element.length) {
             $(document).scroll(updateScrollRatio);
-            updateScrollRatio();
         } else {
             if (!source_name) {
                 console.log("No source description was found for this url");
@@ -149,5 +148,8 @@ $(document).ready(function () {
             }
         }
         scrapePage();
+        if (content_element) {
+            updateScrollRatio();
+        }
     });
 });
