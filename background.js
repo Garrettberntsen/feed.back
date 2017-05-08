@@ -1,4 +1,4 @@
-var current_article = Promise.resolve();
+var current_articles = {}
 var read_count = 0;
 analytics.then(function () {
     ga("send", {
@@ -32,21 +32,32 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             increaseReadCount();
             break;
         case "update_current_article":
-            current_article = Promise.resolve(request.message);
+            current_articles[sender.tab.id] = Promise.resolve(request.message);
             current_user.then(function (user) {
                 writeArticleData(request.message, user);
             });
             break;
         case "getCurrentArticle":
-            current_article.then(function (current_article) {
-                sendResponse(current_article);
-            })
+            //Request is coming from a non-content script origin
+            if (!sender.tab) {
+                chrome.tabs.query({
+                    active: true,
+                    currentWindow: true
+                }, function (tabs) {
+                    Promise.resolve(current_articles[tabs[0].id]).then(function (current_article) {
+                        sendResponse(current_article);
+                    });
+                });
+            } else {
+                Promise.resolve(current_articles[sender.tab.id]).then(function (current_article) {
+                    sendResponse(current_article);
+                });
+            }
             return true;
         case
-        "updateScrollMetric"
-        :
-            current_article.then(function (article) {
-                article.scrolled_content_ratio = request.message;
+        "updateScrollMetric" :
+            current_articles[sender.tab.id].then(function (article) {
+                article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
     }
@@ -193,7 +204,7 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
 }
 
 function UserMetadata(dateRead, source, lean, stars) {
-    this.dateRead = dateRead !== undefined? dateRead : null;
+    this.dateRead = dateRead !== undefined ? dateRead : null;
     if (source == undefined) {
         throw "Source must be set";
     }
@@ -205,7 +216,7 @@ function UserMetadata(dateRead, source, lean, stars) {
 function tabChangeHandler(tabId, changeInfo) {
     if (changeInfo.url || changeInfo.isWindowClosing !== undefined) {
         //Persist the current article as we navigate away
-        Promise.all([current_article, current_user]).then(function (resolved) {
+        Promise.all([current_articles[tabId], current_user]).then(function (resolved) {
             if (resolved[0]) {
                 writeArticleData(resolved[0], resolved[1]);
             }
@@ -215,7 +226,7 @@ function tabChangeHandler(tabId, changeInfo) {
                 var firebase = resolved[0];
                 var user = resolved[1];
                 var reduced_url = reduceUrl(changeInfo.url);
-                current_article = new Promise(function (resolve, reject) {
+                current_articles[tabId] = new Promise(function (resolve, reject) {
                     Promise.all([
                         firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
                         firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
