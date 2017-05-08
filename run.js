@@ -86,7 +86,7 @@ function scrapePage() {
                         data.text = data.text.replace(/<([^<>]+)>/g, "");
                     }
 
-                    data.readers = article.article_data.readers;
+                    data.readers = article.article_data && article.article_data.readers ? article.article_data.readers : [];
                     article.article_data = data;
                     if (!article.article_data.readers) {
                         article.article_data.readers = {};
