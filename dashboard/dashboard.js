@@ -414,9 +414,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var type = ""; //to add
                             var author = currentArticle.author;
                             var slant = currentArticle.lean; //to add
-                            var read = ""; //to add
+                            var read_percentage = userArticleInformation[key].scrolled_content_ratio;
 
-                            var articleData = new Array(userEvaluation, dateRead, publisher, title, type, author, read)
+                            var articleData = new Array(userEvaluation, dateRead, publisher, title, type, author, read_percentage);
 
                             articlesRead.push(articleData);
                         }
@@ -430,7 +430,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         var tr = document.createElement("TR");
                         for (var j = 0; j < articlesRead[i].length; j++) {
                             var td = document.createElement("TD");
-                            td.appendChild(document.createTextNode(articlesRead[i][j]));
+                            var content = articlesRead[i][j] ? articlesRead[i][j] : "";
+                            if (j == 6){
+                                content = Math.floor(Number(content) * 100);
+                            }
+                            td.appendChild(document.createTextNode(content));
                             tr.appendChild(td)
                         }
                         tableElem.appendChild(tr);
