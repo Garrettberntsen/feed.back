@@ -37,10 +37,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     active: true,
                     currentWindow: true
                 }, function (tabs) {
-                    current_articles[tabs[0].id] = Promise.resolve(request.message);
+                    current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(request.message);
                 });
             } else {
-                current_articles[sender.tab.id] = Promise.resolve(request.message);
+                current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(request.message);
                 current_user.then(function (user) {
                     writeArticleData(request.message, user);
                 });
@@ -53,12 +53,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     active: true,
                     currentWindow: true
                 }, function (tabs) {
-                    Promise.resolve(current_articles[tabs[0].id]).then(function (current_article) {
+                    Promise.resolve(current_articles[reduceUrl(tabs[0].url)]).then(function (current_article) {
                         sendResponse(current_article);
                     });
                 });
             } else {
-                Promise.resolve(current_articles[sender.tab.id]).then(function (current_article) {
+                Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
                     sendResponse(current_article);
                 });
             }
