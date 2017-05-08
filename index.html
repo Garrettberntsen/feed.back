@@ -1,101 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="fontawesome-stars.css">
-<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css">
-<link rel="stylesheet" href="bars-movie.css">
-<style type='text/css'>
-.arc text {
-  font: 10px sans-serif;
-  text-anchor: middle;
-}
+	<link href="fontawesome-stars.css" rel="stylesheet">
+	<link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css" rel="stylesheet">
+	<link href="bars-movie.css" rel="stylesheet">
+	<style type='text/css'>
+	.arc text {
+	 font: 10px sans-serif;
+	 text-anchor: middle;
+	}
 
-.arc path {
-  stroke: #fff;
-}
-</style>
+	.arc path {
+	 stroke: #fff;
+	}
+	</style>
+	<title></title>
 </head>
 <body style="width:400px;height:400px;margin:10px;padding:10px;">
-<form hidden>
-	<div class="has-text-centered">
-		<h5 id="title" class="title is-5"></h5>
-		<h6 id="author" class="subtitle is-6"></h6>
-	</div>
-	<br/>
-	<div class="columns is-mobile">
-	<div class="column has-text-centered">
-	rate the article
-	<select id="starRating" autocomplete="off">
-		<option value=""></option>
-		<option value="1">1</option>
-		<option value="2">2</option>
-		<option value="3">3</option>
-		<option value="4">4</option>
-		<option value="5">5</option>
-	</select>
-	</div>
-	<div class="column has-text-centered">
-		rate the slant
+	<form hidden="">
+		<div class="has-text-centered">
+			<h5 class="title is-5" id="title"></h5>
+			<h6 class="subtitle is-6" id="author"></h6>
+		</div><br>
 		<div class="columns is-mobile">
-		<div class="column">
-			<figure class="image is-pulled-right is-32x32">
-			<img src="donkey.png">
-			</figure>
-		</div>
-		<div class="column">
-			<select id="leanRating" autocomplete="off">
-				<option value="" selected>None</option>
-				<option value="1">Very Liberal</option>
-				<option value="2">Liberal</option>
-				<option value="3">Slightly Liberal</option>
-				<option value="4">Neutral</option>
-				<option value="5">Slightly Conservative</option>
-				<option value="6">Conservative</option>
-				<option value="7">Very Conservative</option>
-			</select>
-		</div>
-		<div class="column">
-			<figure class="image is-32x32">
-			<img src="elephant.png">
-			</figure>
-		</div>
-		</div>
-	</div>
-	</div>
-	<div class="columns is-mobile has-text-centered">
-		<div class="column">
-			<div class="message" id="avg-rating-message" hidden>
-				<div class="message-header">
-					Avg Rating
+			<div class="column has-text-centered">
+				rate the article <select id="starRating">
+					<option value="">
+					</option>
+					<option value="1">
+						1
+					</option>
+					<option value="2">
+						2
+					</option>
+					<option value="3">
+						3
+					</option>
+					<option value="4">
+						4
+					</option>
+					<option value="5">
+						5
+					</option>
+				</select>
+			</div>
+			<div class="column has-text-centered">
+				rate the slant
+				<div class="columns is-mobile">
+					<div class="column">
+						<figure class="image is-pulled-right is-32x32">
+							<img src="donkey.png">
+						</figure>
+					</div>
+					<div class="column">
+						<select id="leanRating">
+							<option selected value="">
+								None
+							</option>
+							<option value="1">
+								Very Liberal
+							</option>
+							<option value="2">
+								Liberal
+							</option>
+							<option value="3">
+								Slightly Liberal
+							</option>
+							<option value="4">
+								Neutral
+							</option>
+							<option value="5">
+								Slightly Conservative
+							</option>
+							<option value="6">
+								Conservative
+							</option>
+							<option value="7">
+								Very Conservative
+							</option>
+						</select>
+					</div>
+					<div class="column">
+						<figure class="image is-32x32">
+							<img src="elephant.png">
+						</figure>
+					</div>
 				</div>
-				<div id="avg-rating" class="message-body"></div>
 			</div>
 		</div>
-		<div class="column">
-			<div class="message">
-				<div class="message-header">
-					Read Count
+		<div class="columns is-mobile has-text-centered">
+			<div class="column">
+				<div class="message" hidden="" id="avg-rating-message">
+					<div class="message-header">
+						Avg Rating
+					</div>
+					<div class="message-body" id="avg-rating"></div>
 				</div>
-				<div id="read-count" class="message-body"></div>
+			</div>
+			<div class="column">
+				<div class="message">
+					<div class="message-header">
+						Read Count
+					</div>
+					<div class="message-body" id="read-count"></div>
+				</div>
+			</div>
+			<div class="column">
+				<div class="message" hidden="" id="avg-lean-message">
+					<div class="message-header">
+						Avg Lean
+					</div>
+					<div class="message-body" id="avg-lean"></div>
+				</div>
 			</div>
 		</div>
-		<div class="column">
-			<div class="message" id="avg-lean-message" hidden>
-				<div class="message-header">
-					Avg Lean
-				</div>
-				<div id="avg-lean" class="message-body"></div>
-			</div>
-		</div>
-	</div>
-	<br/>
-</form>
-<div id="donut"></div>
-<a id="dashboard-link" class="button is-primary is-large">My Dashboard</a>
-<script src='d3.min.js'></script>
-<script src="jquery-3.1.1.min.js"></script>
-<script src="jquery.barrating.min.js"></script>
-<script src='popup.js'></script>
+	</form>
+	<div id="tags"></div>
+	<div id="donut"></div>
+	<a class="button is-primary is-large" id="dashboard-link">My Dashboard</a> 
+	<script src='/d3.min.js'></script> 
+	<script src="/jquery-3.1.1.min.js"></script> 
+	<script src="/jquery.barrating.min.js"></script> 
+	<script src='/taggle.js'></script>
+	<script src='/popup.js'></script>
 </body>
 </html>
