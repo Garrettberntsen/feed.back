@@ -67,8 +67,12 @@ var sources = {
         'title-selector': 'h1[itemprop="headline"]',
         'title-selector-property': ''
     }),
-    'politico': {
+    'politico': new SourceDefinition({
         'url': 'politico.com',
+        'article-url-matcher': {
+            pattern: "story/{year}/{month}/{day}/{title}-{id}",
+            groups: ["year", "month", "day", "title", "id"]
+        },
         'author-selector': 'dt.credits-author',
         'author-selector-property': '',
         'date-selector': 'time',
@@ -77,9 +81,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'title',
         'title-selector-property': ''
-    },
-    'wsj': {
+    }),
+    'wsj': new SourceDefinition({
         'url': 'wsj.com',
+        'article-url-matcher': {
+            pattern: "articles/{title}-{id}",
+            groups: ["title", "id"]
+        },
         'author-selector': 'span.name',
         'author-selector-property': '',
         'date-selector': 'meta[itemprop=\'datePublished\']',
@@ -88,9 +96,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'meta[name="article.origheadline"]',
         'title-selector-property': 'content'
-    },
-    'vox': {
+    }),
+    'vox': new SourceDefinition({
         'url': 'vox.com',
+        'article-url-matcher': {
+            pattern: "{category}/{year}/{month}/{day}/{id}/{title}",
+            groups: ["category", "year", "month", "day", "title", "id", "title"]
+        },
         'author-selector': 'meta[name="author"]',
         'author-selector-property': 'content',
         'date-selector': 'time.c-byline__item',
@@ -99,9 +111,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'title',
         'title-selector-property': ''
-    },
-    'cnn': {
+    }),
+    'cnn': new SourceDefinition({
         'url': 'cnn.com',
+        'article-url-matcher': {
+            pattern: "{year}/{month}/{day}/{category}/{title}/index.html",
+            groups: ["year", "month", "day", "category", "title "]
+        },
         'author-selector': 'span.metadata__byline__author',
         'author-selector-property': '',
         'date-selector': 'p.update-time',
@@ -110,9 +126,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.pg-headline',
         'title-selector-property': ''
-    },
-    'newyorker': {
+    }),
+    'newyorker': new SourceDefinition({
         'url': 'newyorker.com',
+        'article-url-matcher': {
+            pattern: "{type}/{year}/{month}/{day}/{title}",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': 'span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'time',
@@ -121,9 +141,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1[itemprop="headline"]',
         'title-selector-property': ''
-    },
-    'vicemedia': {
+    }),
+    'vicemedia': new SourceDefinition({
         'url': 'vice.com',
+        'article-url-matcher': {
+            pattern: "{locale}/article/{title}",
+            groups: ["title"]
+        },
         'author-selector': 'a.contributor__link',
         'author-selector-property': '',
         'date-selector': 'div.contributor__content__date',
@@ -132,9 +156,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article__title',
         'title-selector-property': ''
-    },
-    'fivethirtyeight': {
+    }),
+    'fivethirtyeight': new SourceDefinition({
         'url': 'fivethirtyeight.com',
+        'article-url-matcher': {
+            pattern: "features/{title}/",
+            groups: ["title"]
+        },
         'author-selector': 'a[rel="author"]',
         'author-selector-property': '',
         'date-selector': 'span.datetime',
@@ -143,9 +171,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article-title',
         'title-selector-property': ''
-    },
-    'upworthy': {
+    }),
+    'upworthy': new SourceDefinition({
         'url': 'upworthy.com',
+        'article-url-matcher': {
+            pattern: "{title}",
+            groups: ["title"]
+        },
         'author-selector': 'a.article-authors__profile',
         'author-selector-property': '',
         'date-selector': 'div.article-header__date',
@@ -154,9 +186,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article-header__title',
         'title-selector-property': ''
-    },
-    'buzzfeed': {
+    }),
+    'buzzfeed': new SourceDefinition({
         'url': 'buzzfeed.com',
+        'article-url-matcher': {
+            pattern: "{author}/{title}",
+            groups: ["author", "title"]
+        },
         'author-selector': 'a.byline__author',
         'author-selector-property': '',
         'date-selector': 'span.buzz-datetime',
@@ -165,9 +201,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1#post-title',
         'title-selector-property': ''
-    },
-    'theatlantic': {
+    }),
+    'theatlantic': new SourceDefinition({
         'url': 'theatlantic.com',
+        'article-url-matcher': {
+            pattern: "{category}/archive/{year}/{month}/{title}/{id}/",
+            groups: ["category", "year", "month", "title", "id"]
+        },
         'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -176,9 +216,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.hed',
         'title-selector-property': ''
-    },
-    'mic': {
+    }),
+    'mic': new SourceDefinition({
         'url': 'mic.com',
+        'article-url-matcher': {
+            pattern: "articles/{id}/{title}",
+            groups: ["id", "title"]
+        },
         'author-selector': 'a.link-author.name',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -187,9 +231,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1[itemprop="headline"]',
         'title-selector-property': ''
-    },
-    'slate': {
+    }),
+    'slate': new SourceDefinition({
         'url': 'slate.com',
+        'article-url-matcher': {
+            pattern: "[articles|blogs]/{category}/{subcategory}/{year}/{month}/{title}.html",
+            groups: ["category", "subcategory", "year", "month", "title"]
+        },
         'author-selector': 'a[rel="author"]',
         'author-selector-property': '',
         'date-selector': 'div.pub-date',
@@ -198,9 +246,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.hed',
         'title-selector-property': ''
-    },
-    'nationalreview': {
+    }),
+    'nationalreview': new SourceDefinition({
         'url': 'nationalreview.com',
+        'article-url-matcher': {
+            pattern: "article/{id}/{title}",
+            groups: ["year", "id", "title"]
+        },
         'author-selector': 'span.uppercase',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -209,9 +261,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article-header',
         'title-selector-property': ''
-    },
-    'bloomberg': {
+    }),
+    'bloomberg': new SourceDefinition({
         'url': 'bloomberg.com',
+        'article-url-matcher': {
+            pattern: "news/articles/{year}-{month}-{day}/{title}",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': 'div.author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -220,9 +276,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.lede-text-only__hed',
         'title-selector-property': ''
-    },
-    'weeklystandard': {
+    }),
+    'weeklystandard': new SourceDefinition({
         'url': 'weeklystandard.com',
+        'article-url-matcher': {
+            pattern: "{title}/article/{id}",
+            groups: ["title", "id"]
+        },
         'author-selector': 'div[itemprop="author"] a',
         'author-selector-property': '',
         'date-selector': 'span.datetime',
@@ -231,10 +291,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.headline',
         'title-selector-property': ''
-    },
-    'forbes': {
+    }),
+    'forbes': new SourceDefinition({
         'url': 'forbes.com',
-        "excluded_urls": ["forbes.com/home.*", "forbes.com/forbes/welcome/"],
+        'article-url-matcher': {
+            pattern: "sites/{author}/{year}/{month}/{day}/{title}/",
+            groups: ["author", "year", "month", "day", "title"]
+        },
         'author-selector': 'p.contrib-byline-author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -243,9 +306,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article-headline',
         'title-selector-property': ''
-    },
-    'washingtontimes': {
+    }),
+    'washingtontimes': new SourceDefinition({
         'url': 'washingtontimes.com',
+        'article-url-matcher': {
+            pattern: "news/{year}/{month}/{day}/{title}",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': 'div.article-text a',
         'author-selector-property': '',
         'date-selector': 'span.source', //going to need cleanup function
@@ -254,9 +321,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.page-headline',
         'title-selector-property': ''
-    },
-    'foxnews': {
+    }),
+    'foxnews': new SourceDefinition({
         'url': 'foxnews.com',
+        'article-url-matcher': {
+            pattern: "{location}/{year}/{month}/{day}/{title}.html",
+            groups: ["location", "year", "month", "day", "title"]
+        },
         'author-selector': 'div.article-info a',
         'author-selector-property': '',
         'date-selector': 'div.article-info time', //going to need cleanup
@@ -265,9 +336,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'article h1',
         'title-selector-property': ''
-    },
-    'thehill': {
+    }),
+    'thehill': new SourceDefinition({
         'url': 'thehill.com',
+        'article-url-matcher': {
+            pattern: "{area}/{category}/{id}-{title}",
+            groups: ["area", "category", "id", "title"]
+        },
         'author-selector': 'span.submitted-by', //going to need cleanup
         'author-selector-property': '',
         'date-selector': 'span.submitted-date',
@@ -276,9 +351,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.title',
         'title-selector-property': ''
-    },
-    'bbc': {
+    }),
+    'bbc': new SourceDefinition({
         'url': 'bbc.com',
+        'article-url-matcher': {
+            pattern: "news/{region}-{category}-{id}",
+            groups: ["region", "category", "id"]
+        },
         'author-selector': 'li.mini-info-list__item a',
         'author-selector-property': '',
         'date-selector': 'div.date',
@@ -287,9 +366,16 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.story-body__h1',
         'title-selector-property': ''
-    },
-    'abc': {
+    }),
+    'abc': new SourceDefinition({
         'url': 'abcnews.go.com',
+        'article-url-matcher': [{
+            pattern: "{category}/wireStory/{title}-{id}$",
+            groups: ["area", "category", "id", "title"]
+        }, {
+            pattern: "{category}/{title}/story",
+            groups: ["area", "category", "id", "title"]
+        }],
         'author-selector': 'div.author', //going to need clean up
         'author-selector-property': '',
         'date-selector': 'span.timestamp',
@@ -298,9 +384,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'header.article-header h1',
         'title-selector-property': ''
-    },
-    'nbc': {
+    }),
+    'nbc': new SourceDefinition({
         'url': 'nbcnews.com',
+        'article-url-matcher': {
+            pattern: "{category}/{subcategory}/{title}-{id}",
+            groups: ["category", "subcategory", "title", "id"]
+        },
         'author-selector': 'span.byline_author',
         'author-selector-property': '',
         'date-selector': 'time.timestamp_article',
@@ -309,9 +399,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'div.article-hed h1',
         'title-selector-property': ''
-    },
-    'reuters': {
+    }),
+    'reuters': new SourceDefinition({
         'url': 'reuters.com',
+        'article-url-matcher': {
+            pattern: "article/.*?id{id}",
+            groups: ["id"]
+        },
         'author-selector': 'span.span.author a',
         'author-selector-property': '',
         'date-selector': 'span.timestamp',
@@ -320,9 +414,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article-headline',
         'title-selector-property': ''
-    },
-    'techcrunch': {
+    }),
+    'techcrunch': new SourceDefinition({
         'url': 'techcrunch.com',
+        'article-url-matcher': {
+            pattern: "{year}/{month}/{date}/{title}/",
+            groups: ["year", "month", "date", "title"]
+        },
         'author-selector': 'a[rel="author"]',
         'author-selector-property': '',
         'date-selector': 'time.timestamp',
@@ -331,9 +429,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.alpha',
         'title-selector-property': ''
-    },
-    'breitbartnews': {
+    }),
+    'breitbartnews': new SourceDefinition({
         'url': 'breitbart.com',
+        'article-url-matcher': {
+            pattern: "{category}/{year}/{month}/{day}/{title}",
+            groups: ["category", "year", "month", "day", "title"]
+        },
         'author-selector': 'a.byauthor',
         'author-selector-property': '',
         'date-selector': 'span.bydate',
@@ -342,9 +444,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1[itemprop="headline"]',
         'title-selector-property': ''
-    },
-    'theblaze': {
+    }),
+    'theblaze': new SourceDefinition({
         'url': 'theblaze.com',
+        'article-url-matcher': {
+            pattern: "news/{year}/{month}/{day}/{title}/",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': 'a.article-author',
         'author-selector-property': '',
         'date-selector': 'time.published',
@@ -353,9 +459,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.page-title',
         'title-selector-property': ''
-    },
-    'economist': {
+    }),
+    'economist': new SourceDefinition({
         'url': 'economist.com',
+        'article-url-matcher': {
+            pattern: "news/{locatoin}/{id}-{title}",
+            groups: ["region", "category", "id"]
+        },
         'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="dateCreated"]',
@@ -364,9 +474,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'span.flytitle-and-title__title',
         'title-selector-property': ''
-    },
-    'TheFederalist': {
+    }),
+    'TheFederalist': new SourceDefinition({
         'url': 'thefederalist.com',
+        'article-url-matcher': {
+            pattern: "{year}/{month}/{day}/{title}/",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': 'a[rel="author"]',
         'author-selector-property': '',
         'date-selector': 'div.byline-standard', //going to need clean up
@@ -375,9 +489,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h2.entry-title',
         'title-selector-property': ''
-    },
-    'TheDailyCaller': {
+    }),
+    'TheDailyCaller': new SourceDefinition({
         'url': 'thedailycaller.com',
+        'article-url-matcher': {
+            pattern: "{year}/{month}/{day}/{title}/",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': 'div#name',
         'author-selector-property': '',
         'date-selector': 'div.dateline',
@@ -386,9 +504,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'div#main-article h1',
         'title-selector-property': ''
-    },
-    'TheWashingtonFreeBeacon': {
+    }),
+    'TheWashingtonFreeBeacon': new SourceDefinition({
         'url': 'freebeacon.com',
+        'article-url-matcher': {
+            pattern: "{subject}/{title}/",
+            groups: ["subject", "title"]
+        },
         'author-selector': 'span.author a',
         'author-selector-property': '',
         'date-selector': 'time.entry-date',
@@ -397,9 +519,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.entry-title',
         'title-selector-property': ''
-    },
-    'InfoWars': {
+    }),
+    'InfoWars': new SourceDefinition({
         'url': 'infowars.com',
+        'article-url-matcher': {
+            pattern: "{title}",
+            groups: ["title"]
+        },
         'author-selector': 'span.author a',
         'author-selector-property': '',
         'date-selector': 'span.date',
@@ -408,9 +534,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.entry-title',
         'title-selector-property': ''
-    },
-    'CBSNews': {
+    }),
+    'CBSNews': new SourceDefinition({
         'url': 'cbsnews.com',
+        'article-url-matcher': {
+            pattern: "news/{title}",
+            groups: ["title"]
+        },
         'author-selector': 'span.source',
         'author-selector-property': '',
         'date-selector': 'span.time',
@@ -419,9 +549,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.title',
         'title-selector-property': ''
-    },
-    'NYMag': {
+    }),
+    'NYMag': new SourceDefinition({
         'url': 'nymag.com',
+        'article-url-matcher': {
+            pattern: "{category}/{year}/{month}/{title}.html/",
+            groups: ["category", "year", "month", "title"]
+        },
         'author-selector': 'a.article-author > span',
         'author-selector-property': '',
         'date-selector': 'span.article-date.large-width-date',
@@ -430,9 +564,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.headline-primary',
         'title-selector-property': ''
-    },
-    'NYPost': {
+    }),
+    'NYPost': new SourceDefinition({
         'url': 'nypost.com',
+        'article-url-matcher': {
+            pattern: "{year}/{month}/{day}/{title}/",
+            groups: ["year", "month", "day", "title"]
+        },
         'author-selector': '#author-byline > p',
         'author-selector-property': '',
         'date-selector': 'div.article-header > p',
@@ -441,9 +579,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'div.article-header > h1 > a',
         'title-selector-property': ''
-    },
-    'RT': {
+    }),
+    'RT': new SourceDefinition({
         'url': 'rt.com',
+        'article-url-matcher': {
+            pattern: "{region}/{id}-{title}/",
+            groups: ["region", "title"]
+        },
         'author-selector': '',
         'author-selector-property': '',
         'date-selector': 'time.date_article-header',
@@ -452,7 +594,7 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article__heading',
         'title-selector-property': ''
-    }
+    })
 };
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
