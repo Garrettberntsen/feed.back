@@ -137,17 +137,26 @@ $(document).ready(function () {
         var source_name = Object.keys(sources).find(function (source_name) {
             return window.location.href.indexOf(sources[source_name].url) !== -1;
         });
-        content_element = $(sources[source_name]["text-selector"]);
-        if (content_element.length) {
-            $(document).scroll(updateScrollRatio);
-            updateScrollRatio();
-        } else {
-            if (!source_name) {
-                console.log("No source description was found for this url");
-            } else {
-                console.log("No content element could be found with selector " + sources[source_name]["text-selector"])
-            }
+        if (source_name) {
+            chrome.runtime.sendMessage({
+                type: "getSourceUrlMatches",
+                message: window.location.href
+            }, function (response) {
+                if (response) {
+                    content_element = $(sources[source_name]["text-selector"]);
+                    if (content_element.length) {
+                        $(document).scroll(updateScrollRatio);
+                        updateScrollRatio();
+                    } else {
+                        if (!source_name) {
+                            console.log("No source description was found for this url");
+                        } else {
+                            console.log("No content element could be found with selector " + sources[source_name]["text-selector"])
+                        }
+                    }
+                    scrapePage();
+                }
+            });
         }
-        scrapePage();
     });
 });

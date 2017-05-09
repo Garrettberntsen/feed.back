@@ -7,9 +7,42 @@
  * - response: the source definitions
  * Created by Damie on 5/2/2017.
  */
+
+function SourceDefinition(definition) {
+    this.url = definition.url;
+    this["article-url-matcher"] = definition["article-url-matcher"];
+    this["author-selector"] = definition["author-selector"];
+    this["author-selector-property"] = definition["author-selector-property"];
+    this["date-selector"] = definition["date-selector"];
+    this["date-selector-property"] = definition["date-selector-property"];
+    this["text-selector"] = definition["text-selector"];
+    this["text-selector-property"] = definition["text-selector-property"];
+    this["title-selector"] = definition["title-selector"];
+    this["title-selector-property"] = definition["title-selector-property"];
+    //Test the given url against this sources' article matching pattern, returning an object mapping the url element
+    //names to their matched values, or false if there was no match.
+    this.testForArticleUrlMatch = function (url) {
+        var regexString = this["article-url-matcher"].pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
+        var regex = new RegExp(this.url + "/" + regexString).exec(url);
+        if (regex) {
+            var groupNames = this["article-url-matcher"].groups;
+            var result = {};
+            for (var i = 0; i < groupNames.length; i++) {
+                result[groupNames[i]] = regex[i + 1];
+            }
+            return result;
+        }
+        return false;
+    }
+}
+
 var sources = {
-    'washingtonpost': {
+    'washingtonpost': new SourceDefinition({
         'url': 'washingtonpost.com',
+        'article-url-matcher': {
+            pattern: "{category}/{subcategory}/{title}/{year}/{month}/{day}/{id}\.html",
+            groups: ["category", "subcategory", "title", "year", "month", "day", "id"]
+        },
         'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
@@ -18,10 +51,13 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'meta[property="og:title"]',
         'title-selector-property': 'content'
-    },
-    'nytimes': {
+    }),
+    'nytimes': new SourceDefinition({
         'url': 'nytimes.com',
-        'excludedUrls' :["subscribe.nytimes.com"],
+        'article-url-matcher': {
+            pattern: "{year}/{month}/{day}/{location}/{category}/{title}.html",
+            groups: ["year", "month", "day", "location", "category", "title"]
+        },
         'author-selector': 'meta[name="byl"]',
         'author-selector-property': 'content',
         'date-selector': 'time',
@@ -30,14 +66,14 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1[itemprop="headline"]',
         'title-selector-property': ''
-    },
+    }),
     'politico': {
         'url': 'politico.com',
         'author-selector': 'dt.credits-author',
         'author-selector-property': '',
         'date-selector': 'time',
         'date-selector-property': '',
-        'text-selector': '',
+        'text-selector': 'div.content-group.story-core',
         'text-selector-property': '',
         'title-selector': 'title',
         'title-selector-property': ''
@@ -59,7 +95,7 @@ var sources = {
         'author-selector-property': 'content',
         'date-selector': 'time.c-byline__item',
         'date-selector-property': '',
-        'text-selector': '',
+        'text-selector': 'div.c-entry-content',
         'text-selector-property': '',
         'title-selector': 'title',
         'title-selector-property': ''
@@ -198,7 +234,7 @@ var sources = {
     },
     'forbes': {
         'url': 'forbes.com',
-        "excluded_urls" : ["forbes.com/home.*", "forbes.com/forbes/welcome/"],
+        "excluded_urls": ["forbes.com/home.*", "forbes.com/forbes/welcome/"],
         'author-selector': 'p.contrib-byline-author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -422,6 +458,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "getSources":
             sendResponse(sources);
+            break;
+        case "getSourceUrlMatches":
+            var source_name = Object.keys(sources).find(function (name) {
+                return request.message.indexOf(sources[name].url) !== -1;
+            });
+            if (source_name) {
+                sendResponse(sources[source_name].testForArticleUrlMatch(request.message));
+            }
             break;
     }
 })
