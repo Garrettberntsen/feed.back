@@ -16,13 +16,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
+                test(articlesRead);
+
                 createBarChart(sourceCount, articleObj, daysBack);
                 createPieChart(sourceCount, articleObj, daysBack);
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
                 var myTable = document.querySelector("#table");
                 var dataTable = new DataTable(myTable, {
                     searchable: true
-                });
+                }); 
 
 
                 function createArticleObject(articles) {
@@ -44,6 +46,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     return articleCount;
                 }
 
+                function test(x) {
+                    for (var key in x) {
+                        console.log( new Date( x[key].dateRead ).toString("M/d/yyyy") );
+                    }
+
+                };
+
                 /* Creates an empty object filled with every date that the
                 *  user has read an article.
                 *
@@ -55,7 +64,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 *             the user has read an article
                 */ 
 
-                function countSources(articles, obj) {
+                function countSources(articles, template) {
                     var size = Object.keys(articles).length;
                     var count = {}
                     var articleCount = {};
@@ -63,14 +72,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     for (var key in articles) {
                         var article = articles[key];
                         var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                        articleCount[articleDate] = obj;
+                        articleCount[articleDate] = JSON.parse(JSON.stringify(template));
                     }
 
                     for (var key in articles) {
                         var article = articles[key];
                         var articleSource = articles[key].source;
                         var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                        articleCount[articleDate] = JSON.parse(JSON.stringify(obj));
                         articleCount[articleDate][articleSource]++;
                     }
 
