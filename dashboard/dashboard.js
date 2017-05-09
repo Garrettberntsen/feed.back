@@ -16,8 +16,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
-                test(articlesRead);
-
                 createBarChart(sourceCount, articleObj, daysBack);
                 createPieChart(sourceCount, articleObj, daysBack);
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
@@ -26,7 +24,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     searchable: true
                 }); 
 
-
+                /* Creates an empty object filled with a 0 count for every source the user has read
+                *
+                *  @articles -> List of articles that user has read, obtained from JSON file
+                *
+                *  Returns -> empty template object containing all the articles that the user has ever read
+                */ 
                 function createArticleObject(articles) {
                     var articleCount = {};
 
@@ -46,13 +49,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     return articleCount;
                 }
 
-                function test(x) {
-                    for (var key in x) {
-                        console.log( new Date( x[key].dateRead ).toString("M/d/yyyy") );
-                    }
-
-                };
-
                 /* Creates an empty object filled with every date that the
                 *  user has read an article.
                 *
@@ -63,7 +59,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 *  Returns -> object containing a template obj with a property for each date that
                 *             the user has read an article
                 */ 
-
                 function countSources(articles, template) {
                     var size = Object.keys(articles).length;
                     var count = {}
@@ -151,11 +146,16 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var tempArticleCount = {};
                             tempArticleCount["label"] = property;
                             tempArticleCount["count"] = tempObjTwo[property];
-                            tempArr.push(tempArticleCount);
+                            if(tempArticleCount["count"] > 0) {
+                                console.log( tempArticleCount );
+                                tempArr.push(tempArticleCount);
+                            }
                         }
                     }
 
-                    var dataset = tempArr.slice(0, tempArr.length - 1);
+                    var dataset = tempArr;
+
+                    console.log(dataset);
 
                     var donutWidth = 75;
 
