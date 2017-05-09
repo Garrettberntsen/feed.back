@@ -1,0 +1,5 @@
+.taggle_list {
+  display: flex;
+  flex-wrap: wrap;
+
+}

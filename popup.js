@@ -61,7 +61,9 @@ $(document).ready(function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
 
+
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
+        new Taggle('tags');
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
