@@ -16,9 +16,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
-                createBarChart(sourceCount, articleObj, daysBack);
                 createPieChart(sourceCount, articleObj, daysBack);
+                createBarChart(sourceCount, articleObj, daysBack);
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
+
                 var myTable = document.querySelector("#table");
                 var dataTable = new DataTable(myTable, {
                     searchable: true
@@ -35,17 +36,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     for (var key in articles) {
                         if (articles.hasOwnProperty(key)) {
-
                             var article = articles[key];
                             var source = article.source;
-
                             if (!articleCount.hasOwnProperty(source)) {
                                 articleCount[source] = 0;
                             }
-
                         }
                     }
-
                     return articleCount;
                 }
 
@@ -61,7 +58,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 */ 
                 function countSources(articles, template) {
                     var size = Object.keys(articles).length;
-                    var count = {}
+                    var count = {};
                     var articleCount = {};
 
                     for (var key in articles) {
@@ -98,9 +95,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                     }
 
-                    //adds missing dates to arr
                     for (var i = 0; i < daysBackArr.length; i++) {
-
                         if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
                             var tempObj = {};
                             tempObj = JSON.parse(JSON.stringify(obj));
@@ -134,7 +129,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             if (finalData[i].hasOwnProperty(property)) {
                                 var currentCount = finalData[i][property];
                                 tempObjTwo[property] += currentCount;
-
                             }
                         }
                     }
@@ -147,15 +141,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             tempArticleCount["label"] = property;
                             tempArticleCount["count"] = tempObjTwo[property];
                             if(tempArticleCount["count"] > 0) {
-                                console.log( tempArticleCount );
                                 tempArr.push(tempArticleCount);
                             }
                         }
                     }
 
                     var dataset = tempArr;
-
-                    console.log(dataset);
 
                     var donutWidth = 75;
 
@@ -226,7 +217,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 function createBarChart(data, obj, timeBack) {
                     var daysBack = timeBack;
                     var daysBackArr = getLastDays(daysBack);
-                    var categoryKeys = Object.getOwnPropertyNames(obj);
 
                     var dataArray = [];
 
@@ -238,7 +228,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     //adds missing dates to arr
                     for (var i = 0; i < daysBackArr.length; i++) {
-
                         if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
                             var tempObj = {};
                             tempObj = JSON.parse(JSON.stringify(obj));
@@ -263,8 +252,49 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return 0;
                     });
 
-
                     var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
+
+                    var template = createTemplate(finalData);
+                    var templateCategories = JSON.parse(JSON.stringify(template));
+                    delete templateCategories.date;
+
+                    var finalFinalData = trimObjects(finalData, template);
+
+                    function trimObjects(array, template) {
+                        var trimmed = [];
+                        var tempTemplate = template;
+                        for(var i = 0; i < array.length; i++) {
+                            var todaysObj = {};
+                            for(var key in array[i]) {
+                                for(var templateKey in template) {
+                                    if(key === templateKey) {
+                                        todaysObj[templateKey] = array[i][templateKey];
+                                        tempTemplate[templateKey] = array[i][templateKey];
+                                    }
+                                }                                
+                            }
+                            trimmed.push(todaysObj);
+                        }
+                        return trimmed;
+                    }
+
+                    //Create object of only articles read in that time period
+                    function createTemplate(array) {
+                        var objectsRead = {};
+                        for(var i = 0; i < array.length; i++) {
+                            for (var key in array[i]) {
+                                if(array[i][key] !== 0) {
+                                    objectsRead[key] = "Checked";
+                                }
+                            }
+                        }
+                        console.log(objectsRead);
+                        return objectsRead;
+                    }
+
+
+                    console.log(finalData);
+                    console.log(finalFinalData);
 
                     var margin = {
                         top: 10,
@@ -284,14 +314,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .append("g")
                         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+                    var categoryKeys = Object.getOwnPropertyNames(templateCategories);
+                    
                     var dataset = d3.layout.stack()(categoryKeys.map(function (objective) {
-                        return finalData.map(function (d) {
+                        return finalFinalData.map(function (d) {
+                            console.log( objective );
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
                                 y: +d[objective]
                             };
                         });
                     }));
+
+                    console.log(dataset);
 
                     var x = d3.scale.ordinal()
                         .domain(dataset[0].map(function (d) {
@@ -316,7 +351,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .ticks(5)
                         .tickSize(-width, 0, 0)
                         .tickFormat(function (d) {
-                            return d
+                            return d;
                         });
 
                     var xAxis = d3.svg.axis()
