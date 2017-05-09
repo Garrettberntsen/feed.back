@@ -342,7 +342,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         })])
                         .range([height, 0]);
 
-                    var colors = ["#e5f5f9", "#99d8c9", "#2ca25f", "#e0ecf4", "#9ebcda", "#8856a7", "#fee8c8", "#fdbb84", "#e34a33", "#e5f5e0", "#a1d99b", "#31a354"];
                     var color = d3.scale.category20();
 
                     var yAxis = d3.svg.axis()
