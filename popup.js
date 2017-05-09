@@ -93,7 +93,7 @@ $(document).ready(function () {
                     article.user_metadata.lean = $('#leanRating').val();
                     chrome.runtime.sendMessage({
                         type: "update_current_article",
-                        message: current_article
+                        message: article
                     });
                 }
             });
@@ -115,7 +115,7 @@ $(document).ready(function () {
                     article.user_metadata.stars = $('#starRating').val();
                     chrome.runtime.sendMessage({
                         type: "update_current_article",
-                        message: current_article
+                        message: article
                     });
                     $('#avg-rating-message').show();
                 }
