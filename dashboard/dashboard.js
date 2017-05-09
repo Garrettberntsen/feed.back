@@ -44,29 +44,42 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     return articleCount;
                 }
 
+                /* Creates an empty object filled with every date that the
+                *  user has read an article.
+                *
+                *  @articles -> List of articles that user has read, obtained from JSON file
+                *  @template -> Empty object every news site the user has visited. Will be copied 
+                *               into each date.
+                *
+                *  Returns -> object containing a template obj with a property for each date that
+                *             the user has read an article
+                */ 
+
                 function countSources(articles, obj) {
                     var size = Object.keys(articles).length;
-                    var count = {};
+                    var count = {}
+                    var articleCount = {};
 
-                    //Loops through object of all articles read
                     for (var key in articles) {
-                        if (articles.hasOwnProperty(key)) {
-                            var article = articles[key];
-                            var source = article.source;
-                            var articleCountCopy = obj;
-                            var date = new Date(articles[key].dateRead);
-                            var dateStr = date.toString("M/d/yyyy");
-
-                            if (count[dateStr] === undefined) {
-                                count[dateStr] = JSON.parse(JSON.stringify(obj));
-                                count[dateStr].date = dateStr;
-                            } else {
-                                count[dateStr][source]++;
-                            }
-                        }
+                        var article = articles[key];
+                        var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                        articleCount[articleDate] = obj;
                     }
 
-                    return count;
+                    for (var key in articles) {
+                        var article = articles[key];
+                        var articleSource = articles[key].source;
+                        var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                        articleCount[articleDate] = JSON.parse(JSON.stringify(obj));
+                        articleCount[articleDate][articleSource]++;
+                    }
+
+                    for (var key in articleCount) {
+                        var article = articleCount[key];
+                        article["date"] = key;
+                    }
+
+                    return articleCount;
                 }
 
                 function createPieChart(data, obj, timeBack) {
@@ -133,7 +146,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             tempArr.push(tempArticleCount);
                         }
                     }
-                    ;
 
                     var dataset = tempArr.slice(0, tempArr.length - 1);
 
