@@ -8,6 +8,20 @@
  * Created by Damie on 5/2/2017.
  */
 
+function testSingleUrlMatcher(matcher, rootUrl, url) {
+    var regexString = matcher.pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
+    var regex = new RegExp(rootUrl + "/" + regexString).exec(url);
+    if (regex) {
+        var groupNames = matcher.groups;
+        var result = {};
+        for (var i = 0; i < groupNames.length; i++) {
+            result[groupNames[i]] = regex[i + 1];
+        }
+        return result;
+    }
+    return false;
+}
+
 function SourceDefinition(definition) {
     this.url = definition.url;
     this["article-url-matcher"] = definition["article-url-matcher"];
@@ -22,17 +36,16 @@ function SourceDefinition(definition) {
     //Test the given url against this sources' article matching pattern, returning an object mapping the url element
     //names to their matched values, or false if there was no match.
     this.testForArticleUrlMatch = function (url) {
-        var regexString = this["article-url-matcher"].pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
-        var regex = new RegExp(this.url + "/" + regexString).exec(url);
-        if (regex) {
-            var groupNames = this["article-url-matcher"].groups;
-            var result = {};
-            for (var i = 0; i < groupNames.length; i++) {
-                result[groupNames[i]] = regex[i + 1];
-            }
-            return result;
+        if (Array.isArray(this["article-url-matcher"])) {
+            return this["article-url-matcher"].reduce(function (current, next) {
+                if (!current) {
+                    return testSingleUrlMatcher(next, this.url, url);
+                }
+                return current;
+            }.bind(this), false);
+        } else {
+            return testSingleUrlMatcher(this["article-url-matcher"], this.url, url);
         }
-        return false;
     }
 }
 
@@ -146,7 +159,7 @@ var sources = {
         'url': 'vice.com',
         'article-url-matcher': {
             pattern: "{locale}/article/{title}",
-            groups: ["locale","title"]
+            groups: ["locale", "title"]
         },
         'author-selector': 'li.contributor__name > a.contributor__link',
         'author-selector-property': '',
@@ -234,10 +247,14 @@ var sources = {
     }),
     'slate': new SourceDefinition({
         'url': 'slate.com',
-        'article-url-matcher': {
-            pattern: "(articles|blogs)/{category}/{subcategory}/{year}/{month}/{title}.html",
-            groups: ["", "category", "subcategory", "year", "month", "title"]
+        'article-url-matcher': [{
+            pattern: "blogs/{category}/{subcategory}/{year}/{month}/{title}.html",
+            groups: ["category", "subcategory", "year", "month", "title"]
         },
+            {
+                pattern: "articles/{category}/{subcategory}/{year}/{month}/{title}.html",
+                groups: ["category", "subcategory", "year", "month", "title"]
+            }],
         'author-selector': 'div#main_byline > a',
         'author-selector-property': '',
         'date-selector': 'div.pub-date',
@@ -264,11 +281,15 @@ var sources = {
     }),
     'bloomberg': new SourceDefinition({
         'url': 'bloomberg.com',
-        'article-url-matcher': {
+        'article-url-matcher': [{
             pattern: "news/articles/{year}-{month}-{day}/{title}",
             groups: ["year", "month", "day", "title"]
         },
-        'author-selector': 'div.author',
+            {
+                pattern: "politics/articles/{year}-{month}-{day}/{title}",
+                groups: ["year", "month", "day", "title"]
+            }],
+        'author-selector': 'address.lede-text-only__byline > div.author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
         'date-selector-property': '',
