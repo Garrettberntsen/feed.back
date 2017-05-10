@@ -48,7 +48,10 @@ function scrapePage() {
 
                     var authorElement = $(sources[source_name]["author-selector"]);
                     if (sources[source_name]["author-selector-property"] === "") {
-                        data.author = $(sources[source_name]["author-selector"]).contents().not(authorElement.children()).text();
+                        data.author = $(sources[source_name]["author-selector"]).contents().not(authorElement.children())
+                            .toArray().map(function (element) {
+                                return element.textContent;
+                            }).join(", ");
                     } else if (typeof sources[source_name]["author-selector"] === "function") {
                         data.author = sources[source_name]["author-selector"]();
                     } else {
