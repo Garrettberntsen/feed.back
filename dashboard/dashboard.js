@@ -16,57 +16,72 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
-                createBarChart(sourceCount, articleObj, daysBack);
                 createPieChart(sourceCount, articleObj, daysBack);
+                createBarChart(sourceCount, articleObj, daysBack);
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
+
                 var myTable = document.querySelector("#table");
                 var dataTable = new DataTable(myTable, {
-                    searchable: true
-                });
+                    searchable: true,
+                    perPage: 25,
+                    perPageSelect: [25, 50, 100]
+                }); 
 
-
+                /* Creates an empty object filled with a 0 count for every source the user has read
+                *
+                *  @articles -> List of articles that user has read, obtained from JSON file
+                *
+                *  Returns -> empty template object containing all the articles that the user has ever read
+                */ 
                 function createArticleObject(articles) {
                     var articleCount = {};
 
                     for (var key in articles) {
                         if (articles.hasOwnProperty(key)) {
-
                             var article = articles[key];
                             var source = article.source;
-
                             if (!articleCount.hasOwnProperty(source)) {
                                 articleCount[source] = 0;
                             }
-
                         }
                     }
-
                     return articleCount;
                 }
 
-                function countSources(articles, obj) {
+                /* Creates an empty object filled with every date that the
+                *  user has read an article.
+                *
+                *  @articles -> List of articles that user has read, obtained from JSON file
+                *  @template -> Empty object every news site the user has visited. Will be copied 
+                *               into each date.
+                *
+                *  Returns -> object containing a template obj with a property for each date that
+                *             the user has read an article
+                */ 
+                function countSources(articles, template) {
                     var size = Object.keys(articles).length;
                     var count = {};
+                    var articleCount = {};
 
-                    //Loops through object of all articles read
                     for (var key in articles) {
-                        if (articles.hasOwnProperty(key)) {
-                            var article = articles[key];
-                            var source = article.source;
-                            var articleCountCopy = obj;
-                            var date = new Date(articles[key].dateRead);
-                            var dateStr = date.toString("M/d/yyyy");
-
-                            if (count[dateStr] === undefined) {
-                                count[dateStr] = JSON.parse(JSON.stringify(obj));
-                                count[dateStr].date = dateStr;
-                            } else {
-                                count[dateStr][source]++;
-                            }
-                        }
+                        var article = articles[key];
+                        var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                        articleCount[articleDate] = JSON.parse(JSON.stringify(template));
                     }
 
-                    return count;
+                    for (var key in articles) {
+                        var article = articles[key];
+                        var articleSource = articles[key].source;
+                        var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                        articleCount[articleDate][articleSource]++;
+                    }
+
+                    for (var key in articleCount) {
+                        var article = articleCount[key];
+                        article["date"] = key;
+                    }
+
+                    return articleCount;
                 }
 
                 function createPieChart(data, obj, timeBack) {
@@ -82,9 +97,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                     }
 
-                    //adds missing dates to arr
                     for (var i = 0; i < daysBackArr.length; i++) {
-
                         if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
                             var tempObj = {};
                             tempObj = JSON.parse(JSON.stringify(obj));
@@ -118,7 +131,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             if (finalData[i].hasOwnProperty(property)) {
                                 var currentCount = finalData[i][property];
                                 tempObjTwo[property] += currentCount;
-
                             }
                         }
                     }
@@ -130,12 +142,29 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var tempArticleCount = {};
                             tempArticleCount["label"] = property;
                             tempArticleCount["count"] = tempObjTwo[property];
-                            tempArr.push(tempArticleCount);
+                            if(tempArticleCount["count"] > 0) {
+                                tempArr.push(tempArticleCount);
+                            }
                         }
                     }
-                    ;
 
-                    var dataset = tempArr.slice(0, tempArr.length - 1);
+                    var dataset = tempArr;
+
+                    console.log(dataset);
+
+                    dataset.sort(function(a, b) {
+                        var nameA = a.label;
+                        var nameB = b.label;
+                        if(nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    
+                    console.log(dataset);
 
                     var donutWidth = 75;
 
@@ -206,7 +235,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 function createBarChart(data, obj, timeBack) {
                     var daysBack = timeBack;
                     var daysBackArr = getLastDays(daysBack);
-                    var categoryKeys = Object.getOwnPropertyNames(obj);
 
                     var dataArray = [];
 
@@ -218,7 +246,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     //adds missing dates to arr
                     for (var i = 0; i < daysBackArr.length; i++) {
-
                         if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
                             var tempObj = {};
                             tempObj = JSON.parse(JSON.stringify(obj));
@@ -243,8 +270,44 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return 0;
                     });
 
-
                     var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
+
+                    var template = createTemplate(finalData);
+                    var templateCategories = JSON.parse(JSON.stringify(template));
+                    delete templateCategories.date;
+
+                    var finalFinalData = trimObjects(finalData, template);
+
+                    function trimObjects(array, template) {
+                        var trimmed = [];
+                        var tempTemplate = template;
+                        for(var i = 0; i < array.length; i++) {
+                            var todaysObj = {};
+                            for(var key in array[i]) {
+                                for(var templateKey in template) {
+                                    if(key === templateKey) {
+                                        todaysObj[templateKey] = array[i][templateKey];
+                                        tempTemplate[templateKey] = array[i][templateKey];
+                                    }
+                                }                                
+                            }
+                            trimmed.push(todaysObj);
+                        }
+                        return trimmed;
+                    }
+
+                    //Create object of only articles read in that time period
+                    function createTemplate(array) {
+                        var objectsRead = {};
+                        for(var i = 0; i < array.length; i++) {
+                            for (var key in array[i]) {
+                                if(array[i][key] !== 0) {
+                                    objectsRead[key] = "Checked";
+                                }
+                            }
+                        }
+                        return objectsRead;
+                    }
 
                     var margin = {
                         top: 10,
@@ -264,14 +327,21 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .append("g")
                         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+                    var categoryKeys = Object.getOwnPropertyNames(templateCategories);
+
+                    categoryKeys.sort();
+                    
                     var dataset = d3.layout.stack()(categoryKeys.map(function (objective) {
-                        return finalData.map(function (d) {
+                        return finalFinalData.map(function (d) {
+                            console.log( +d[objective] );
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
                                 y: +d[objective]
                             };
                         });
                     }));
+
+                    console.log(dataset);
 
                     var x = d3.scale.ordinal()
                         .domain(dataset[0].map(function (d) {
@@ -287,7 +357,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         })])
                         .range([height, 0]);
 
-                    var colors = ["#e5f5f9", "#99d8c9", "#2ca25f", "#e0ecf4", "#9ebcda", "#8856a7", "#fee8c8", "#fdbb84", "#e34a33", "#e5f5e0", "#a1d99b", "#31a354"];
                     var color = d3.scale.category20();
 
                     var yAxis = d3.svg.axis()
@@ -296,7 +365,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .ticks(5)
                         .tickSize(-width, 0, 0)
                         .tickFormat(function (d) {
-                            return d
+                            return d;
                         });
 
                     var xAxis = d3.svg.axis()
@@ -314,7 +383,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .call(xAxis);
 
                     var groups = svg.selectAll("g.time")
-                        .data(dataset)
+                        .data(dataset) 
                         .enter().append("g")
                         .attr("class", "time")
                         .attr("fill", function (d, i) {
