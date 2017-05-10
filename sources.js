@@ -235,10 +235,10 @@ var sources = {
     'slate': new SourceDefinition({
         'url': 'slate.com',
         'article-url-matcher': {
-            pattern: "[articles|blogs]/{category}/{subcategory}/{year}/{month}/{title}.html",
-            groups: ["category", "subcategory", "year", "month", "title"]
+            pattern: "(articles|blogs)/{category}/{subcategory}/{year}/{month}/{title}.html",
+            groups: ["", "category", "subcategory", "year", "month", "title"]
         },
-        'author-selector': 'a[rel="author"]',
+        'author-selector': 'div#main_byline > a',
         'author-selector-property': '',
         'date-selector': 'div.pub-date',
         'date-selector-property': '',
