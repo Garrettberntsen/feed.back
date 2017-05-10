@@ -193,13 +193,13 @@ var sources = {
             pattern: "{author}/{title}",
             groups: ["author", "title"]
         },
-        'author-selector': 'a.byline__author',
+        'author-selector': 'div.byline.vignette > div > a',
         'author-selector-property': '',
-        'date-selector': 'span.buzz-datetime',
+        'date-selector': 'time.buzz-timestamp__time',
         'date-selector-property': '',
-        'text-selector': 'div.buzz',
+        'text-selector': 'div.subbuzz',
         'text-selector-property': '',
-        'title-selector': 'h1#post-title',
+        'title-selector': 'h1.buzz-title',
         'title-selector-property': ''
     }),
     'theatlantic': new SourceDefinition({
