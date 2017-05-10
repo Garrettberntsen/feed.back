@@ -349,7 +349,7 @@ var sources = {
             pattern: "{location}/{year}/{month}/{day}/{title}.html",
             groups: ["location", "year", "month", "day", "title"]
         },
-        'author-selector': 'div.article-info a',
+        'author-selector': 'div.byline > span.author > a',
         'author-selector-property': '',
         'date-selector': 'div.article-info time', //going to need cleanup
         'date-selector-property': '',
