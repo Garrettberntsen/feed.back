@@ -150,6 +150,22 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var dataset = tempArr;
 
+                    console.log(dataset);
+
+                    dataset.sort(function(a, b) {
+                        var nameA = a.label;
+                        var nameB = b.label;
+                        if(nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    
+                    console.log(dataset);
+
                     var donutWidth = 75;
 
                     var width = 480,
@@ -290,13 +306,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 }
                             }
                         }
-                        console.log(objectsRead);
                         return objectsRead;
                     }
-
-
-                    console.log(finalData);
-                    console.log(finalFinalData);
 
                     var margin = {
                         top: 10,
@@ -317,10 +328,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
                     var categoryKeys = Object.getOwnPropertyNames(templateCategories);
+
+                    categoryKeys.sort();
                     
                     var dataset = d3.layout.stack()(categoryKeys.map(function (objective) {
                         return finalFinalData.map(function (d) {
-                            console.log( objective );
+                            console.log( +d[objective] );
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
                                 y: +d[objective]
@@ -370,7 +383,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .call(xAxis);
 
                     var groups = svg.selectAll("g.time")
-                        .data(dataset)
+                        .data(dataset) 
                         .enter().append("g")
                         .attr("class", "time")
                         .attr("fill", function (d, i) {
