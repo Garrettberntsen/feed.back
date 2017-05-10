@@ -319,7 +319,7 @@ var sources = {
             pattern: "sites/{author}/{year}/{month}/{day}/{title}/",
             groups: ["author", "year", "month", "day", "title"]
         },
-        'author-selector': 'p.contrib-byline-author',
+        'author-selector': 'p.contrib-byline-author > a',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
         'date-selector-property': '',
