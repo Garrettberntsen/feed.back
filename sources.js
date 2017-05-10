@@ -310,7 +310,7 @@ var sources = {
         'date-selector-property': '',
         'text-selector': 'div.body-text',
         'text-selector-property': '',
-        'title-selector': 'h1.headline',
+        'title-selector': 'div.headline > h1',
         'title-selector-property': ''
     }),
     'forbes': new SourceDefinition({
