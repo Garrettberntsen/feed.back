@@ -46,8 +46,9 @@ function scrapePage() {
                         data.date = data.date.trim();
                     }
 
+                    var authorElement = $(sources[source_name]["author-selector"]);
                     if (sources[source_name]["author-selector-property"] === "") {
-                        data.author = $(sources[source_name]["author-selector"]).text();
+                        data.author = $(sources[source_name]["author-selector"]).contents().not(authorElement.children()).text();
                     } else if (typeof sources[source_name]["author-selector"] === "function") {
                         data.author = sources[source_name]["author-selector"]();
                     } else {
@@ -146,7 +147,6 @@ $(document).ready(function () {
                     content_element = $(sources[source_name]["text-selector"]);
                     if (content_element.length) {
                         $(document).scroll(updateScrollRatio);
-                        updateScrollRatio();
                     } else {
                         if (!source_name) {
                             console.log("No source description was found for this url");
@@ -155,6 +155,7 @@ $(document).ready(function () {
                         }
                     }
                     scrapePage();
+                    updateScrollRatio();
                 }
             });
         }
