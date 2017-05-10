@@ -338,7 +338,7 @@ var sources = {
         'author-selector-property': '',
         'date-selector': 'span.source', //going to need cleanup function
         'date-selector-property': '',
-        'text-selector': 'section#content',
+        'text-selector': 'div.storyareawrapper > div.bigtext > p',
         'text-selector-property': '',
         'title-selector': 'h1.page-headline',
         'title-selector-property': ''

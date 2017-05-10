@@ -147,7 +147,8 @@ $(document).ready(function () {
                 message: window.location.href
             }, function (response) {
                 if (response) {
-                    content_element = $(sources[source_name]["text-selector"]);
+                    content_element = $(sources[source_name]["text-selector"]).last();
+                    //If content_element contains multiple elements, get the last
                     if (content_element.length) {
                         $(document).scroll(updateScrollRatio);
                     } else {
