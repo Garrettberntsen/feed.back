@@ -22,7 +22,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                 var myTable = document.querySelector("#table");
                 var dataTable = new DataTable(myTable, {
-                    searchable: true
+                    searchable: true,
+                    perPage: 25,
+                    perPageSelect: [25, 50, 100]
                 }); 
 
                 /* Creates an empty object filled with a 0 count for every source the user has read
