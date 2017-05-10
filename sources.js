@@ -146,15 +146,15 @@ var sources = {
         'url': 'vice.com',
         'article-url-matcher': {
             pattern: "{locale}/article/{title}",
-            groups: ["title"]
+            groups: ["locale","title"]
         },
-        'author-selector': 'a.contributor__link',
+        'author-selector': 'li.contributor__name > a.contributor__link',
         'author-selector-property': '',
         'date-selector': 'div.contributor__content__date',
         'date-selector-property': '',
         'text-selector': 'div.article__body',
         'text-selector-property': '',
-        'title-selector': 'h1.article__title',
+        'title-selector': 'div.article__title',
         'title-selector-property': ''
     }),
     'fivethirtyeight': new SourceDefinition({
