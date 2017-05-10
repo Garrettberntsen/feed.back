@@ -208,7 +208,7 @@ var sources = {
             pattern: "{category}/archive/{year}/{month}/{title}/{id}/",
             groups: ["category", "year", "month", "title", "id"]
         },
-        'author-selector': 'span[itemprop="author"]',
+        'author-selector': 'div.article-cover-extra > ul.metadata > li.byline > span[itemprop="author"] > a > span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
         'date-selector-property': '',
