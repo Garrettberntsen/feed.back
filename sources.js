@@ -334,7 +334,7 @@ var sources = {
             pattern: "news/{year}/{month}/{day}/{title}",
             groups: ["year", "month", "day", "title"]
         },
-        'author-selector': 'div.article-text a',
+        'author-selector': 'div.meta > span.byline > a',
         'author-selector-property': '',
         'date-selector': 'span.source', //going to need cleanup function
         'date-selector-property': '',
