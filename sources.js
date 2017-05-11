@@ -101,7 +101,7 @@ var sources = {
             pattern: "articles/{title}-{id}",
             groups: ["title", "id"]
         },
-        'author-selector': 'span.name',
+        'author-selector': 'div.byline > div.author > span',
         'author-selector-property': '',
         'date-selector': 'meta[itemprop=\'datePublished\']',
         'date-selector-property': 'content',
