@@ -118,15 +118,15 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 });
 
 var content_scroll_ratio = 0;
-var content_element;
+var content_element_selector;
 
 function updateScrollRatio() {
-    var content_height = content_element.height();
-    var bottom_position = content_element[0].getBoundingClientRect().bottom;
+    var content_height = $(content_element_selector).last().height();
+    var bottom_position = $(content_element_selector).last().offset().top;
     var viewport_height = $(window).height();
     var calculated_scroll_ratio = Math.min(
         Math.max(
-            ($(window).scrollTop() + viewport_height) / (bottom_position + content_height),
+            (window.scrollY + viewport_height) / (bottom_position + content_height),
             0),
         1);
     if (calculated_scroll_ratio > content_scroll_ratio) {
@@ -147,9 +147,9 @@ $(document).ready(function () {
                 message: window.location.href
             }, function (response) {
                 if (response) {
-                    content_element = $(sources[source_name]["text-selector"]).last();
-                    //If content_element contains multiple elements, get the last
-                    if (content_element.length) {
+                    content_element_selector = sources[source_name]["text-selector"];
+                    //If content_element_selector contains multiple elements, get the last
+                    if ($(content_element_selector).length) {
                         $(document).scroll(updateScrollRatio);
                     } else {
                         if (!source_name) {
