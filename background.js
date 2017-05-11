@@ -1,4 +1,4 @@
-var current_articles = {}
+var current_articles = {};
 var read_count = 0;
 analytics.then(function () {
     ga("send", {
@@ -70,7 +70,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             });
             break;
     }
-})
+});
 
 function writeArticleData(article, user) {
     if (!article || !article.article_data) {
@@ -117,9 +117,9 @@ function extractPageData(url, content) {
         'title': '',
         'dateRead': ''
     };
-    var url = window.location.href;
+    var url = window.location.href; //TODO url is being declared but it is also a parameter for the method. Should be one or the other - Daniel 
     var sourceName = Object.keys(sources).find(function (sourceName) {
-        return url.indexOf(sources[sourceName].url) !== -1
+        return url.indexOf(sources[sourceName].url) !== -1;
     });
     if (sourceName) {
         data.source = sourceName;
@@ -178,7 +178,7 @@ function extractPageData(url, content) {
         return Promise.resolve(data);
     }
     return Promise.reject();
-};
+}
 
 //Cut out the protocol, subdomain and path from a url
 function reduceUrl(url) {
@@ -192,7 +192,7 @@ function Article(article_data, user_metadata) {
 }
 
 function ArticleData(url, source, title, date, author, text, readers, partialRecord) {
-    if (url == undefined) {
+    if (url === undefined) {
         throw "url must be set";
     }
     this.url = url;
@@ -201,7 +201,7 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
     }
     this.source = source;
     if (title === undefined) {
-        throw "Title must be set"
+        throw "Title must be set";
     }
     this.title = title;
 
@@ -214,7 +214,7 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
 
 function UserMetadata(dateRead, source, lean, stars) {
     this.dateRead = dateRead !== undefined ? dateRead : null;
-    if (source == undefined) {
+    if (source === undefined) {
         throw "Source must be set";
     }
     this.source = source;
@@ -245,7 +245,7 @@ function tabChangeHandler(tabId, changeInfo) {
                     });
                 });
             }
-        )
+        );
     }
 }
 
