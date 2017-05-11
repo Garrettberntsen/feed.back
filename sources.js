@@ -487,13 +487,13 @@ var sources = {
             pattern: "news/{locatoin}/{id}-{title}",
             groups: ["region", "category", "id"]
         },
-        'author-selector': 'span[itemprop="author"]',
+        'author-selector': 'span.blog-post__byline',
         'author-selector-property': '',
-        'date-selector': 'time[itemprop="dateCreated"]',
-        'date-selector-property': '',
-        'text-selector': 'div[itemprop="description"]',
+        'date-selector': 'time.blog-post__datetime',
+        'date-selector-property': 'dateCreated',
+        'text-selector': 'div.blog-post__text > p',
         'text-selector-property': '',
-        'title-selector': 'span.flytitle-and-title__title',
+        'title-selector': 'h1.flytitle-and-title__body > span.flytitle-and-title__title',
         'title-selector-property': ''
     }),
     'TheFederalist': new SourceDefinition({
@@ -506,7 +506,7 @@ var sources = {
         'author-selector-property': '',
         'date-selector': 'div.byline-standard', //going to need clean up
         'date-selector-property': '',
-        'text-selector': 'div.entry-content',
+        'text-selector': 'div.entry-content > p',
         'text-selector-property': '',
         'title-selector': 'article > div.aside-pos-fix > div > div > div.aside-header-wrapper > header > h2 > a',
         'title-selector-property': ''
