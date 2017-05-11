@@ -508,7 +508,7 @@ var sources = {
         'date-selector-property': '',
         'text-selector': 'div.entry-content',
         'text-selector-property': '',
-        'title-selector': 'h2.entry-title',
+        'title-selector': 'article > div.aside-pos-fix > div > div > div.aside-header-wrapper > header > h2 > a',
         'title-selector-property': ''
     }),
     'TheDailyCaller': new SourceDefinition({
