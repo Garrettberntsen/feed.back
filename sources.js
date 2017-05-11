@@ -9,8 +9,8 @@
  */
 
 function testSingleUrlMatcher(matcher, rootUrl, url) {
-    var regexString = matcher.pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
-    var regex = new RegExp(rootUrl + "/" + regexString).exec(url);
+    var regexString = rootUrl + "/" + matcher.pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
+    var regex = new RegExp(regexString).exec(url);
     if (regex) {
         var groupNames = matcher.groups;
         var result = {};
@@ -574,8 +574,8 @@ var sources = {
     'NYMag': new SourceDefinition({
         'url': 'nymag.com',
         'article-url-matcher': {
-            pattern: "{category}/{year}/{month}/{title}.html/",
-            groups: ["category", "year", "month", "title"]
+            pattern: "{interval}/{category}/{year}/{month}/{title}.html",
+            groups: ["interval", "category", "year", "month", "title"]
         },
         'author-selector': 'a.article-author > span',
         'author-selector-property': '',
