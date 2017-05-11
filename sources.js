@@ -397,7 +397,7 @@ var sources = {
             pattern: "{category}/{title}/story",
             groups: ["area", "category", "id", "title"]
         }],
-        'author-selector': 'div.author', //going to need clean up
+        'author-selector': 'div.article-meta > ul > div.author', //going to need clean up
         'author-selector-property': '',
         'date-selector': 'span.timestamp',
         'date-selector-property': '',
@@ -427,7 +427,7 @@ var sources = {
             pattern: "article/.*?id{id}",
             groups: ["id"]
         },
-        'author-selector': 'span.span.author a',
+        'author-selector': '#article-byline > span.author > a',
         'author-selector-property': '',
         'date-selector': 'span.timestamp',
         'date-selector-property': '',
