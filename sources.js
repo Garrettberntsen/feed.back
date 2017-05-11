@@ -502,7 +502,7 @@ var sources = {
             pattern: "{year}/{month}/{day}/{title}/",
             groups: ["year", "month", "day", "title"]
         },
-        'author-selector': 'a[rel="author"]',
+        'author-selector': 'article > div.aside-pos-fix > div > div > div.aside-header-wrapper > header > div.rwd-byline > a',
         'author-selector-property': '',
         'date-selector': 'div.byline-standard', //going to need clean up
         'date-selector-property': '',
