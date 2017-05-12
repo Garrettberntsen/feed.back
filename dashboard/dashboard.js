@@ -1,10 +1,11 @@
+/*jshint esversion: 6 */
 chrome.runtime.sendMessage({type: "getUser"}, function (user) {
     chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
         firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
             var articles = userSnapshot.val().articles;
-            var article_ids = []
+            var article_ids = [];
             var article_definitions = [];
-            for (key in articles) {
+            for (let key in articles) {
                 article_definitions.push(firebase.database().ref("articles/" + key).once("value"));
                 article_ids.push(key);
             }
@@ -36,7 +37,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 function createArticleObject(articles) {
                     var articleCount = {};
 
-                    for (var key in articles) {
+                    for (let key in articles) {
                         if (articles.hasOwnProperty(key)) {
                             var article = articles[key];
                             var source = article.source;
@@ -63,22 +64,22 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var count = {};
                     var articleCount = {};
 
-                    for (var key in articles) {
+                    for (let key in articles) {
                         var article = articles[key];
                         var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
                         articleCount[articleDate] = JSON.parse(JSON.stringify(template));
                     }
 
-                    for (var key in articles) {
-                        var article = articles[key];
-                        var articleSource = articles[key].source;
-                        var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                    for (let key in articles) {
+                        let article = articles[key];
+                        let articleSource = articles[key].source;
+                        let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
                         articleCount[articleDate][articleSource]++;
                     }
 
-                    for (var key in articleCount) {
-                        var article = articleCount[key];
-                        article["date"] = key;
+                    for (let key in articleCount) {
+                        let article = articleCount[key];
+                        article.date = key;
                     }
 
                     return articleCount;
@@ -91,15 +92,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var dataArray = [];
 
-                    for (var key in data) {
+                    for (let key in data) {
                         if (data.hasOwnProperty(key)) {
                             dataArray.push(data[key]);
                         }
                     }
 
-                    for (var i = 0; i < daysBackArr.length; i++) {
+                    for (let i = 0; i < daysBackArr.length; i++) {
                         if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
-                            var tempObj = {};
+                            let tempObj = {};
                             tempObj = JSON.parse(JSON.stringify(obj));
                             tempObj.date = daysBackArr[i];
                             dataArray.push(tempObj);
@@ -107,7 +108,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
 
                     function arrayObjectIndexOf(myArray, searchTerm, property) {
-                        for (var i = 0, len = myArray.length; i < len; i++) {
+                        for (let i = 0, len = myArray.length; i < len; i++) {
                             if (myArray[i].date === searchTerm) return i;
                         }
                         return -1;
@@ -126,10 +127,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var sum = 0;
 
-                    for (var i = 0; i < finalData.length; i++) {
-                        for (var property in finalData[i]) {
+                    for (let i = 0; i < finalData.length; i++) {
+                        for (let property in finalData[i]) {
                             if (finalData[i].hasOwnProperty(property)) {
-                                var currentCount = finalData[i][property];
+                                let currentCount = finalData[i][property];
                                 tempObjTwo[property] += currentCount;
                             }
                         }
@@ -137,12 +138,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var tempArr = [];
 
-                    for (var property in tempObjTwo) {
+                    for (let property in tempObjTwo) {
                         if (tempObjTwo.hasOwnProperty(property)) {
                             var tempArticleCount = {};
-                            tempArticleCount["label"] = property;
-                            tempArticleCount["count"] = tempObjTwo[property];
-                            if(tempArticleCount["count"] > 0) {
+                            tempArticleCount.label = property;
+                            tempArticleCount.count = tempObjTwo[property];
+                            if(tempArticleCount.count > 0) {
                                 tempArr.push(tempArticleCount);
                             }
                         }
@@ -174,7 +175,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var pie = d3.layout.pie()
                         .value(function (d) {
-                            return d.count
+                            return d.count;
                         })
                         .sort(null);
 
@@ -199,7 +200,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .append("path")
                         .attr("d", arc)
                         .attr("fill", function (d, i) {
-                            return color(d.data.label)
+                            return color(d.data.label);
                         });
 
                     var legendRectSize = 18;
@@ -238,14 +239,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var dataArray = [];
 
-                    for (var key in data) {
+                    for (let key in data) {
                         if (data.hasOwnProperty(key)) {
                             dataArray.push(data[key]);
                         }
                     }
 
                     //adds missing dates to arr
-                    for (var i = 0; i < daysBackArr.length; i++) {
+                    for (let i = 0; i < daysBackArr.length; i++) {
                         if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
                             var tempObj = {};
                             tempObj = JSON.parse(JSON.stringify(obj));
@@ -255,7 +256,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
 
                     function arrayObjectIndexOf(myArray, searchTerm, property) {
-                        for (var i = 0, len = myArray.length; i < len; i++) {
+                        for (let i = 0, len = myArray.length; i < len; i++) {
                             if (myArray[i].date === searchTerm) return i;
                         }
                         return -1;
@@ -300,7 +301,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     function createTemplate(array) {
                         var objectsRead = {};
                         for(var i = 0; i < array.length; i++) {
-                            for (var key in array[i]) {
+                            for (let key in array[i]) {
                                 if(array[i][key] !== 0) {
                                     objectsRead[key] = "Checked";
                                 }
@@ -387,7 +388,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .enter().append("g")
                         .attr("class", "time")
                         .attr("fill", function (d, i) {
-                            return color(i)
+                            return color(i);
                         });
 
                     var rect = groups.selectAll("rect")
@@ -464,7 +465,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var articlesRead = [];
                     var tableElem = document.getElementById("table-body");
 
-                    for (var key in userArticleInformation) {
+                    for (let key in userArticleInformation) {
                         if (userArticleInformation.hasOwnProperty(key)) {
                             var id_index;
                             for (i = 0; i < articleInformation.ids.length; i++) {
@@ -495,16 +496,16 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return Date.parse(b[1]) - Date.parse(a[1]);
                     });
 
-                    for (var i = 0; i < articlesRead.length; i++) {
+                    for (let i = 0; i < articlesRead.length; i++) {
                         var tr = document.createElement("TR");
-                        for (var j = 0; j < articlesRead[i].length; j++) {
+                        for (let j = 0; j < articlesRead[i].length; j++) {
                             var td = document.createElement("TD");
                             var content = articlesRead[i][j] ? articlesRead[i][j] : "";
                             if (j == 6){
                                 content = Math.floor(Number(content) * 100);
                             }
                             td.appendChild(document.createTextNode(content));
-                            tr.appendChild(td)
+                            tr.appendChild(td);
                         }
                         tableElem.appendChild(tr);
                     }
@@ -512,15 +513,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                 function getLastDays(days) {
                     var lastDays = [];
-                    for (var i = 0; i < days; i++) {
-                        var date = Date.today().addDays(-i).toString("M/d/yyyy");
-                        lastDays.push(date);
+                    for (let i = 0; i < days; i++) {
+                        let date = new Date();
+                        date.setDate(date.getDate() - i); //subtract i days from current date
+                        lastDays.push(date.toString("M/d/yyyy"));
                     }
                     return lastDays;
                 }
             });
-        }).catch(function (error) {
-            console.log(error)
         }).catch(function (error) {
             console.log(error);
         });
