@@ -139,12 +139,19 @@ function updateScrollRatio() {
 $(document).ready(function () {
     sources.then(function (sources) {
         var source_name = Object.keys(sources).find(function (source_name) {
-            return window.location.href.indexOf(sources[source_name].url) !== -1;
+            if (sources[source_name].urls.find(function (source_url_definition) {
+                    return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
+                })) {
+                return source_name;
+            }
         });
         if (source_name) {
             chrome.runtime.sendMessage({
                 type: "getSourceUrlMatches",
-                message: window.location.href
+                message: {
+                    location: window.location.href,
+                    source_name: source_name
+                }
             }, function (response) {
                 if (response) {
                     content_element_selector = sources[source_name]["text-selector"];

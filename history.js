@@ -16,24 +16,26 @@ _firebase.then(function (firebase) {
                     //TODO: Get rid of these magic numbers.
                     var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
                     //Search browser history for entries from each source.
-                    chrome.history.search({
-                        text: source.url,
-                        startTime: cutoff.getTime(),
-                        maxResults: 10000
-                    }, function (results) {
-                        console.log("Searching for entries: " + source.url);
-                        if(results.length > 0) {
-                            console.log("Found " + results.length);
-                        }
-                        results.forEach(function (historyItem) {
-                            console.log("Trying to extract history for " + historyItem.url);
-                            var extractedItem = extractHistoryItemData(historyItem);
-                            if (extractedItem) {
-                                console.log("Extracted");
-                                writeArticleData(extractedItem, user);
+                    source.urls.forEach(function (source) {
+                        chrome.history.search({
+                            text: source.urlRoot,
+                            startTime: cutoff.getTime(),
+                            maxResults: 10000
+                        }, function (results) {
+                            console.log("Searching for entries: " + source.url);
+                            if (results.length > 0) {
+                                console.log("Found " + results.length);
                             }
+                            results.forEach(function (historyItem) {
+                                console.log("Trying to extract history for " + historyItem.url);
+                                var extractedItem = extractHistoryItemData(historyItem);
+                                if (extractedItem) {
+                                    console.log("Extracted");
+                                    writeArticleData(extractedItem, user);
+                                }
+                            });
                         });
-                    });
+                    })
                 });
             }
         });
@@ -52,7 +54,7 @@ function extractHistoryItemData(historyItem) {
             })) {
             console.log(historyItem.url + " matches an excluded url for " + sourceName);
             return;
-        } else if (!new RegExp(source.url + "/.+").test(reducedUrl)){
+        } else if (!new RegExp(source.url + "/.+").test(reducedUrl)) {
             console.log(historyItem.url + " looks like the home page for " + sourceName);
             return;
         }
