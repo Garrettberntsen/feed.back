@@ -180,10 +180,15 @@ function extractPageData(url, content) {
     return Promise.reject();
 };
 
-//Cut out the protocol, subdomain and path from a url
+/*
+ * Replace leading www. and http: and https:, trailing # fragment and query parameters.
+ */
 function reduceUrl(url) {
-    //Replace leading www. and http: and https:, trailing # fragment and query parameters
-    return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/\?.*/, '').replace(/#.*/, '');
+    if (url) {
+        return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/\?.*/, '').replace(/#.*/, '');
+    } else {
+        return url;
+    }
 }
 
 function Article(article_data, user_metadata) {
