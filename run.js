@@ -1,3 +1,5 @@
+var encountered_urls = [];
+
 var sources = new Promise(function (resolve, reject) {
     chrome.runtime.sendMessage({type: "getSources"}, function (sources) {
         var sourceName
@@ -18,9 +20,11 @@ function scrapePage() {
             }
         }
         chrome.runtime.sendMessage({type: "getUser"}, function (user) {
-            chrome.runtime.sendMessage({type: "getSources"}, function (sources) {
+            sources.then(function (sources) {
                 var source_name = Object.keys(sources).find(function (source_name) {
-                    return window.location.href.indexOf(sources[source_name].url) !== -1;
+                    return sources[source_name].urls.find(function(url_definition){
+                        return window.location.href.indexOf(url_definition.urlRoot) !== -1;
+                    });
                 });
                 if (source_name) {
                     var data = {
@@ -119,10 +123,17 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 
 var content_scroll_ratio = 0;
 var content_element_selector;
+var article_root_element_selector;
 
 function updateScrollRatio() {
-    var content_height = $(content_element_selector).last().height();
-    var bottom_position = $(content_element_selector).last().offset().top;
+    var content_element;
+    if (article_root_element_selector) {
+        content_element = $(article_root_element_selector).children(content_element_selector);
+    } else {
+        content_element = $(content_element_selector);
+    }
+    var content_height = content_element.last().height();
+    var bottom_position = content_element.last().offset().top;
     var viewport_height = $(window).height();
     var calculated_scroll_ratio = Math.min(
         Math.max(
@@ -136,7 +147,7 @@ function updateScrollRatio() {
     console.log("new scroll ratio: " + content_scroll_ratio);
 }
 
-$(document).ready(function () {
+function pageUrlChange() {
     sources.then(function (sources) {
         var source_name = Object.keys(sources).find(function (source_name) {
             if (sources[source_name].urls.find(function (source_url_definition) {
@@ -154,6 +165,7 @@ $(document).ready(function () {
                 }
             }, function (response) {
                 if (response) {
+                    article_root_element_selector = sources[source_name]["article-root-element-selector"];
                     content_element_selector = sources[source_name]["text-selector"];
                     //If content_element_selector contains multiple elements, get the last
                     if ($(content_element_selector).length) {
@@ -171,4 +183,14 @@ $(document).ready(function () {
             });
         }
     });
+}
+
+chrome.runtime.onMessage.addListener(function (message) {
+    switch (message.type) {
+        case "urlChanged":
+            pageUrlChange();
+            break;
+    }
 });
+
+$(document).ready(pageUrlChange);
