@@ -249,6 +249,7 @@ function tabChangeHandler(tabId, changeInfo) {
                         resolve(new Article(article_data, user_metadata));
                     });
                 });
+            chrome.tabs.sendMessage(tabId, {type: "urlChanged", message: changeInfo.url});
             }
         );
     }
