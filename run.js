@@ -22,7 +22,7 @@ function scrapePage() {
         chrome.runtime.sendMessage({type: "getUser"}, function (user) {
             sources.then(function (sources) {
                 var source_name = Object.keys(sources).find(function (source_name) {
-                    return sources[source_name].urls.find(function(url_definition){
+                    return sources[source_name].urls.find(function (url_definition) {
                         return window.location.href.indexOf(url_definition.urlRoot) !== -1;
                     });
                 });
@@ -121,16 +121,12 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
     }
 });
 
-var content_scroll_ratio = 0;
-var content_element_selector;
-var article_root_element_selector;
-
-function updateScrollRatio() {
+function updateScrollRatio(url) {
     var content_element;
-    if (article_root_element_selector) {
-        content_element = $(article_root_element_selector).children(content_element_selector);
+    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
+        content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).children(content_element_selector);
     } else {
-        content_element = $(content_element_selector);
+        content_element = $(encountered_urls[encountered_urls.current_index].content_element_selector);
     }
     var content_height = content_element.last().height();
     var bottom_position = content_element.last().offset().top;
@@ -140,14 +136,21 @@ function updateScrollRatio() {
             (window.scrollY + viewport_height) / (bottom_position + content_height),
             0),
         1);
-    if (calculated_scroll_ratio > content_scroll_ratio) {
-        content_scroll_ratio = calculated_scroll_ratio;
-        chrome.runtime.sendMessage({type: "updateScrollMetric", message: content_scroll_ratio});
+    if (calculated_scroll_ratio > encountered_urls[encountered_urls.current_index].scroll_ratio) {
+        encountered_urls[encountered_urls.current_index].scroll_ratio = calculated_scroll_ratio;
+        chrome.runtime.sendMessage({type: "updateScrollMetric", message: encountered_urls[encountered_urls.current_index].scroll_ratio});
     }
-    console.log("new scroll ratio: " + content_scroll_ratio);
+    console.log("new scroll ratio: " + encountered_urls[encountered_urls.current_index].scroll_ratio);
 }
 
-function pageUrlChange() {
+function pageUrlChange(new_url) {
+    encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
+        return new_url == e.url;
+    });
+    if (encountered_urls.current_index == -1) {
+        encountered_urls.push({url: new_url, scroll_ratio: 0});
+        encountered_urls.current_index = encountered_urls.length - 1;
+    }
     sources.then(function (sources) {
         var source_name = Object.keys(sources).find(function (source_name) {
             if (sources[source_name].urls.find(function (source_url_definition) {
@@ -165,10 +168,10 @@ function pageUrlChange() {
                 }
             }, function (response) {
                 if (response) {
-                    article_root_element_selector = sources[source_name]["article-root-element-selector"];
-                    content_element_selector = sources[source_name]["text-selector"];
+                    encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
+                    encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
                     //If content_element_selector contains multiple elements, get the last
-                    if ($(content_element_selector).length) {
+                    if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
                         $(document).scroll(updateScrollRatio);
                     } else {
                         if (!source_name) {
@@ -177,8 +180,8 @@ function pageUrlChange() {
                             console.log("No content element could be found with selector " + sources[source_name]["text-selector"])
                         }
                     }
-                    scrapePage();
-                    updateScrollRatio();
+                    scrapePage(new_url);
+                    updateScrollRatio(new_url);
                 }
             });
         }
@@ -188,9 +191,11 @@ function pageUrlChange() {
 chrome.runtime.onMessage.addListener(function (message) {
     switch (message.type) {
         case "urlChanged":
-            pageUrlChange();
+            pageUrlChange(message.message);
             break;
     }
 });
 
-$(document).ready(pageUrlChange);
+$(document).ready(function () {
+    pageUrlChange(window.location.href);
+});
