@@ -168,10 +168,11 @@ function addCircleGraph() {
                     }
                 }
 
-                var articleCount = getArticleCount(articles);
+                var articleDataset = createD3Dataset( getArticleCount(articles) );
 
+                console.log(articleDataset);
 
-
+                createDonutGraph(articleDataset);
 
 
                 /* Creats an object with a count of all the the articles read and their sournce in
@@ -192,8 +193,72 @@ function addCircleGraph() {
                             count[source] = 1;
                         }
                     }
-                    console.log(count);
                     return count;
+                };
+
+
+                /* Creates array that is better suited for D3 parsing
+                *
+                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+
+                *
+                *  Returns -> Ordered array of sources read and their count
+                */ 
+                function createD3Dataset(articlesToParse) {
+                    var dataset = [];
+                    for (let source in articlesToParse) {
+                        var articleCountObj = {};
+                        articleCountObj['source'] = source;
+                        articleCountObj['count'] = articlesToParse[source];
+                        dataset.push(articleCountObj);
+                    }
+
+                    dataset.sort(function(a, b) {
+                        var nameA = a.source;
+                        var nameB = b.source;
+                        if(nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+
+                    return dataset;
+                }
+
+
+                /* Creats an object with a count of all the the articles read and their sournce in
+                *  the past X amount of days
+                *
+                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+
+                *
+                *  Returns -> List of sources read and their count
+                */ 
+                function createDonutGraph(data) {
+                    var width = 360;
+                    var height = 360;
+                    var radius = Math.min(width, height)/2;
+
+                    // var color = d3.scale.category20();
+
+                    var svg = d3.select('#donut')
+                        .append('svg')
+                        .attr('width', width)
+                        .attr('height', height)
+                        .append('g')
+                        .attr('transform', 'translate(' + (width/2) + ',' + (height/2) + ')' );
+
+                    var arc = d3.arc()
+                        .innerRadius(0)
+                        .outerRadius(radius);
+
+                    var pie = d3.pie()
+                        .value(function(d) { console.log('gello') })
+                        .sort(null);
+
                 }
 
 
