@@ -65,7 +65,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             return true;
         case
         "updateScrollMetric" :
-            current_articles[sender.tab.id].then(function (article) {
+            current_articles[sender.tab.url].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
@@ -227,20 +227,30 @@ function UserMetadata(dateRead, source, lean, stars) {
     this.stars = stars !== undefined ? stars : null;
 }
 
+function persistCurrentArticle(url) {
+    "use strict";
+    //Persist the current article as we navigate away
+    Promise.all([current_articles[url], current_user]).then(function (resolved) {
+        if (resolved[0]) {
+            writeArticleData(resolved[0], resolved[1]);
+        }
+    });
+}
+
+function tabCloseHandler(tabId, changeInfo) {
+    "use strict";
+    persistCurrentArticle(reduceUrl(changeInfo.url));
+};
+
 function tabChangeHandler(tabId, changeInfo) {
-    if (changeInfo.url || changeInfo.isWindowClosing !== undefined) {
-        //Persist the current article as we navigate away
-        Promise.all([current_articles[tabId], current_user]).then(function (resolved) {
-            if (resolved[0]) {
-                writeArticleData(resolved[0], resolved[1]);
-            }
-        });
-        //Try to find an existing entry for the new page
+    if (changeInfo.url) {
+        persistCurrentArticle(reduceUrl(changeInfo.url));
+        //Try to find an existing entry for a new url
         Promise.all([_firebase, current_user]).then(function (resolved) {
                 var firebase = resolved[0];
                 var user = resolved[1];
                 var reduced_url = reduceUrl(changeInfo.url);
-                current_articles[tabId] = new Promise(function (resolve, reject) {
+                current_articles[reduced_url] = new Promise(function (resolve, reject) {
                     Promise.all([
                         firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
                         firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
@@ -253,7 +263,8 @@ function tabChangeHandler(tabId, changeInfo) {
             }
         );
     }
-}
+};
 
 chrome.tabs.onUpdated.addListener(tabChangeHandler);
-chrome.tabs.onRemoved.addListener(tabChangeHandler);
+chrome.tabs.onRemoved.addListener(tabCloseHandler);
+chrome.tabs.onCreated.addListener(tabChangeHandler)
