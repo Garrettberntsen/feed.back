@@ -1,4 +1,5 @@
 var current_articles = {};
+var tab_urls = {};
 var read_count = 0;
 analytics.then(function () {
     ga("send", {
@@ -37,9 +38,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     active: true,
                     currentWindow: true
                 }, function (tabs) {
+                    if (!tab_urls[tabs[0].id]) {
+                        tab_urls[tabs[0].id] = [];
+                    }
+                    tab_urls[tabs[0].id].push(reduceUrl(tabs[0].url));
                     current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(request.message);
                 });
             } else {
+                if (!tab_urls[sender.tab.id]) {
+                    tab_urls[sender.tab.id] = [];
+                }
+                tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
                 current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(request.message);
                 current_user.then(function (user) {
                     writeArticleData(request.message, user);
@@ -65,7 +74,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             return true;
         case
         "updateScrollMetric" :
-            current_articles[sender.tab.url].then(function (article) {
+            current_articles[reduceUrl(sender.tab.url)].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
@@ -104,7 +113,6 @@ function writeArticleData(article, user) {
         console.log("feed.back data written to firebase!");
     });
 }
-
 
 function extractPageData(url, content) {
     content = $.parseHTML(content);
@@ -240,10 +248,28 @@ function persistCurrentArticle(url) {
 function tabCloseHandler(tabId, changeInfo) {
     "use strict";
     persistCurrentArticle(reduceUrl(changeInfo.url));
+    disposeArticles(tabId);
 };
+
+/**
+ * Discard all article definitions associated with the given tab.
+ *
+ * Removing references to them allows them to be garbage collected and avoids unbounded growth in memory usage during
+ * long-term use.
+ * @param tabId
+ */
+function disposeArticles(tabId) {
+    "use strict";
+    var urls = tab_urls[tabId];
+    urls.forEach(function (url) {
+        current_articles[url] = null;
+    });
+    tab_urls[tabId] = [];
+}
 
 function tabChangeHandler(tabId, changeInfo) {
     if (changeInfo.url) {
+        disposeArticles(tabId);
         persistCurrentArticle(reduceUrl(changeInfo.url));
         //Try to find an existing entry for a new url
         Promise.all([_firebase, current_user]).then(function (resolved) {
@@ -267,4 +293,4 @@ function tabChangeHandler(tabId, changeInfo) {
 
 chrome.tabs.onUpdated.addListener(tabChangeHandler);
 chrome.tabs.onRemoved.addListener(tabCloseHandler);
-chrome.tabs.onCreated.addListener(tabChangeHandler)
+chrome.tabs.onCreated.addListener(tabChangeHandler);
