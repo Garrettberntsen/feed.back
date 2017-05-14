@@ -43,7 +43,7 @@ function scrapePage() {
                     var dateElement;
                     if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
                         dateElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                        dateElement = dateElement.children(sources[source_name]["date-selector"]);
+                        dateElement = dateElement.find(sources[source_name]["date-selector"]);
                     } else {
                         dateElement = $(sources[source_name]["date-selector"]);
                     }
@@ -59,7 +59,7 @@ function scrapePage() {
                     var authorElement;
                     if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
                         authorElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                        authorElement = authorElement.children(sources[source_name]["author-selector"]);
+                        authorElement = authorElement.find(sources[source_name]["author-selector"]);
                     } else {
                         authorElement = $(sources[source_name]["author-selector"]);
                     }
@@ -82,7 +82,7 @@ function scrapePage() {
                     var titleElement;
                     if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
                         titleElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                        titleElement= titleElement.children(sources[source_name]["title-selector"]);
+                        titleElement= titleElement.find(sources[source_name]["title-selector"]);
                     } else {
                         titleElement= $(sources[source_name]["title-selector"]);
                     }
@@ -97,7 +97,7 @@ function scrapePage() {
                     var textElement;
                     if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
                         textElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                        textElement= textElement.children(sources[source_name]["text-selector"]);
+                        textElement= textElement.find(sources[source_name]["text-selector"]);
                     } else {
                         textElement= $(encountered_urls[encountered_urls.current_index]["text-selector"]);
                     }
@@ -153,7 +153,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 function updateScrollRatio(url) {
     var content_element;
     if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-        content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).children(content_element_selector);
+        content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).find(content_element_selector);
     } else {
         content_element = $(encountered_urls[encountered_urls.current_index].content_element_selector);
     }
