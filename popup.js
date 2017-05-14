@@ -81,8 +81,7 @@ $(document).ready(function () {
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         new Taggle('tags');
 
-        //Create donut graph of articles read
-        var daysBack = 10;
+
         addCircleGraph();
 
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
@@ -154,7 +153,26 @@ function addCircleGraph() {
     chrome.runtime.sendMessage({type: "getUser"}, function (user) {
         chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
             firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
-                var articles = userSnapshot.val().articles;
+                var daysBack = 10;
+                var todaysDate = Date.now();
+                var millisecondsPerDay = 86400000;
+                var millisecondsBack = daysBack * millisecondsPerDay;
+                var articlesFromThisDate = todaysDate - millisecondsBack;
+
+
+                console.log(todaysDate);
+                console.log(articlesFromThisDate);
+                console.log(millisecondsBack);
+
+                //Create deep copy of articles to mess around with
+                var articles = JSON.parse(JSON.stringify( userSnapshot.val().articles ));
+
+                console.log(articles);
+                for (let key in articles) {
+                    if(articles[key].dateRead < articlesFromThisDate) {
+                        delete articles[key];
+                    }
+                }
                 console.log(articles);
 
 
