@@ -1,0 +1,13 @@
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+.user-notes {
+  width: 100%;
+  padding: 4px;
+}

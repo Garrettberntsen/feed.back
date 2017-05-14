@@ -22,6 +22,22 @@ String.prototype.hashCode = function () {
 
 var sourceDataCount = {};
 
+
+/*
+    Object that will hold all of the user's date for the page they are reading. When tags/notes/votes are
+    added, it will update this object. On leaving the page, a call to firebase is made updating the info
+    accordingly. 
+
+    If those data points already exist, they are populated on pageload. This is basically the idea behind
+    React's unidirectional data flow, minus all the overhead. Not needed for a chrome popout extension.
+*/
+var userData = {
+    rating: 0,
+    slant: 0,
+    tags: '',
+    notes: ''
+}
+
 var bg = chrome.extension.getBackgroundPage();
 
 function setLeanColor(value) {
@@ -64,9 +80,14 @@ $(document).ready(function () {
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         new Taggle('tags');
+
+
+        addCircleGraph();
+
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
+            console.log(article);
             $('#title').text(article.article_data.title);
             if (article.article_data.author) {
                 var authors = '';
@@ -127,3 +148,163 @@ $(document).ready(function () {
         });
     });
 });
+
+function addCircleGraph() {
+    chrome.runtime.sendMessage({type: "getUser"}, function (user) {
+        chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
+            firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
+                var daysBack = 10;
+                var todaysDate = Date.now();
+                var millisecondsPerDay = 86400000;
+                var millisecondsBack = daysBack * millisecondsPerDay;
+                var articlesFromThisDate = todaysDate - millisecondsBack;
+
+                //Create deep copy of articles to mess around with
+                var articles = JSON.parse(JSON.stringify( userSnapshot.val().articles ));
+
+                for (let key in articles) {
+                    if(articles[key].dateRead < articlesFromThisDate) {
+                        delete articles[key];
+                    }
+                }
+
+                var articleDataset = createD3Dataset( getArticleCount(articles) );
+
+                console.log(articleDataset);
+
+                createDonutGraph(articleDataset);
+
+
+                /* Creats an object with a count of all the the articles read and their sournce in
+                *  the past X amount of days
+                *
+                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+
+                *
+                *  Returns -> List of sources read and their count
+                */ 
+                function getArticleCount(articlesToParse) {
+                    var count = {};
+                    for (let key in articlesToParse) {
+                        var source = articlesToParse[key].source;
+                        if( count.hasOwnProperty(source) ) {
+                            count[source]++;
+                        }else{
+                            count[source] = 1;
+                        }
+                    }
+                    return count;
+                };
+
+
+                /* Creates array that is better suited for D3 parsing
+                *
+                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+
+                *
+                *  Returns -> Ordered array of sources read and their count
+                */ 
+                function createD3Dataset(articlesToParse) {
+                    var dataset = [];
+                    for (let source in articlesToParse) {
+                        var articleCountObj = {};
+                        articleCountObj['source'] = source;
+                        articleCountObj['count'] = articlesToParse[source];
+                        dataset.push(articleCountObj);
+                    }
+
+                    dataset.sort(function(a, b) {
+                        var nameA = a.source;
+                        var nameB = b.source;
+                        if(nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+
+                    return dataset;
+                }
+
+
+                /* Creats an object with a count of all the the articles read and their sournce in
+                *  the past X amount of days
+                *
+                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+
+                *
+                *  Returns -> List of sources read and their count
+                */ 
+                function createDonutGraph(data) {
+                    //Donut chart characteristics
+                    var donutWidth = 60;
+                    var width = 380;
+                    var height = 380;
+                    var radius = Math.min(width, height)/2;
+
+                    //Legend chart characteristics
+                    var legendRectSize = 18;
+                    var legendSpacing = 4;
+
+                    var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+                    var svg = d3.select('#donut')
+                        .append('svg')
+                        .attr('width', width)
+                        .attr('height', height)
+                        .append('g')
+                        .attr('transform', 'translate(' + (width/2) + ',' + (height/2) + ')' );
+
+                    var arc = d3.arc()
+                        .innerRadius(radius - donutWidth)
+                        .outerRadius(radius);
+
+                    var pie = d3.pie()
+                        .value(function(d) { return d.count })
+                        .sort(null);
+
+                    var path = svg.selectAll('path')
+                        .data(pie(data))
+                        .enter()
+                        .append('path')
+                        .attr('d', arc)
+                        .attr('fill', function(d, i) {
+                            return color(d.data.source)
+                        });
+
+                    var legend = svg.selectAll('.legend')
+                        .data(color.domain())
+                        .enter()
+                        .append('g')
+                        .attr('class', 'legend')
+                        .attr('transform', function(d,i){
+                            var height = legendRectSize + legendSpacing;
+                            var offset = height * color.domain().length / 2;
+                            var horz = -2 * legendRectSize;
+                            var vert = i * height - offset;
+                            return 'translate(' + horz + ',' + vert + ')';
+                        });
+
+                    legend.append('rect')
+                        .attr('width', legendRectSize)
+                        .attr('height', legendRectSize)
+                        .style('fill', color)
+                        .style('stroke', color);
+
+                    legend.append('text')
+                        .attr('x', legendRectSize + legendSpacing)
+                        .attr('y', legendRectSize - legendSpacing)
+                        .text(function(d){ return d; })
+
+                }
+
+
+                
+            }).catch(function (error) {
+                console.log(error);
+            });
+        });
+    });
+}

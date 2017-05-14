@@ -27,6 +27,7 @@ function increaseReadCount() {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    console.log('reached background.js');
     switch (request.type) {
         case "increaseReadCount":
             increaseReadCount();
@@ -47,6 +48,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             break;
         case "getCurrentArticle":
+            console.log('get current article');
             //Request is coming from a non-content script origin
             if (!sender.tab) {
                 chrome.tabs.query({
