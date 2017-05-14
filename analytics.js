@@ -28,7 +28,7 @@ var analytics = Promise.resolve(_firebase).then(function (firebase) {
         chrome.identity.getProfileUserInfo(function (userInfo) {
             firebase.database().ref("users/" + userInfo.id).once("value").then(function (userSnapshot) {
                 var user = userSnapshot.val();
-                if(!user){
+                if (!user) {
                     user = userInfo;
                 }
                 if (!user.analytics_id) {
@@ -38,7 +38,7 @@ var analytics = Promise.resolve(_firebase).then(function (firebase) {
                             next_id = 1;
                         }
                         //Without this check, updating the user will cause this handler to fire again.
-                        if(!user.analytics_id) {
+                        if (!user.analytics_id) {
                             user.analytics_id = next_id;
                             firebase.database().ref("users/" + userInfo.id).set(user);
                         }
@@ -76,4 +76,4 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendReponse) {
                     break;
             }
     }
-})
+});

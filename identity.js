@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener(function (request, requester, sendResponse)
         case "getUser":
             current_user.then(function (user) {
                 sendResponse(user);
-            })
+            });
             return true;
     }
 });

@@ -2,7 +2,7 @@ var encountered_urls = [];
 
 var sources = new Promise(function (resolve, reject) {
     chrome.runtime.sendMessage({type: "getSources"}, function (sources) {
-        var sourceName
+        var sourceName;
         if (sources) {
             resolve(sources);
         }
