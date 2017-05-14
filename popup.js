@@ -22,6 +22,22 @@ String.prototype.hashCode = function () {
 
 var sourceDataCount = {};
 
+
+/*
+    Object that will hold all of the user's date for the page they are reading. When tags/notes/votes are
+    added, it will update this object. On leaving the page, a call to firebase is made updating the info
+    accordingly. 
+
+    If those data points already exist, they are populated on pageload. This is basically the idea behind
+    React's unidirectional data flow, minus all the overhead. Not needed for a chrome popout extension.
+*/
+var userData = {
+    rating: 0,
+    slant: 0,
+    tags: '',
+    notes: ''
+}
+
 var bg = chrome.extension.getBackgroundPage();
 
 function setLeanColor(value) {
@@ -64,6 +80,11 @@ $(document).ready(function () {
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         new Taggle('tags');
+
+        //Create donut graph of articles read
+        var daysBack = 10;
+        addCircleGraph();
+
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
@@ -128,3 +149,22 @@ $(document).ready(function () {
         });
     });
 });
+
+function addCircleGraph() {
+    chrome.runtime.sendMessage({type: "getUser"}, function (user) {
+        chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
+            firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
+                var articles = userSnapshot.val().articles;
+                console.log(articles);
+
+
+
+
+
+                
+            }).catch(function (error) {
+                console.log(error);
+            });
+        });
+    });
+}
