@@ -242,7 +242,7 @@ function addCircleGraph() {
                     var height = 360;
                     var radius = Math.min(width, height)/2;
 
-                    // var color = d3.scale.category20();
+                    var color = d3.scaleOrdinal(d3.schemeCategory20);
 
                     var svg = d3.select('#donut')
                         .append('svg')
@@ -256,8 +256,17 @@ function addCircleGraph() {
                         .outerRadius(radius);
 
                     var pie = d3.pie()
-                        .value(function(d) { console.log('gello') })
+                        .value(function(d) { return d.count })
                         .sort(null);
+
+                    var path = svg.selectAll('path')
+                        .data(pie(data))
+                        .enter()
+                        .append('path')
+                        .attr('d', arc)
+                        .attr('fill', function(d, i) {
+                            return color(d.data.source)
+                        });
 
                 }
 
