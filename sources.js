@@ -358,7 +358,7 @@ var sources = {
                 groups: ["author", "year", "month", "day", "title"]
             }
         }],
-        'article-root-element-selector':'article[class="^article-container-"]',
+        'article-root-element-selector':'article.main-article:not(article#article-container-spinner) > div > div.main-article-padding',
         'author-selector': 'p.contrib-byline-author > a',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
