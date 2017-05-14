@@ -159,24 +159,42 @@ function addCircleGraph() {
                 var millisecondsBack = daysBack * millisecondsPerDay;
                 var articlesFromThisDate = todaysDate - millisecondsBack;
 
-
-                console.log(todaysDate);
-                console.log(articlesFromThisDate);
-                console.log(millisecondsBack);
-
                 //Create deep copy of articles to mess around with
                 var articles = JSON.parse(JSON.stringify( userSnapshot.val().articles ));
 
-                console.log(articles);
                 for (let key in articles) {
                     if(articles[key].dateRead < articlesFromThisDate) {
                         delete articles[key];
                     }
                 }
-                console.log(articles);
+
+                var articleCount = getArticleCount(articles);
 
 
 
+
+
+                /* Creats an object with a count of all the the articles read and their sournce in
+                *  the past X amount of days
+                *
+                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+
+                *
+                *  Returns -> List of sources read and their count
+                */ 
+                function getArticleCount(articlesToParse) {
+                    var count = {};
+                    for (let key in articlesToParse) {
+                        var source = articlesToParse[key].source;
+                        if( count.hasOwnProperty(source) ) {
+                            count[source]++;
+                        }else{
+                            count[source] = 1;
+                        }
+                    }
+                    console.log(count);
+                    return count;
+                }
 
 
                 
