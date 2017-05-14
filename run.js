@@ -53,7 +53,11 @@ function scrapePage() {
                     var authorElement = $(sources[source_name]["author-selector"]);
                     if (sources[source_name]["author-selector-property"] === "") {
                         data.author = $(sources[source_name]["author-selector"]).contents().not(authorElement.children())
-                            .toArray().map(function (element) {
+                            .toArray().filter(function (element) {
+                                "use strict";
+                                return element.textContent.trim() && element.textContent.indexOf("ng") === -1;
+                            }).map(function (element) {
+                                "use strict";
                                 return element.textContent;
                             }).join(", ");
                     } else if (typeof sources[source_name]["author-selector"] === "function") {
@@ -138,7 +142,10 @@ function updateScrollRatio(url) {
         1);
     if (calculated_scroll_ratio > encountered_urls[encountered_urls.current_index].scroll_ratio) {
         encountered_urls[encountered_urls.current_index].scroll_ratio = calculated_scroll_ratio;
-        chrome.runtime.sendMessage({type: "updateScrollMetric", message: encountered_urls[encountered_urls.current_index].scroll_ratio});
+        chrome.runtime.sendMessage({
+            type: "updateScrollMetric",
+            message: encountered_urls[encountered_urls.current_index].scroll_ratio
+        });
     }
     console.log("new scroll ratio: " + encountered_urls[encountered_urls.current_index].scroll_ratio);
 }
