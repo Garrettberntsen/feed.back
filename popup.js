@@ -67,6 +67,7 @@ $(document).ready(function () {
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
+            console.log(article);
             $('#title').text(article.article_data.title);
             if (article.article_data.author) {
                 var authors = '';
