@@ -238,9 +238,15 @@ function addCircleGraph() {
                 *  Returns -> List of sources read and their count
                 */ 
                 function createDonutGraph(data) {
-                    var width = 360;
-                    var height = 360;
+                    //Donut chart characteristics
+                    var donutWidth = 60;
+                    var width = 380;
+                    var height = 380;
                     var radius = Math.min(width, height)/2;
+
+                    //Legend chart characteristics
+                    var legendRectSize = 18;
+                    var legendSpacing = 4;
 
                     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -252,7 +258,7 @@ function addCircleGraph() {
                         .attr('transform', 'translate(' + (width/2) + ',' + (height/2) + ')' );
 
                     var arc = d3.arc()
-                        .innerRadius(0)
+                        .innerRadius(radius - donutWidth)
                         .outerRadius(radius);
 
                     var pie = d3.pie()
@@ -267,6 +273,30 @@ function addCircleGraph() {
                         .attr('fill', function(d, i) {
                             return color(d.data.source)
                         });
+
+                    var legend = svg.selectAll('.legend')
+                        .data(color.domain())
+                        .enter()
+                        .append('g')
+                        .attr('class', 'legend')
+                        .attr('transform', function(d,i){
+                            var height = legendRectSize + legendSpacing;
+                            var offset = height * color.domain().length / 2;
+                            var horz = -2 * legendRectSize;
+                            var vert = i * height - offset;
+                            return 'translate(' + horz + ',' + vert + ')';
+                        });
+
+                    legend.append('rect')
+                        .attr('width', legendRectSize)
+                        .attr('height', legendRectSize)
+                        .style('fill', color)
+                        .style('stroke', color);
+
+                    legend.append('text')
+                        .attr('x', legendRectSize + legendSpacing)
+                        .attr('y', legendRectSize - legendSpacing)
+                        .text(function(d){ return d; })
 
                 }
 
