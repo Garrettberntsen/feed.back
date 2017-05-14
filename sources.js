@@ -709,7 +709,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             break;
         case "getSourceUrlMatches":
             if (request.message.source_name) {
-                sendResponse(sources[request.message.source_name].testForArticleUrlMatch(request.message.location));
+                sendResponse(sources[request.message.source_name].testForArticleUrlMatch(reduceUrl(request.message.location)));
             }
             break;
     }
