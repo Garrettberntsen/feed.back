@@ -33,6 +33,7 @@ function SourceDefinition(definition) {
     this["text-selector-property"] = definition["text-selector-property"];
     this["title-selector"] = definition["title-selector"];
     this["title-selector-property"] = definition["title-selector-property"];
+    this["article-root-element-selector"] = definition["article-root-element-selector"];
     //Test the given url against this sources' article matching pattern, returning an object mapping the url element
     //names to their matched values, or false if there was no match.
     this.testForArticleUrlMatch = function (url) {
