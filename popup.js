@@ -19,6 +19,40 @@ String.prototype.hashCode = function () {
     return hash;
 };
 
+var displayed_article;
+
+/**
+ * Maps lean ratings to descriptions
+ * @param value
+ */
+var lean_descriptions = [
+    {
+        min: 1,
+        max: 1.4,
+        description: "Very Liberal"
+    },
+    {
+        min: 1.5,
+        max: 2.4,
+        description: "Liberal"
+    },
+    {
+        min: 2.5,
+        max: 3.5,
+        description: "Neutral"
+    },
+    {
+        min: 3.6,
+        max: 4.5,
+        description: "Conservative"
+    },
+    {
+        min: 4.6,
+        max: 5,
+        description: "Very Conservative"
+    }
+]
+
 function setLeanColor(value) {
     var color;
     switch (value) {
@@ -42,7 +76,6 @@ function setLeanColor(value) {
     $('.br-theme-bars-movie .br-widget a').css('background-color', '');
     $('.br-theme-bars-movie .br-widget a.br-selected').css('background-color', color);
     $('.br-theme-bars-movie .br-widget .br-current-rating').css('color', color);
-    $('#avg-lean-message').show();
 }
 
 function updateLeanAverage(article) {
@@ -51,8 +84,16 @@ function updateLeanAverage(article) {
         type: "getAverageLean",
         message: article.article_data.url
     }, function (response) {
-        "use strict";
-        $("#avg-lean").text(response);
+        var value = Number.parseFloat(response);
+        if (value && displayed_article.user_metadata.lean) {
+            debugger;
+            "use strict";
+            var definition = lean_descriptions.find(function (description) {
+                return description.min <= value && description.max >= value;
+            });
+            $("#avg-lean").text(definition.description);
+            $('#avg-lean-message').show();
+        }
     });
 }
 
@@ -64,10 +105,12 @@ function updateRatingAverage(article) {
     }, function (response) {
         "use strict";
         $("#avg-rating").text(response);
+        $('#avg-rating-message').show();
     });
 }
 
 $(document).ready(function () {
+    chrome.runtime.sendMessage({type: "resetReadCount"});
     $('#dashboard-link').on('click', function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
@@ -79,6 +122,7 @@ $(document).ready(function () {
             if (!article || !article.article_data) {
                 addCircleGraph();
             } else {
+                displayed_article = article;
                 $('#title').text(article.article_data.title);
                 if (article.article_data.author) {
                     var authors = '';
@@ -138,7 +182,6 @@ $(document).ready(function () {
                             "use strict";
                             updateRatingAverage(article);
                         });
-                        $('#avg-rating-message').show();
                     }
                 });
 
