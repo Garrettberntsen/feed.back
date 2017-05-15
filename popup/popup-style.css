@@ -11,3 +11,23 @@
   width: 100%;
   padding: 4px;
 }
+
+.tooltip {
+  background: #eee;
+  box-shadow: 0 0 5px #999999;
+  color: #333;
+  display: none;
+  left: 130px;
+  padding: 5px;
+  min-width: 80px;
+  position: absolute;
+  text-align: center;
+  top: 60px;
+  z-index: 10;
+}
+
+.dashboard-button {
+  margin: 15px 0;
+  
+  width: 100%;
+}

@@ -255,7 +255,6 @@ function addCircleGraph() {
                 /* Creates array that is better suited for D3 parsing
                 *
                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-
                 *
                 *  Returns -> Ordered array of sources read and their count
                 */ 
@@ -288,7 +287,6 @@ function addCircleGraph() {
                 *  the past X amount of days
                 *
                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-
                 *
                 *  Returns -> List of sources read and their count
                 */ 
@@ -329,6 +327,28 @@ function addCircleGraph() {
                             return color(d.data.source)
                         });
 
+                    path.on('mouseover', function(d) {
+                        console.log('in');
+                        var total = d3.sum(data.map(function(d) {
+                            return d.count;
+                        }));
+                        var percent = Math.round(1000 * d.data.count/total) / 10;
+                        tooltip.select('.tooltip__label').html(d.data.source);
+                        tooltip.select('.tooltip__count').html('Articles Read: ' + d.data.count);
+                        tooltip.select('.tooltip__percent').html('Percent of Total: ' + percent + '%');
+                        tooltip.style('display', 'block');
+                    });
+
+                    path.on('mouseout', function(d) {
+                        console.log('out');
+                        tooltip.style('display', 'none');
+                    });
+
+                    path.on('mousemove', function(d){
+                      tooltip.style('top', (d3.event.layerY + 10) + 'px')
+                        .style('left', (d3.event.layerX + 10) + 'px');
+                    });
+
                     var legend = svg.selectAll('.legend')
                         .data(color.domain())
                         .enter()
@@ -352,6 +372,21 @@ function addCircleGraph() {
                         .attr('x', legendRectSize + legendSpacing)
                         .attr('y', legendRectSize - legendSpacing)
                         .text(function(d){ return d; })
+
+                    var tooltip = d3.select('#donut')
+                        .append('div')
+                        .attr('class', 'tooltip')
+
+                    tooltip.append('div')
+                        .attr('class', 'tooltip__label')
+
+                    tooltip.append('div')
+                        .attr('class', 'tooltip__count')
+
+                    tooltip.append('div')
+                        .attr('class', 'tooltip__percent')
+
+
 
                 }
 
