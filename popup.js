@@ -22,16 +22,6 @@ String.prototype.hashCode = function () {
 
 var sourceDataCount = {};
 
-
-/*
-    Object that will hold all of the user's date for the page they are reading. When tags/notes/votes are
-    added, it will update this object. On leaving the page, a call to firebase is made updating the info
-    accordingly. 
-
-    If those data points already exist, they are populated on pageload. This is basically the idea behind
-    React's unidirectional data flow, minus all the overhead. Not needed for a chrome popout extension.
-*/
-
 var bg = chrome.extension.getBackgroundPage();
 
 function setLeanColor(value) {
@@ -77,7 +67,9 @@ $(document).ready(function () {
     };
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
+
         var articleTags = new Taggle('tags', {
+            tags: userData.tags,
             //Update userData.tags when a tag is removed
             onTagRemove: function(event, tag) {
                 userData.tags = articleTags.getTagValues()
@@ -85,8 +77,7 @@ $(document).ready(function () {
             }
         });
 
-
-        // addCircleGraph();
+        //addCircleGraph();
 
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
@@ -102,6 +93,7 @@ $(document).ready(function () {
                 $('#author').text('by ' + authors);
             }
             $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
+            
             $('#leanRating').barrating({
                 theme: 'bars-movie',
                 initialRating: article.user_metadata.lean,
@@ -122,9 +114,11 @@ $(document).ready(function () {
                     });
                 }
             });
+
             if (article.user_metadata.lean) {
                 setLeanColor(article.user_metadata.lean);
             }
+
             $('#starRating').barrating({
                 theme: 'fontawesome-stars',
                 initialRating: article.user_metadata.stars,
@@ -145,14 +139,31 @@ $(document).ready(function () {
                     $('#avg-rating-message').show();
                 }
             });
+
             if (article.user_metadata.stars) {
                 $('#avg-rating-message').show();
             }
 
+            if( article.user_metadata.notes ) {
+                $("#notes-area").val( article.user_metadata.notes );
+            }
+
             //Keep track of any notes that user adds. When pressed, update the userData object.
             $("#notes-area").keyup(function(){
-                userData.notes = $("#notes-area").val();
-                console.log(userData);
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        command: "send",
+                        category: "User Action",
+                        action: "Article Notes Set"
+                    }
+                });
+                article.user_metadata.notes = $("#notes-area").val();
+                console.log( article.user_metadata );
+                chrome.runtime.sendMessage({
+                    type: "update_current_article",
+                    message: article
+                });
             })
 
             //Keep track of any tags that user adds.
@@ -162,7 +173,6 @@ $(document).ready(function () {
                     console.log( userData.tags );
                 }
             })
-
 
             $("form").show();
         });
