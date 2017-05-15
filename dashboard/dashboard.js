@@ -473,8 +473,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var currentArticleUserInfo = userArticleInformation[key];
                             var currentArticle = articleInformation.snapshots[id_index].val();
 
-                            var userEvaluation = ""; //to add
+                            console.log(userEvaluation);
+                            var userEvaluation = userArticleInformation[key].stars; //to add
                             var dateRead = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
+                            var dateUnix = userArticleInformation[key].dateRead;
+                            console.log(dateUnix);
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
                             var type = ""; //to add
@@ -483,7 +486,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var read_percentage = userArticleInformation[key].scrolled_content_ratio;
 
                             var articleData = new Array(userEvaluation, dateRead, publisher, title, type, author, read_percentage);
-
                             articlesRead.push(articleData);
                         }
                     }
