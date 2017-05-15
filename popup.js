@@ -34,18 +34,12 @@ function setLeanColor(value) {
             color = '#2611BE';
             break;
         case '3':
-            color = '#4C0E98';
-            break;
-        case '4':
             color = '#730B72';
             break;
-        case '5':
-            color = '#99084C';
-            break;
-        case '6':
+        case '4':
             color = '#BF0526';
             break;
-        case '7':
+        case '5':
             color = '#E60300';
             break;
         default:
