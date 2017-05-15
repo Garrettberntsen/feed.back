@@ -203,10 +203,7 @@ function writeArticleData(article, user) {
         }
         return;
     }
-
     var article_data = article.article_data;
-
-    console.log(article.article_data);
 
     var article_key = article_data.url.hashCode();
 
@@ -340,7 +337,7 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
     this.partialRecord = partialRecord || false;
 }
 
-function UserMetadata(dateRead, source, lean, stars) {
+function UserMetadata(dateRead, source, lean, stars, tags, notes) {
     this.dateRead = dateRead !== undefined ? dateRead : null;
     if (source === undefined) {
         throw "Source must be set";
@@ -348,6 +345,8 @@ function UserMetadata(dateRead, source, lean, stars) {
     this.source = source;
     this.lean = lean !== undefined ? lean : null;
     this.stars = stars !== undefined ? stars : null;
+    this.tags = tags !== undefined ? tags : null;
+    this.notes = notes !== undefined ? notes : null;
 }
 
 /**

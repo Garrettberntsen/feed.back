@@ -151,8 +151,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var dataset = tempArr;
 
-                    console.log(dataset);
-
                     dataset.sort(function(a, b) {
                         var nameA = a.label;
                         var nameB = b.label;
@@ -164,8 +162,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         return 0;
                     });
-                    
-                    console.log(dataset);
 
                     var donutWidth = 75;
 
