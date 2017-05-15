@@ -38,7 +38,7 @@
 					</option>
 				</select>
 			</div>
-			<div class="column has-text-centered">
+			<div class="political-slant column has-text-centered">
 				rate the slant
 				<div class="columns is-mobile">
 					<div class="column">
@@ -58,18 +58,12 @@
 								Liberal
 							</option>
 							<option value="3">
-								Slightly Liberal
-							</option>
-							<option value="4">
 								Neutral
 							</option>
-							<option value="5">
-								Slightly Conservative
-							</option>
-							<option value="6">
+							<option value="4">
 								Conservative
 							</option>
-							<option value="7">
+							<option value="5">
 								Very Conservative
 							</option>
 						</select>
@@ -108,15 +102,18 @@
 				</div>
 			</div>
 		</div>
+		<div id="tags"></div>
+		<div class="colums">
+			<textarea id="notes-area" class="user-notes taggle_input" placeholder="Enter notes here..."></textarea>
+		</div>
 	</form>
-	<div id="donut"></div>
-	<div id="tags"></div>
 	<div class="colums">
-		<textarea class="user-notes taggle_input" placeholder="Enter notes here..."></textarea>
+		<div id="donut"></div>
 	</div>
 	<div class="colums">
-		<a class="button is-primary is-large has-text-centered" id="dashboard-link">My Dashboard</a> 
+		<a class="dashboard-button button is-primary is-large has-text-centered" id="dashboard-link">My Dashboard</a> 
 	</div>
+
 	<script src='/d3.min.js'></script> 
 	<script src='dashboard/libraries/js/date.js'></script> 
 	<script src="/jquery-3.1.1.min.js"></script> 

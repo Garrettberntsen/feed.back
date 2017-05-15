@@ -22,22 +22,6 @@ String.prototype.hashCode = function () {
 
 var sourceDataCount = {};
 
-
-/*
-    Object that will hold all of the user's date for the page they are reading. When tags/notes/votes are
-    added, it will update this object. On leaving the page, a call to firebase is made updating the info
-    accordingly. 
-
-    If those data points already exist, they are populated on pageload. This is basically the idea behind
-    React's unidirectional data flow, minus all the overhead. Not needed for a chrome popout extension.
-*/
-var userData = {
-    rating: 0,
-    slant: 0,
-    tags: '',
-    notes: ''
-}
-
 var bg = chrome.extension.getBackgroundPage();
 
 function setLeanColor(value) {
@@ -50,18 +34,12 @@ function setLeanColor(value) {
             color = '#2611BE';
             break;
         case '3':
-            color = '#4C0E98';
-            break;
-        case '4':
             color = '#730B72';
             break;
-        case '5':
-            color = '#99084C';
-            break;
-        case '6':
+        case '4':
             color = '#BF0526';
             break;
-        case '7':
+        case '5':
             color = '#E60300';
             break;
         default:
@@ -77,17 +55,13 @@ $(document).ready(function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
 
-
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-        new Taggle('tags');
-
-
-        addCircleGraph();
-
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-            console.log(article);
+            if(!article.article_data) {
+                addCircleGraph();
+            };
             $('#title').text(article.article_data.title);
             if (article.article_data.author) {
                 var authors = '';
@@ -98,6 +72,7 @@ $(document).ready(function () {
                 $('#author').text('by ' + authors);
             }
             $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
+            
             $('#leanRating').barrating({
                 theme: 'bars-movie',
                 initialRating: article.user_metadata.lean,
@@ -118,9 +93,11 @@ $(document).ready(function () {
                     });
                 }
             });
+
             if (article.user_metadata.lean) {
                 setLeanColor(article.user_metadata.lean);
             }
+
             $('#starRating').barrating({
                 theme: 'fontawesome-stars',
                 initialRating: article.user_metadata.stars,
@@ -141,12 +118,84 @@ $(document).ready(function () {
                     $('#avg-rating-message').show();
                 }
             });
+
             if (article.user_metadata.stars) {
                 $('#avg-rating-message').show();
             }
+
+            if( article.user_metadata.notes ) {
+                $("#notes-area").val( article.user_metadata.notes );
+            }
+
+            //Keep track of any notes that user adds. When pressed, update the userData object.
+            $("#notes-area").keyup(function(){
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        command: "send",
+                        category: "User Action",
+                        action: "Article Notes Set"
+                    }
+                });
+                article.user_metadata.notes = $("#notes-area").val();
+                console.log( article.user_metadata );
+                chrome.runtime.sendMessage({
+                    type: "update_current_article",
+                    message: article
+                });
+            });
+
+            var articleTags = new Taggle('tags', {
+                tags: article.user_metadata.tags ? article.user_metadata.tags : [],
+                //Update userData.tags when a tag is removed
+                onTagRemove: function(event, tag) {
+                    article.user_metadata.tags = articleTags.getTagValues()
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            command: "send",
+                            category: "User Action",
+                            action: "Article Tags Set"
+                        }
+                    });
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article",
+                        message: article
+                    });
+
+                }
+            });
+
+            //Keep track of any tags that user adds.
+            $("#tags").keyup(function() {
+                if( article.user_metadata.tags === undefined ){
+                    article.user_metadata.tags = [];
+                }
+                
+                if( article.user_metadata.tags.length !== articleTags.getTagValues().length ) {
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            command: "send",
+                            category: "User Action",
+                            action: "Article Tags Set"
+                        }
+                    });
+
+                    article.user_metadata.tags = articleTags.getTagValues()
+                    console.log( article.user_metadata.tags );
+                    
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article",
+                        message: article
+                    });
+                }   
+            })
             $("form").show();
         });
+
     });
+
 });
 
 function addCircleGraph() {
@@ -200,7 +249,6 @@ function addCircleGraph() {
                 /* Creates array that is better suited for D3 parsing
                 *
                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-
                 *
                 *  Returns -> Ordered array of sources read and their count
                 */ 
@@ -233,7 +281,6 @@ function addCircleGraph() {
                 *  the past X amount of days
                 *
                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-
                 *
                 *  Returns -> List of sources read and their count
                 */ 
@@ -274,6 +321,28 @@ function addCircleGraph() {
                             return color(d.data.source)
                         });
 
+                    path.on('mouseover', function(d) {
+                        console.log('in');
+                        var total = d3.sum(data.map(function(d) {
+                            return d.count;
+                        }));
+                        var percent = Math.round(1000 * d.data.count/total) / 10;
+                        tooltip.select('.tooltip__label').html(d.data.source);
+                        tooltip.select('.tooltip__count').html('Articles Read: ' + d.data.count);
+                        tooltip.select('.tooltip__percent').html('Percent of Total: ' + percent + '%');
+                        tooltip.style('display', 'block');
+                    });
+
+                    path.on('mouseout', function(d) {
+                        console.log('out');
+                        tooltip.style('display', 'none');
+                    });
+
+                    path.on('mousemove', function(d){
+                      tooltip.style('top', (d3.event.layerY + 10) + 'px')
+                        .style('left', (d3.event.layerX + 10) + 'px');
+                    });
+
                     var legend = svg.selectAll('.legend')
                         .data(color.domain())
                         .enter()
@@ -297,6 +366,21 @@ function addCircleGraph() {
                         .attr('x', legendRectSize + legendSpacing)
                         .attr('y', legendRectSize - legendSpacing)
                         .text(function(d){ return d; })
+
+                    var tooltip = d3.select('#donut')
+                        .append('div')
+                        .attr('class', 'tooltip')
+
+                    tooltip.append('div')
+                        .attr('class', 'tooltip__label')
+
+                    tooltip.append('div')
+                        .attr('class', 'tooltip__count')
+
+                    tooltip.append('div')
+                        .attr('class', 'tooltip__percent')
+
+
 
                 }
 
