@@ -192,6 +192,7 @@ function pageUrlChange(new_url) {
                 }
             });
             if (source_name) {
+                chrome.runtime.sendMessage({type: "incrementReadCount"});
                 chrome.runtime.sendMessage({
                     type: "getSourceUrlMatches",
                     message: {

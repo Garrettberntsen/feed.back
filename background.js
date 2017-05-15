@@ -1,5 +1,9 @@
 var current_articles = {};
 var tab_urls = {};
+/**
+ * The number of articles that the user has read since last opening the popup.
+ * @type {number}
+ */
 var read_count = 0;
 
 var last_visited_url;
@@ -24,10 +28,15 @@ String.prototype.hashCode = function () {
     return hash;
 };
 
-function increaseReadCount() {
-    read_count++;
-    chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 1]});
-    chrome.browserAction.setBadgeText({text: read_count.toString()});
+function setReadCount(new_count) {
+    read_count = new_count;
+    if (read_count) {
+        chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 255]});
+        chrome.browserAction.setBadgeText({text: read_count.toString()});
+    } else {
+        chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 125]});
+        chrome.browserAction.setBadgeText({text: ""});
+    }
 }
 
 function calculateAverageRatingForArticle(url) {
@@ -124,10 +133,14 @@ function calculateAverageLeanForArticle(url) {
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
-        case "increaseReadCount":
+        case "incrementReadCount":
         {
-            increaseReadCount();
+            setReadCount(read_count + 1);
             break;
+        }
+        case "resetReadCount":
+        {
+            setReadCount(0);
         }
         case "update_current_article":
         {
