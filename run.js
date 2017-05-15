@@ -12,7 +12,7 @@ var sources = new Promise(function (resolve, reject) {
     });
 });
 
-function scrapePage() {
+function scrapePage(url) {
     chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
         if (!article) {
             article = {
@@ -37,11 +37,11 @@ function scrapePage() {
                     };
                     data.source = source_name;
                     article.user_metadata.source = source_name;
-                    data.url = window.location.href.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
+                    data.url = url;
                     var d = new Date();
                     article.user_metadata.dateRead = d.getTime();
                     var dateElement;
-                    if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
                         dateElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
                         dateElement = dateElement.find(sources[source_name]["date-selector"]);
                     } else {
@@ -57,7 +57,7 @@ function scrapePage() {
                         data.date = data.date.trim();
                     }
                     var authorElement;
-                    if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
                         authorElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
                         authorElement = authorElement.find(sources[source_name]["author-selector"]);
                     } else {
@@ -80,11 +80,11 @@ function scrapePage() {
                     data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
 
                     var titleElement;
-                    if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
                         titleElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                        titleElement= titleElement.find(sources[source_name]["title-selector"]);
+                        titleElement = titleElement.find(sources[source_name]["title-selector"]);
                     } else {
-                        titleElement= $(sources[source_name]["title-selector"]);
+                        titleElement = $(sources[source_name]["title-selector"]);
                     }
                     if (sources[source_name]["title-selector-property"] === "") {
                         data.title = titleElement.text();
@@ -95,11 +95,11 @@ function scrapePage() {
                     data.title = data.title.trim().replace(/\s{3,}/, ' ');
 
                     var textElement;
-                    if(encountered_urls[encountered_urls.current_index].article_root_element_selector){
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
                         textElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                        textElement= textElement.find(sources[source_name]["text-selector"]);
+                        textElement = textElement.find(sources[source_name]["text-selector"]);
                     } else {
-                        textElement= $(encountered_urls[encountered_urls.current_index]["text-selector"]);
+                        textElement = $(encountered_urls[encountered_urls.current_index]["text-selector"]);
                     }
                     if (sources[source_name]["text-selector"] !== "") {
                         if (sources[source_name]["text-selector-property"] === "") {
@@ -123,12 +123,10 @@ function scrapePage() {
                         data.text = data.text.replace(/<([^<>]+)>/g, "");
                     }
 
-                    data.readers = article.article_data && article.article_data.readers ? article.article_data.readers : [];
+                    data.readers = article.article_data && article.article_data.readers ? article.article_data.readers : {};
+                    data.readers[user.id] = true;
+
                     article.article_data = data;
-                    if (!article.article_data.readers) {
-                        article.article_data.readers = {};
-                    }
-                    article.article_data.readers[user.id] = true;
 
                     console.log(JSON.stringify(data));
                     console.log("The user is: " + user.email);
@@ -146,7 +144,7 @@ function scrapePage() {
 chrome.runtime.onMessage.addListener(function (request, sender) {
     if (request.type == "userUpdated") {
         console.log("User identity updated");
-        scrapePage();
+        scrapePage(window.location.href);
     }
 });
 
