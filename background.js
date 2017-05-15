@@ -1,6 +1,9 @@
 var current_articles = {};
 var tab_urls = {};
 var read_count = 0;
+
+var last_visited_url;
+
 analytics.then(function () {
     ga("send", {
         hitType: "event",
@@ -27,7 +30,7 @@ function increaseReadCount() {
     chrome.browserAction.setBadgeText({text: read_count.toString()});
 }
 
-function calculateAverageRatingForArticle(url){
+function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
     return _firebase.then(function (firebase) {
@@ -51,11 +54,18 @@ function calculateAverageRatingForArticle(url){
                         var rating_count = 0;
                         ratings.forEach(function (rating) {
                             if (rating.exists()) {
-                                rating_sum += Number.parseInt(rating.val());
-                                rating_count++;
+                                var next_rating = Number.parseInt(rating.val());
+                                if (!isNaN(next_rating)) {
+                                    rating_sum += next_rating;
+                                    rating_count++;
+                                }
                             }
                         });
-                        return Promise.resolve(rating_sum / rating_count);
+                        if (rating_count) {
+                            return Promise.resolve(rating_sum / rating_count);
+                        } else {
+                            return Promise.resolve(0);
+                        }
                     })
 
                 } else {
@@ -67,7 +77,7 @@ function calculateAverageRatingForArticle(url){
     });
 }
 
-function calculateAverageLeanForArticle(url){
+function calculateAverageLeanForArticle(url) {
     "use strict";
     url = reduceUrl(url);
     return _firebase.then(function (firebase) {
@@ -91,17 +101,23 @@ function calculateAverageLeanForArticle(url){
                         var reader_count = 0;
                         ratings.forEach(function (rating) {
                             if (rating.exists()) {
-                                lean_sum += Number.parseInt(rating.val());
-                                reader_count++;
+                                var next_lean = Number.parseInt(rating.val());
+                                if (!isNaN(next_lean)) {
+                                    lean_sum += Number.parseInt(next_lean);
+                                    reader_count++;
+                                }
                             }
                         });
-                        return Promise.resolve(lean_sum / reader_count);
+                        if (reader_count) {
+                            return Promise.resolve(lean_sum / reader_count);
+                        } else {
+                            return Promise.resolve(0);
+                        }
                     })
                 } else {
                     return Promise.resolve(0);
                 }
             });
-
         });
     });
 }
@@ -146,13 +162,36 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         {
             //Request is coming from a non-content script origin
             if (!sender.tab) {
-                chrome.tabs.query({
-                    active: true,
-                    lastFocusedWindow: true
-                }, function (tabs) {
-                    Promise.resolve(current_articles[reduceUrl(tabs[0].url)]).then(function (current_article) {
-                        if(!current_article) {
+                if (last_visited_url) {
+                    var reduced_url = reduceUrl(last_visited_url);
+                    Promise.resolve(current_articles[reduced_url]).then(function (current_article) {
+                        if (!current_article) {
                             current_articles[reduced_url] = new Promise(function (resolve, reject) {
+                                current_user.then(function (user) {
+                                    Promise.all([
+                                        firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
+                                        firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
+                                        var article_data = resolved[0].val();
+                                        var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                                        resolve(new Article(article_data, user_metadata));
+                                    });
+                                });
+                            });
+                            current_article = current_articles[reduced_url];
+                        }
+                        return current_article;
+                    }).then(function (article) {
+                        "use strict";
+                        sendResponse(article);
+                    });
+                }
+            } else {
+                Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
+                    var reduced_url = reduceUrl(request.message);
+                    if (!current_article) {
+                        current_articles[reduced_url] = new Promise(function (resolve, reject) {
+                            current_user.then(function (user) {
+                                "use strict";
                                 Promise.all([
                                     firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
                                     firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
@@ -160,27 +199,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                                     var user_metadata = resolved[1].val() ? resolved[1].val() : {};
                                     resolve(new Article(article_data, user_metadata));
                                 });
-                            });
-                            current_article = current_article[reducedUrl];
-                        }
-                        sendResponse(current_article);
-                    });
-                });
-            } else {
-                Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
-                    if(!current_article) {
-                        current_articles[reduced_url] = new Promise(function (resolve, reject) {
-                            Promise.all([
-                                firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
-                                firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
-                                var article_data = resolved[0].val();
-                                var user_metadata = resolved[1].val() ? resolved[1].val() : {};
-                                resolve(new Article(article_data, user_metadata));
-                            });
+                            })
                         });
-                        current_article = current_article[reducedUrl];
+                        current_article = current_articles[reduced_url];
                     }
-                    sendResponse(current_article);
+                    return current_article;
+                }).then(function (article) {
+                    sendResponse(article);
                 });
             }
             return true;
@@ -194,7 +219,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
         case "getAverageRating":
         {
-            calculateAverageRatingForArticle(request.message).then(function(rating){
+            calculateAverageRatingForArticle(request.message).then(function (rating) {
                 "use strict";
                 sendResponse(rating);
             })
@@ -202,7 +227,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
         case "getAverageLean":
         {
-            calculateAverageLeanForArticle(request.message).then(function(rating){
+            calculateAverageLeanForArticle(request.message).then(function (rating) {
                 "use strict";
                 sendResponse(rating);
             })
@@ -405,7 +430,25 @@ function disposeArticles(tabId) {
     }
 }
 
+function updateLastVisited(tabId, changeInfo) {
+    "use strict";
+    if (changeInfo.status == "complete") {
+        chrome.tabs.get(tabId, function (tab) {
+            var sourceName = Object.keys(sources).find(function (sourceName) {
+                return sources[sourceName].urls.find(function (def) {
+                    "use strict";
+                    return tab.url.indexOf(def.urlRoot) !== -1;
+                })
+            });
+            if (sourceName) {
+                last_visited_url = tab.url;
+            }
+        });
+    }
+}
+
 function tabChangeHandler(tabId, changeInfo) {
+    updateLastVisited(tabId, changeInfo);
     if (changeInfo.url) {
         disposeArticles(tabId);
         persistCurrentArticle(reduceUrl(changeInfo.url));
@@ -436,3 +479,4 @@ chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     disposeArticles(tabId);
 });
 chrome.tabs.onCreated.addListener(tabChangeHandler);
+chrome.tabs.onActiveChanged.addListener(updateLastVisited);
