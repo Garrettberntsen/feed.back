@@ -31,3 +31,7 @@
   
   width: 100%;
 }
+
+.column {
+  padding: 0.5rem;
+}
