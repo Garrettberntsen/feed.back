@@ -77,7 +77,13 @@ $(document).ready(function () {
     };
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-        new Taggle('tags');
+        var articleTags = new Taggle('tags', {
+            //Update userData.tags when a tag is removed
+            onTagRemove: function(event, tag) {
+                userData.tags = articleTags.getTagValues()
+                console.log( userData.tags );
+            }
+        });
 
 
         // addCircleGraph();
@@ -148,6 +154,16 @@ $(document).ready(function () {
                 userData.notes = $("#notes-area").val();
                 console.log(userData);
             })
+
+            //Keep track of any tags that user adds.
+            $("#tags").keyup(function() {
+                if( userData.tags.length !== articleTags.getTagValues().length ) {
+                    userData.tags = articleTags.getTagValues()
+                    console.log( userData.tags );
+                }
+            })
+
+
             $("form").show();
         });
     });
