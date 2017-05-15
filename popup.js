@@ -31,12 +31,6 @@ var sourceDataCount = {};
     If those data points already exist, they are populated on pageload. This is basically the idea behind
     React's unidirectional data flow, minus all the overhead. Not needed for a chrome popout extension.
 */
-var userData = {
-    rating: 0,
-    slant: 0,
-    tags: '',
-    notes: ''
-}
 
 var bg = chrome.extension.getBackgroundPage();
 
@@ -77,12 +71,16 @@ $(document).ready(function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
 
+    var userData = {
+        tags: [],
+        notes: ''
+    };
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         new Taggle('tags');
 
 
-        addCircleGraph();
+        // addCircleGraph();
 
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
@@ -144,6 +142,12 @@ $(document).ready(function () {
             if (article.user_metadata.stars) {
                 $('#avg-rating-message').show();
             }
+
+            //Keep track of any notes that user adds. When pressed, update the userData object.
+            $("#notes-area").keyup(function(){
+                userData.notes = $("#notes-area").val();
+                console.log(userData);
+            })
             $("form").show();
         });
     });
