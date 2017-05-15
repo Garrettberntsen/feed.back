@@ -2,8 +2,8 @@ chrome.runtime.sendMessage({
     type: "analytics",
     message: {
         command: "send",
-        category: "User Action",
-        action: "Popup Opened"
+        eventCategory: "User Action",
+        eventAction: "Popup Opened"
     }
 });
 // Function to create hashes for article keys
@@ -76,8 +76,8 @@ $(document).ready(function () {
                         type: "analytics",
                         message: {
                             command: "send",
-                            category: "User Action",
-                            action: "Article Lean Set"
+                            eventCategory: "User Action",
+                            eventAction: "Article Lean Set"
                         }
                     });
                     setLeanColor(value);
@@ -108,8 +108,8 @@ $(document).ready(function () {
                         type: "analytics",
                         message: {
                             command: "send",
-                            category: "User Action",
-                            action: "Article Rating Set"
+                            eventCategory: "User Action",
+                            eventAction: "Article Rating Set"
                         }
                     });
                     article.user_metadata.stars = $('#starRating').val();
@@ -135,8 +135,8 @@ $(document).ready(function () {
                     type: "analytics",
                     message: {
                         command: "send",
-                        category: "User Action",
-                        action: "Article Notes Set"
+                        eventCategory: "User Action",
+                        eventAction: "Article Notes Set"
                     }
                 });
                 article.user_metadata.notes = $("#notes-area").val();
@@ -156,8 +156,8 @@ $(document).ready(function () {
                         type: "analytics",
                         message: {
                             command: "send",
-                            category: "User Action",
-                            action: "Article Tags Set"
+                            eventCategory: "User Action",
+                            eventAction: "Article Tags Set"
                         }
                     });
                     chrome.runtime.sendMessage({
@@ -179,8 +179,8 @@ $(document).ready(function () {
                         type: "analytics",
                         message: {
                             command: "send",
-                            category: "User Action",
-                            action: "Article Tags Set"
+                            eventCategory: "User Action",
+                            eventAction: "Article Tags Set"
                         }
                     });
 
