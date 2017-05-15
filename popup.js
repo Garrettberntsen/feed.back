@@ -61,20 +61,13 @@ $(document).ready(function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
 
-    var userData = {
-        tags: [],
-        notes: ''
-    };
-
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-
-
-        //addCircleGraph();
-
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-            console.log(article);
+            if(!article.article_data) {
+                addCircleGraph();
+            };
             $('#title').text(article.article_data.title);
             if (article.article_data.author) {
                 var authors = '';
@@ -140,7 +133,6 @@ $(document).ready(function () {
                 $("#notes-area").val( article.user_metadata.notes );
             }
 
-            
             //Keep track of any notes that user adds. When pressed, update the userData object.
             $("#notes-area").keyup(function(){
                 chrome.runtime.sendMessage({
@@ -163,8 +155,20 @@ $(document).ready(function () {
                 tags: article.user_metadata.tags ? article.user_metadata.tags : [],
                 //Update userData.tags when a tag is removed
                 onTagRemove: function(event, tag) {
-                    userData.tags = articleTags.getTagValues()
-                    console.log( userData.tags );
+                    article.user_metadata.tags = articleTags.getTagValues()
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            command: "send",
+                            category: "User Action",
+                            action: "Article Tags Set"
+                        }
+                    });
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article",
+                        message: article
+                    });
+
                 }
             });
 
@@ -191,14 +195,13 @@ $(document).ready(function () {
                         type: "update_current_article",
                         message: article
                     });
-                }
-
-                
+                }   
             })
-
             $("form").show();
         });
+
     });
+
 });
 
 function addCircleGraph() {
