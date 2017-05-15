@@ -179,7 +179,7 @@ function pageUrlChange(new_url) {
             return new_url == e.url;
         });
         if (encountered_urls.current_index == -1) {
-            var scroll_ratio = article.user_metadata ? article.user_metadata.scrolled_content_ratio : 0;
+            var scroll_ratio = article.user_metadata && article.user_metadata.scrolled_content_ratio ? article.user_metadata.scrolled_content_ratio : 0;
             encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
             encountered_urls.current_index = encountered_urls.length - 1;
         }
