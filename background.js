@@ -151,11 +151,35 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     lastFocusedWindow: true
                 }, function (tabs) {
                     Promise.resolve(current_articles[reduceUrl(tabs[0].url)]).then(function (current_article) {
+                        if(!current_article) {
+                            current_articles[reduced_url] = new Promise(function (resolve, reject) {
+                                Promise.all([
+                                    firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
+                                    firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
+                                    var article_data = resolved[0].val();
+                                    var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                                    resolve(new Article(article_data, user_metadata));
+                                });
+                            });
+                            current_article = current_article[reducedUrl];
+                        }
                         sendResponse(current_article);
                     });
                 });
             } else {
                 Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
+                    if(!current_article) {
+                        current_articles[reduced_url] = new Promise(function (resolve, reject) {
+                            Promise.all([
+                                firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
+                                firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
+                                var article_data = resolved[0].val();
+                                var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                                resolve(new Article(article_data, user_metadata));
+                            });
+                        });
+                        current_article = current_article[reducedUrl];
+                    }
                     sendResponse(current_article);
                 });
             }
