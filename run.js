@@ -174,47 +174,50 @@ function updateScrollRatio(url) {
 }
 
 function pageUrlChange(new_url) {
-    encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
-        return new_url == e.url;
-    });
-    if (encountered_urls.current_index == -1) {
-        encountered_urls.push({url: new_url, scroll_ratio: 0});
-        encountered_urls.current_index = encountered_urls.length - 1;
-    }
-    sources.then(function (sources) {
-        var source_name = Object.keys(sources).find(function (source_name) {
-            if (sources[source_name].urls.find(function (source_url_definition) {
-                    return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
-                })) {
-                return source_name;
-            }
+    chrome.runtime.sendMessage({type: "getCurrentArticle", message: new_url}, function (article) {
+        encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
+            return new_url == e.url;
         });
-        if (source_name) {
-            chrome.runtime.sendMessage({
-                type: "getSourceUrlMatches",
-                message: {
-                    location: window.location.href,
-                    source_name: source_name
-                }
-            }, function (response) {
-                if (response) {
-                    encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
-                    encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
-                    //If content_element_selector contains multiple elements, get the last
-                    if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
-                        $(document).scroll(updateScrollRatio);
-                    } else {
-                        if (!source_name) {
-                            console.log("No source description was found for this url");
-                        } else {
-                            console.log("No content element could be found with selector " + sources[source_name]["text-selector"])
-                        }
-                    }
-                    scrapePage(new_url);
-                    updateScrollRatio(new_url);
+        if (encountered_urls.current_index == -1) {
+            var scroll_ratio = article.user_metadata ? article.user_metadata.scrolled_content_ratio : 0;
+            encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
+            encountered_urls.current_index = encountered_urls.length - 1;
+        }
+        sources.then(function (sources) {
+            var source_name = Object.keys(sources).find(function (source_name) {
+                if (sources[source_name].urls.find(function (source_url_definition) {
+                        return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
+                    })) {
+                    return source_name;
                 }
             });
-        }
+            if (source_name) {
+                chrome.runtime.sendMessage({
+                    type: "getSourceUrlMatches",
+                    message: {
+                        location: window.location.href,
+                        source_name: source_name
+                    }
+                }, function (response) {
+                    if (response) {
+                        encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
+                        encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
+                        //If content_element_selector contains multiple elements, get the last
+                        if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
+                            $(document).scroll(updateScrollRatio);
+                        } else {
+                            if (!source_name) {
+                                console.log("No source description was found for this url");
+                            } else {
+                                console.log("No content element could be found with selector " + sources[source_name]["text-selector"])
+                            }
+                        }
+                        scrapePage(new_url);
+                        updateScrollRatio(new_url);
+                    }
+                });
+            }
+        });
     });
 }
 
