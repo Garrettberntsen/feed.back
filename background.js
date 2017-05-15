@@ -27,22 +27,108 @@ function increaseReadCount() {
     chrome.browserAction.setBadgeText({text: read_count.toString()});
 }
 
+function calculateAverageRatingForArticle(url){
+    "use strict";
+    url = reduceUrl(url);
+    return _firebase.then(function (firebase) {
+        "use strict";
+        var current_article = current_articles[url];
+        return current_article.then(function (article) {
+            return Promise.all([firebase.database()
+                .ref("articles/" + article.article_data.url.hashCode() + "/readers")
+                .once("value"),
+                article]).then(function (resolved) {
+                var article_snapshot = resolved[0];
+                var article = resolved[1];
+                var article_readers = article_snapshot.val();
+                if (article_readers) {
+                    var reader_ratings = [];
+                    Object.keys(article_readers).forEach(function (reader_id) {
+                        reader_ratings.push(firebase.database().ref("users/" + reader_id + "/articles/" + article.article_data.url.hashCode() + "/stars").once("value"))
+                    });
+                    return Promise.all(reader_ratings).then(function (ratings) {
+                        var rating_sum = 0;
+                        var rating_count = 0;
+                        ratings.forEach(function (rating) {
+                            if (rating.exists()) {
+                                rating_sum += Number.parseInt(rating.val());
+                                rating_count++;
+                            }
+                        });
+                        return Promise.resolve(rating_sum / rating_count);
+                    })
+
+                } else {
+                    return Promise.resolve(0);
+                }
+            });
+
+        });
+    });
+}
+
+function calculateAverageLeanForArticle(url){
+    "use strict";
+    url = reduceUrl(url);
+    return _firebase.then(function (firebase) {
+        "use strict";
+        var current_article = current_articles[url];
+        return current_article.then(function (article) {
+            return Promise.all([firebase.database()
+                .ref("articles/" + article.article_data.url.hashCode() + "/readers")
+                .once("value"),
+                article]).then(function (resolved) {
+                var article_snapshot = resolved[0];
+                var article = resolved[1];
+                var article_readers = article_snapshot.val();
+                if (article_readers) {
+                    var reader_ratings = [];
+                    Object.keys(article_readers).forEach(function (reader_id) {
+                        reader_ratings.push(firebase.database().ref("users/" + reader_id + "/articles/" + article.article_data.url.hashCode() + "/lean").once("value"))
+                    });
+                    return Promise.all(reader_ratings).then(function (ratings) {
+                        var lean_sum = 0;
+                        var reader_count = 0;
+                        ratings.forEach(function (rating) {
+                            if (rating.exists()) {
+                                lean_sum += Number.parseInt(rating.val());
+                                reader_count++;
+                            }
+                        });
+                        return Promise.resolve(lean_sum / reader_count);
+                    })
+                } else {
+                    return Promise.resolve(0);
+                }
+            });
+
+        });
+    });
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "increaseReadCount":
+        {
             increaseReadCount();
             break;
+        }
         case "update_current_article":
+        {
+            request.message.article_data.url = reduceUrl(request.message.article_data.url);
             if (!sender.tab) {
                 chrome.tabs.query({
                     active: true,
-                    currentWindow: true
+                    lastFocusedWindow: true
                 }, function (tabs) {
                     if (!tab_urls[tabs[0].id]) {
                         tab_urls[tabs[0].id] = [];
                     }
                     tab_urls[tabs[0].id].push(reduceUrl(tabs[0].url));
                     current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(request.message);
+                    current_user.then(function (user) {
+                        writeArticleData(request.message, user);
+                    });
                 });
             } else {
                 if (!tab_urls[sender.tab.id]) {
@@ -55,12 +141,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 });
             }
             break;
+        }
         case "getCurrentArticle":
+        {
             //Request is coming from a non-content script origin
             if (!sender.tab) {
                 chrome.tabs.query({
                     active: true,
-                    currentWindow: true
+                    lastFocusedWindow: true
                 }, function (tabs) {
                     Promise.resolve(current_articles[reduceUrl(tabs[0].url)]).then(function (current_article) {
                         sendResponse(current_article);
@@ -72,27 +160,55 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 });
             }
             return true;
-        case
-        "updateScrollMetric" :
+        }
+        case "updateScrollMetric" :
+        {
             current_articles[reduceUrl(sender.tab.url)].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
+        }
+        case "getAverageRating":
+        {
+            calculateAverageRatingForArticle(request.message).then(function(rating){
+                "use strict";
+                sendResponse(rating);
+            })
+            return true;
+        }
+        case "getAverageLean":
+        {
+            calculateAverageLeanForArticle(request.message).then(function(rating){
+                "use strict";
+                sendResponse(rating);
+            })
+            return true;
+        }
     }
 });
 
 function writeArticleData(article, user) {
-    if (!article || !article.article_data) {
-        console.log("writeArticleData was called with no data");
+    if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
+        if (!article) {
+            console.log("writeArticleData null article passed.");
+        }
+        if (!article.article_data) {
+            console.log("writeArticleData was called with no data.");
+        }
+        if (!article.user_metadata.dateRead) {
+            console.log("writeArticleData date read not set");
+        }
+        if (!article_data.url) {
+            console.log("writeArticleData called without defined url");
+        }
         return;
     }
+
     var article_data = article.article_data;
 
-    var article_key = article_data.url.hashCode();
+    console.log(article.article_data);
 
-    if (!article_key || !article.user_metadata.dateRead) {
-        return false;
-    }
+    var article_key = article_data.url.hashCode();
 
     _firebase.then(function (firebase) {
         //Check if the article has already been scraped or the new record is not a partial record.
@@ -105,7 +221,6 @@ function writeArticleData(article, user) {
                 firebase.database().ref('articles/' + article_key).set(article_data);
             }
         });
-        increaseReadCount();
         if (article.user_metadata) {
             firebase.database().ref('users/' + user.id + '/articles/' + article_key).set(article.user_metadata);
         }
@@ -193,7 +308,7 @@ function extractPageData(url, content) {
  */
 function reduceUrl(url) {
     if (url) {
-        return url.replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/\?.*/, '').replace(/#.*/, '');
+        return url.replace(/https?:\/\//, "").replace(/www\./, '').replace(/\?.*/, '').replace(/#.*/, '');
     } else {
         return url;
     }
@@ -235,21 +350,19 @@ function UserMetadata(dateRead, source, lean, stars) {
     this.stars = stars !== undefined ? stars : null;
 }
 
+/**
+ * Write the article associated with the given url to firebase.
+ * @param url
+ */
 function persistCurrentArticle(url) {
     "use strict";
     //Persist the current article as we navigate away
-    Promise.all([current_articles[url], current_user]).then(function (resolved) {
+    Promise.all([current_articles[reduceUrl(url)], current_user]).then(function (resolved) {
         if (resolved[0]) {
             writeArticleData(resolved[0], resolved[1]);
         }
     });
 }
-
-function tabCloseHandler(tabId, changeInfo) {
-    "use strict";
-    persistCurrentArticle(reduceUrl(changeInfo.url));
-    disposeArticles(tabId);
-};
 
 /**
  * Discard all article definitions associated with the given tab.
@@ -261,10 +374,12 @@ function tabCloseHandler(tabId, changeInfo) {
 function disposeArticles(tabId) {
     "use strict";
     var urls = tab_urls[tabId];
-    urls.forEach(function (url) {
-        current_articles[url] = null;
-    });
-    tab_urls[tabId] = [];
+    if (urls) {
+        urls.forEach(function (url) {
+            current_articles[url] = null;
+        });
+        tab_urls[tabId] = [];
+    }
 }
 
 function tabChangeHandler(tabId, changeInfo) {
@@ -292,5 +407,9 @@ function tabChangeHandler(tabId, changeInfo) {
 };
 
 chrome.tabs.onUpdated.addListener(tabChangeHandler);
-chrome.tabs.onRemoved.addListener(tabCloseHandler);
+chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
+    "use strict";
+    persistCurrentArticle(reduceUrl(changeInfo.url));
+    disposeArticles(tabId);
+});
 chrome.tabs.onCreated.addListener(tabChangeHandler);

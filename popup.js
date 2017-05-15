@@ -70,7 +70,7 @@ $(document).ready(function () {
                 authors = authors.substring(0, authors.length - 2);
                 $('#author').text('by ' + authors);
             }
-            $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
+            $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : []).length);
             $('#leanRating').barrating({
                 theme: 'bars-movie',
                 initialRating: article.user_metadata.lean,
@@ -91,6 +91,15 @@ $(document).ready(function () {
                     });
                 }
             });
+            chrome.runtime.sendMessage({type: "getAverageRating", message: article.article_data.url}, function(response){
+                "use strict";
+                $("#avg-rating").text(response);
+            });
+            chrome.runtime.sendMessage({type: "getAverageLean", message: article.article_data.url}, function(response){
+                "use strict";
+                $("#avg-lean").text(response);
+            });
+
             if (article.user_metadata.lean) {
                 setLeanColor(article.user_metadata.lean);
             }
