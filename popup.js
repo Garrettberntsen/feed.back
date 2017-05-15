@@ -19,11 +19,6 @@ String.prototype.hashCode = function () {
     return hash;
 };
 
-
-var sourceDataCount = {};
-
-var bg = chrome.extension.getBackgroundPage();
-
 function setLeanColor(value) {
     var color;
     switch (value) {
@@ -60,7 +55,6 @@ $(document).ready(function () {
     $('#dashboard-link').on('click', function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
     });
-
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         new Taggle('tags');
