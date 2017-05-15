@@ -45,6 +45,28 @@ function setLeanColor(value) {
     $('#avg-lean-message').show();
 }
 
+function updateLeanAverage(article) {
+    "use strict";
+    chrome.runtime.sendMessage({
+        type: "getAverageLean",
+        message: article.article_data.url
+    }, function (response) {
+        "use strict";
+        $("#avg-lean").text(response);
+    });
+}
+
+function updateRatingAverage(article) {
+    "use strict";
+    chrome.runtime.sendMessage({
+        type: "getAverageRating",
+        message: article.article_data.url
+    }, function (response) {
+        "use strict";
+        $("#avg-rating").text(response);
+    });
+}
+
 $(document).ready(function () {
     $('#dashboard-link').on('click', function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
@@ -54,151 +76,153 @@ $(document).ready(function () {
         var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
         var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-            if(!article.article_data) {
+            if (!article || !article.article_data) {
                 addCircleGraph();
-            };
-            $('#title').text(article.article_data.title);
-            if (article.article_data.author) {
-                var authors = '';
-                for (var author in article.article_data.author) {
-                    authors += article.article_data.author[author] + ', ';
+            } else {
+                $('#title').text(article.article_data.title);
+                if (article.article_data.author) {
+                    var authors = '';
+                    for (var author in article.article_data.author) {
+                        authors += article.article_data.author[author] + ', ';
+                    }
+                    authors = authors.substring(0, authors.length - 2);
+                    $('#author').text('by ' + authors);
                 }
-                authors = authors.substring(0, authors.length - 2);
-                $('#author').text('by ' + authors);
-            }
-            $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
-            
-            $('#leanRating').barrating({
-                theme: 'bars-movie',
-                initialRating: article.user_metadata.lean,
-                onSelect: function (value, text) {
-                    chrome.runtime.sendMessage({
-                        type: "analytics",
-                        message: {
-                            command: "send",
-                            eventCategory: "User Action",
-                            eventAction: "Article Lean Set"
-                        }
-                    });
-                    setLeanColor(value);
-                    article.user_metadata.lean = $('#leanRating').val();
-                    chrome.runtime.sendMessage({
-                        type: "update_current_article",
-                        message: article
-                    });
-                }
-            });
-            chrome.runtime.sendMessage({type: "getAverageRating", message: article.article_data.url}, function(response){
-                "use strict";
-                $("#avg-rating").text(response);
-            });
-            chrome.runtime.sendMessage({type: "getAverageLean", message: article.article_data.url}, function(response){
-                "use strict";
-                $("#avg-lean").text(response);
-            });
+                $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
 
-            if (article.user_metadata.lean) {
-                setLeanColor(article.user_metadata.lean);
-            }
-            $('#starRating').barrating({
-                theme: 'fontawesome-stars',
-                initialRating: article.user_metadata.stars,
-                onSelect: function (value, text) {
-                    chrome.runtime.sendMessage({
-                        type: "analytics",
-                        message: {
-                            command: "send",
-                            eventCategory: "User Action",
-                            eventAction: "Article Rating Set"
-                        }
-                    });
-                    article.user_metadata.stars = $('#starRating').val();
-                    chrome.runtime.sendMessage({
-                        type: "update_current_article",
-                        message: article
-                    });
-                    $('#avg-rating-message').show();
-                }
-            });
-
-            if (article.user_metadata.stars) {
-                $('#avg-rating-message').show();
-            }
-
-            if( article.user_metadata.notes ) {
-                $("#notes-area").val( article.user_metadata.notes );
-            }
-
-            //Keep track of any notes that user adds. When pressed, update the userData object.
-            $("#notes-area").keyup(function(){
-                chrome.runtime.sendMessage({
-                    type: "analytics",
-                    message: {
-                        command: "send",
-                        eventCategory: "User Action",
-                        eventAction: "Article Notes Set"
+                $('#leanRating').barrating({
+                    theme: 'bars-movie',
+                    initialRating: article.user_metadata.lean,
+                    onSelect: function (value, text) {
+                        chrome.runtime.sendMessage({
+                            type: "analytics",
+                            message: {
+                                command: "send",
+                                eventCategory: "User Action",
+                                eventAction: "Article Lean Set"
+                            }
+                        });
+                        setLeanColor(value);
+                        article.user_metadata.lean = $('#leanRating').val();
+                        chrome.runtime.sendMessage({
+                            type: "update_current_article",
+                            message: article
+                        }, function () {
+                            console.log("We should be updating the average lean here.");
+                            updateLeanAverage(article);
+                        });
                     }
                 });
-                article.user_metadata.notes = $("#notes-area").val();
-                console.log( article.user_metadata );
-                chrome.runtime.sendMessage({
-                    type: "update_current_article",
-                    message: article
+
+                if (article.user_metadata.lean) {
+                    setLeanColor(article.user_metadata.lean);
+                }
+
+                $('#starRating').barrating({
+                    theme: 'fontawesome-stars',
+                    initialRating: article.user_metadata.stars,
+                    onSelect: function (value, text) {
+                        chrome.runtime.sendMessage({
+                            type: "analytics",
+                            message: {
+                                command: "send",
+                                eventCategory: "User Action",
+                                eventAction: "Article Rating Set"
+                            }
+                        });
+                        article.user_metadata.stars = $('#starRating').val();
+                        chrome.runtime.sendMessage({
+                            type: "update_current_article",
+                            message: article
+                        }, function () {
+                            "use strict";
+                            updateRatingAverage(article);
+                        });
+                        $('#avg-rating-message').show();
+                    }
                 });
-            });
 
-            var articleTags = new Taggle('tags', {
-                tags: article.user_metadata.tags ? article.user_metadata.tags : [],
-                //Update userData.tags when a tag is removed
-                onTagRemove: function(event, tag) {
-                    article.user_metadata.tags = articleTags.getTagValues()
+                if (article.user_metadata.stars) {
+                    $('#avg-rating-message').show();
+                }
+
+                if (article.user_metadata.notes) {
+                    $("#notes-area").val(article.user_metadata.notes);
+                }
+
+                //Keep track of any notes that user adds. When pressed, update the userData object.
+                $("#notes-area").keyup(function () {
                     chrome.runtime.sendMessage({
                         type: "analytics",
                         message: {
                             command: "send",
                             eventCategory: "User Action",
-                            eventAction: "Article Tags Set"
+                            eventAction: "Article Notes Set"
                         }
                     });
+                    article.user_metadata.notes = $("#notes-area").val();
+                    console.log(article.user_metadata);
                     chrome.runtime.sendMessage({
                         type: "update_current_article",
                         message: article
                     });
+                });
 
-                }
-            });
+                var articleTags = new Taggle('tags', {
+                    tags: article.user_metadata.tags ? article.user_metadata.tags : [],
+                    //Update userData.tags when a tag is removed
+                    onTagRemove: function (event, tag) {
+                        article.user_metadata.tags = articleTags.getTagValues()
+                        chrome.runtime.sendMessage({
+                            type: "analytics",
+                            message: {
+                                command: "send",
+                                eventCategory: "User Action",
+                                eventAction: "Article Tags Set"
+                            }
+                        });
+                        chrome.runtime.sendMessage({
+                            type: "update_current_article",
+                            message: article
+                        });
+                    }
+                });
+                updateLeanAverage(article);
+                updateRatingAverage(article);
 
-            //Keep track of any tags that user adds.
-            $("#tags").keyup(function() {
-                if( article.user_metadata.tags === undefined ){
-                    article.user_metadata.tags = [];
-                }
-                
-                if( article.user_metadata.tags.length !== articleTags.getTagValues().length ) {
-                    chrome.runtime.sendMessage({
-                        type: "analytics",
-                        message: {
-                            command: "send",
-                            eventCategory: "User Action",
-                            eventAction: "Article Tags Set"
-                        }
-                    });
+                //Keep track of any tags that user adds.
+                $("#tags").keyup(function () {
+                    if (article.user_metadata.tags === undefined) {
+                        article.user_metadata.tags = [];
+                    }
 
-                    article.user_metadata.tags = articleTags.getTagValues()
-                    console.log( article.user_metadata.tags );
-                    
-                    chrome.runtime.sendMessage({
-                        type: "update_current_article",
-                        message: article
-                    });
-                }   
-            })
-            $("form").show();
+                    if (article.user_metadata.tags.length !== articleTags.getTagValues().length) {
+                        chrome.runtime.sendMessage({
+                            type: "analytics",
+                            message: {
+                                command: "send",
+                                eventCategory: "User Action",
+                                eventAction: "Article Tags Set"
+                            }
+                        });
+
+                        article.user_metadata.tags = articleTags.getTagValues()
+                        console.log(article.user_metadata.tags);
+
+                        chrome.runtime.sendMessage({
+                            type: "update_current_article",
+                            message: article
+                        });
+                    }
+                })
+                $("form").show();
+            }
         });
     });
 });
 
 function addCircleGraph() {
+    debugger;
     chrome.runtime.sendMessage({type: "getUser"}, function (user) {
         chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
             firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
@@ -209,15 +233,15 @@ function addCircleGraph() {
                 var articlesFromThisDate = todaysDate - millisecondsBack;
 
                 //Create deep copy of articles to mess around with
-                var articles = JSON.parse(JSON.stringify( userSnapshot.val().articles ));
+                var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
 
                 for (let key in articles) {
-                    if(articles[key].dateRead < articlesFromThisDate) {
+                    if (articles[key].dateRead < articlesFromThisDate) {
                         delete articles[key];
                     }
                 }
 
-                var articleDataset = createD3Dataset( getArticleCount(articles) );
+                var articleDataset = createD3Dataset(getArticleCount(articles));
 
                 console.log(articleDataset);
 
@@ -225,20 +249,20 @@ function addCircleGraph() {
 
 
                 /* Creats an object with a count of all the the articles read and their sournce in
-                *  the past X amount of days
-                *
-                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+                 *  the past X amount of days
+                 *
+                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
 
-                *
-                *  Returns -> List of sources read and their count
-                */ 
+                 *
+                 *  Returns -> List of sources read and their count
+                 */
                 function getArticleCount(articlesToParse) {
                     var count = {};
                     for (let key in articlesToParse) {
                         var source = articlesToParse[key].source;
-                        if( count.hasOwnProperty(source) ) {
+                        if (count.hasOwnProperty(source)) {
                             count[source]++;
-                        }else{
+                        } else {
                             count[source] = 1;
                         }
                     }
@@ -247,11 +271,11 @@ function addCircleGraph() {
 
 
                 /* Creates array that is better suited for D3 parsing
-                *
-                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-                *
-                *  Returns -> Ordered array of sources read and their count
-                */ 
+                 *
+                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+                 *
+                 *  Returns -> Ordered array of sources read and their count
+                 */
                 function createD3Dataset(articlesToParse) {
                     var dataset = [];
                     for (let source in articlesToParse) {
@@ -261,10 +285,10 @@ function addCircleGraph() {
                         dataset.push(articleCountObj);
                     }
 
-                    dataset.sort(function(a, b) {
+                    dataset.sort(function (a, b) {
                         var nameA = a.source;
                         var nameB = b.source;
-                        if(nameA < nameB) {
+                        if (nameA < nameB) {
                             return -1;
                         }
                         if (nameA > nameB) {
@@ -278,18 +302,18 @@ function addCircleGraph() {
 
 
                 /* Creats an object with a count of all the the articles read and their sournce in
-                *  the past X amount of days
-                *
-                *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-                *
-                *  Returns -> List of sources read and their count
-                */ 
+                 *  the past X amount of days
+                 *
+                 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+                 *
+                 *  Returns -> List of sources read and their count
+                 */
                 function createDonutGraph(data) {
                     //Donut chart characteristics
                     var donutWidth = 60;
                     var width = 380;
                     var height = 380;
-                    var radius = Math.min(width, height)/2;
+                    var radius = Math.min(width, height) / 2;
 
                     //Legend chart characteristics
                     var legendRectSize = 18;
@@ -302,14 +326,16 @@ function addCircleGraph() {
                         .attr('width', width)
                         .attr('height', height)
                         .append('g')
-                        .attr('transform', 'translate(' + (width/2) + ',' + (height/2) + ')' );
+                        .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')');
 
                     var arc = d3.arc()
                         .innerRadius(radius - donutWidth)
                         .outerRadius(radius);
 
                     var pie = d3.pie()
-                        .value(function(d) { return d.count })
+                        .value(function (d) {
+                            return d.count
+                        })
                         .sort(null);
 
                     var path = svg.selectAll('path')
@@ -317,30 +343,30 @@ function addCircleGraph() {
                         .enter()
                         .append('path')
                         .attr('d', arc)
-                        .attr('fill', function(d, i) {
+                        .attr('fill', function (d, i) {
                             return color(d.data.source)
                         });
 
-                    path.on('mouseover', function(d) {
+                    path.on('mouseover', function (d) {
                         console.log('in');
-                        var total = d3.sum(data.map(function(d) {
+                        var total = d3.sum(data.map(function (d) {
                             return d.count;
                         }));
-                        var percent = Math.round(1000 * d.data.count/total) / 10;
+                        var percent = Math.round(1000 * d.data.count / total) / 10;
                         tooltip.select('.tooltip__label').html(d.data.source);
                         tooltip.select('.tooltip__count').html('Articles Read: ' + d.data.count);
                         tooltip.select('.tooltip__percent').html('Percent of Total: ' + percent + '%');
                         tooltip.style('display', 'block');
                     });
 
-                    path.on('mouseout', function(d) {
+                    path.on('mouseout', function (d) {
                         console.log('out');
                         tooltip.style('display', 'none');
                     });
 
-                    path.on('mousemove', function(d){
-                      tooltip.style('top', (d3.event.layerY + 10) + 'px')
-                        .style('left', (d3.event.layerX + 10) + 'px');
+                    path.on('mousemove', function (d) {
+                        tooltip.style('top', (d3.event.layerY + 10) + 'px')
+                            .style('left', (d3.event.layerX + 10) + 'px');
                     });
 
                     var legend = svg.selectAll('.legend')
@@ -348,7 +374,7 @@ function addCircleGraph() {
                         .enter()
                         .append('g')
                         .attr('class', 'legend')
-                        .attr('transform', function(d,i){
+                        .attr('transform', function (d, i) {
                             var height = legendRectSize + legendSpacing;
                             var offset = height * color.domain().length / 2;
                             var horz = -2 * legendRectSize;
@@ -365,7 +391,9 @@ function addCircleGraph() {
                     legend.append('text')
                         .attr('x', legendRectSize + legendSpacing)
                         .attr('y', legendRectSize - legendSpacing)
-                        .text(function(d){ return d; })
+                        .text(function (d) {
+                            return d;
+                        })
 
                     var tooltip = d3.select('#donut')
                         .append('div')
@@ -381,11 +409,9 @@ function addCircleGraph() {
                         .attr('class', 'tooltip__percent')
 
 
-
                 }
 
 
-                
             }).catch(function (error) {
                 console.log(error);
             });
