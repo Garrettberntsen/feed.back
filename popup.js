@@ -68,14 +68,6 @@ $(document).ready(function () {
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
 
-        var articleTags = new Taggle('tags', {
-            tags: userData.tags,
-            //Update userData.tags when a tag is removed
-            onTagRemove: function(event, tag) {
-                userData.tags = articleTags.getTagValues()
-                console.log( userData.tags );
-            }
-        });
 
         //addCircleGraph();
 
@@ -148,6 +140,7 @@ $(document).ready(function () {
                 $("#notes-area").val( article.user_metadata.notes );
             }
 
+            
             //Keep track of any notes that user adds. When pressed, update the userData object.
             $("#notes-area").keyup(function(){
                 chrome.runtime.sendMessage({
@@ -164,14 +157,43 @@ $(document).ready(function () {
                     type: "update_current_article",
                     message: article
                 });
-            })
+            });
 
-            //Keep track of any tags that user adds.
-            $("#tags").keyup(function() {
-                if( userData.tags.length !== articleTags.getTagValues().length ) {
+            var articleTags = new Taggle('tags', {
+                tags: article.user_metadata.tags ? article.user_metadata.tags : [],
+                //Update userData.tags when a tag is removed
+                onTagRemove: function(event, tag) {
                     userData.tags = articleTags.getTagValues()
                     console.log( userData.tags );
                 }
+            });
+
+            //Keep track of any tags that user adds.
+            $("#tags").keyup(function() {
+                if( article.user_metadata.tags === undefined ){
+                    article.user_metadata.tags = [];
+                }
+                
+                if( article.user_metadata.tags.length !== articleTags.getTagValues().length ) {
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            command: "send",
+                            category: "User Action",
+                            action: "Article Tags Set"
+                        }
+                    });
+
+                    article.user_metadata.tags = articleTags.getTagValues()
+                    console.log( article.user_metadata.tags );
+                    
+                    chrome.runtime.sendMessage({
+                        type: "update_current_article",
+                        message: article
+                    });
+                }
+
+                
             })
 
             $("form").show();
