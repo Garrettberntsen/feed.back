@@ -57,7 +57,7 @@ var sources = {
         'urls': [{
             urlRoot: 'washingtonpost.com',
             'article-url-matcher': {
-                pattern: "{category}/{subcategory}/{title}/{year}/{month}/{day}/{id}\.html",
+                pattern: "{category}/{subcategory}/{title}/{year}/{month}/{day}/{id}/",
                 groups: ["category", "subcategory", "title", "year", "month", "day", "id"]
             }
         }],
