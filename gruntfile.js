@@ -65,7 +65,7 @@ module.exports = function (grunt) {
                 files: [
                     {
                         expand: true,
-                        src: ["*", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json"],
+                        src: ["**/**", "!*.ipynb", "!*.log", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json", "!*test*"],
                         dest: "dist/"
                     }
                 ]
@@ -74,10 +74,10 @@ module.exports = function (grunt) {
                 files: [
                     {
                         expand: true,
-                        src: ["*", "!firebase.js","!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json"],
+                        src: ["*", "!firebase.js", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json"],
                         dest: "test-dist/",
-                        rename: function(dest, src){
-                            if(src.indexOf("test-") !== -1){
+                        rename: function (dest, src) {
+                            if (src.indexOf("test-") !== -1) {
                                 return dest + src.replace("test-", "");
                             }
                             return dest + src;
@@ -106,5 +106,5 @@ module.exports = function (grunt) {
     //Create dist directory
     grunt.registerTask("default", ["clean:dist", "mkdir:dist", "copy:dist"]);
     //Create a test distribution
-    grunt.registerTask("testBuild", ["clean:testBuild", "mkdir:testBuild","copy:testBuild"]);
+    grunt.registerTask("testBuild", ["clean:testBuild", "mkdir:testBuild", "copy:testBuild"]);
 };
