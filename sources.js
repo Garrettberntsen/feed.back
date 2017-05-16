@@ -69,7 +69,6 @@ var sources = {
                 }
             }],
         'author-selector': 'div.pb-sig-line > span.pb-byline > a > span[itemprop="name"]',
-        'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
         'date-selector-property': 'content',
