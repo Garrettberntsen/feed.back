@@ -63,7 +63,7 @@ function extractHistoryItemData(historyItem) {
         }
         var article_data = new ArticleData(reduceUrl(historyItem.url),
             source.name,
-            historyItem.title);
+            historyItem.title ? historyItem.title : "Untitled History Item");
         article_data.partialRecord = true;
         return new Article(article_data, new UserMetadata(historyItem.lastVisitTime, source.name));
     }
