@@ -57,10 +57,17 @@ var sources = {
         'urls': [{
             urlRoot: 'washingtonpost.com',
             'article-url-matcher': {
-                pattern: "{category}/{subcategory}/{title}/{year}/{month}/{day}/{id}/",
-                groups: ["category", "subcategory", "title", "year", "month", "day", "id"]
+                pattern: "news/{category}/{subcategory}/{title}/{year}/{month}/{day}",
+                groups: ["category", "subcategory", "title", "year", "month", "day"]
             }
-        }],
+        },
+            {
+                urlRoot: 'washingtonpost.com',
+                'article-url-matcher': {
+                    pattern: "powerpost/{year}/{month}/{day}/{id}_story",
+                    groups: ["title", "year", "month", "day", "id"]
+                }
+            }],
         'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
