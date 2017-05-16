@@ -277,13 +277,13 @@ function writeArticleData(article, user) {
             if (articleSnapshot.exists()) {
                 existing_article = articleSnapshot.val();
             }
-            if (!existing_article || !article_data.partial_record) {
+            if (!existing_article || !article_data.partialRecord) {
                 firebase.database().ref('articles/' + article_key).set(article_data);
+                if (article.user_metadata) {
+                    firebase.database().ref('users/' + user.id + '/articles/' + article_key).set(article.user_metadata);
+                }
             }
         });
-        if (article.user_metadata) {
-            firebase.database().ref('users/' + user.id + '/articles/' + article_key).set(article.user_metadata);
-        }
         firebase.database().ref('users/' + user.id + '/email').set(user.email);
         console.log("feed.back data written to firebase!");
     });
