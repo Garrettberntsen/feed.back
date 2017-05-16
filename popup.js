@@ -92,8 +92,10 @@ function updateLeanAverage(article) {
                 return description.min <= value && description.max >= value;
             });
             $("#avg-lean").text(definition.description);
-            $('#avg-lean-message').show();
+        } else {
+            $("#avg-lean").text("-");
         }
+        $('#avg-lean-message').show();
     });
 }
 
@@ -104,7 +106,11 @@ function updateRatingAverage(article) {
         message: article.article_data.url
     }, function (response) {
         "use strict";
-        $("#avg-rating").text(response);
+        if(response) {
+            $("#avg-rating").text(response);
+        } else {
+            $("#avg-rating").text("-");
+        }
         $('#avg-rating-message').show();
     });
 }
