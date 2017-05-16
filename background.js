@@ -489,11 +489,13 @@ function tabChangeHandler(tabId, changeInfo) {
 chrome.tabs.onUpdated.addListener(tabChangeHandler);
 chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     "use strict";
-    tab_urls[tabId].forEach(function (url) {
-        persistCurrentArticle(reduceUrl(url));
+    if (tab_urls[tabId]) {
+        tab_urls[tabId].forEach(function (url) {
+            persistCurrentArticle(reduceUrl(url));
 
-    });
-    disposeArticles(tabId);
+        });
+        disposeArticles(tabId);
+    };
 });
 chrome.tabs.onCreated.addListener(tabChangeHandler);
 chrome.tabs.onActiveChanged.addListener(updateLastVisited);
