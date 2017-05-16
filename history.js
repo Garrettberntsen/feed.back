@@ -44,25 +44,27 @@ _firebase.then(function (firebase) {
 
 function extractHistoryItemData(historyItem) {
     var reducedUrl = reduceUrl(historyItem.url);
-    var sourceName = Object.keys(sources).find(function (sourceName) {
-        return new RegExp(sources[sourceName].url).test(reducedUrl);
-    });
-    var source = sources[sourceName];
+    var source = Object.keys(sources).reduce(function (found, nextSourceName) {
+        if(found){
+            return found;
+        }
+        var found_source = sources[nextSourceName].urls.find(function(url_definition){
+            "use strict";
+            return reducedUrl.indexOf(url_definition.urlRoot) !== -1;
+        });
+        if(found_source){
+            return {name: nextSourceName, definition: sources[nextSourceName]};
+        }
+    }, null);
     if (source) {
-        if (source.excluded_urls && source.excluded_urls.find(function (exclude) {
-                return new RegExp(exclude).test(reducedUrl);
-            })) {
-            console.log(historyItem.url + " matches an excluded url for " + sourceName);
-            return;
-        } else if (!new RegExp(source.url + "/.+").test(reducedUrl)) {
-            console.log(historyItem.url + " looks like the home page for " + sourceName);
+        if (!source.definition.testForArticleUrlMatch(reducedUrl)) {
+            console.log(historyItem.url + " isn't an accepted url for " + source.name);
             return;
         }
-
         var article_data = new ArticleData(reduceUrl(historyItem.url),
-            sourceName,
+            source.name,
             historyItem.title);
         article_data.partialRecord = true;
-        return new Article(article_data, new UserMetadata(historyItem.lastVisitTime, sourceName));
+        return new Article(article_data, new UserMetadata(historyItem.lastVisitTime, source.name));
     }
 }
