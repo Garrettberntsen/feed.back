@@ -58,7 +58,7 @@ var sources = {
             urlRoot: 'washingtonpost.com',
             'article-url-matcher': {
                 pattern: "{type}/{category}/{subcategory}/{title}/{year}/{month}/{day}",
-                groups: ["type","category", "subcategory", "title", "year", "month", "day"]
+                groups: ["type", "category", "subcategory", "title", "year", "month", "day"]
             }
         },
             {
@@ -69,6 +69,7 @@ var sources = {
                 }
             }],
         'author-selector': 'div.pb-sig-line > span.pb-byline > a > span[itemprop="name"]',
+        'author-selector': 'span[itemprop="author"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
         'date-selector-property': 'content',
@@ -365,7 +366,7 @@ var sources = {
                 groups: ["author", "year", "month", "day", "title"]
             }
         }],
-        'article-root-element-selector':'article.main-article:not(article#article-container-spinner) > div > div.main-article-padding',
+        'article-root-element-selector': 'article.main-article:not(article#article-container-spinner) > div > div.main-article-padding',
         'author-selector': 'p.contrib-byline-author > a',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
