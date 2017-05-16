@@ -122,8 +122,6 @@ $(document).ready(function () {
     });
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-        var url = tabs[0].url.replace(/https?:\/\//, '').replace(/.*?:[\\/]{2}(www\.)?/, '').replace(/#.*/, '');
-        var article_key = url.hashCode();
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
             if (!article || !article.article_data) {
                 addCircleGraph();
