@@ -116,7 +116,7 @@ var sources = {
         'author-selector-property': '',
         'date-selector': 'meta[itemprop=\'datePublished\']',
         'date-selector-property': 'content',
-        'text-selector': '',
+        'text-selector': 'div#wsj-article-wrap > p',
         'text-selector-property': '',
         'title-selector': 'meta[name="article.origheadline"]',
         'title-selector-property': 'content'
