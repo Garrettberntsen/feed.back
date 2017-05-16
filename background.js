@@ -446,7 +446,7 @@ function disposeArticles(tabId) {
 
 function updateLastVisited(tabId, changeInfo) {
     "use strict";
-    if (changeInfo.status == "complete") {
+    if (changeInfo && changeInfo.status == "complete") {
         chrome.tabs.get(tabId, function (tab) {
             var sourceName = Object.keys(sources).find(function (sourceName) {
                 return sources[sourceName].urls.find(function (def) {
