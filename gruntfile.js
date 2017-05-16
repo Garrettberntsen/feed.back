@@ -32,6 +32,12 @@ module.exports = function (grunt) {
                 "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome": "chromedriver/chromedriver.zip"
             }
         },
+        zip: {
+            dist: {
+                dest: "dist.zip",
+                src: ["**/**", "!.zip", "!*.ipynb", "!*.log", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json", "!*test*"],
+            }
+        },
         move: {
             rename: {
                 src: [
@@ -61,15 +67,6 @@ module.exports = function (grunt) {
             }
         },
         copy: {
-            dist: {
-                files: [
-                    {
-                        expand: true,
-                        src: ["**/**", "!*.ipynb", "!*.log", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json", "!*test*"],
-                        dest: "dist/"
-                    }
-                ]
-            },
             testBuild: {
                 files: [
                     {
@@ -104,7 +101,7 @@ module.exports = function (grunt) {
     grunt.registerTask("windows-install", ["mkdir:chromedriver", "download:chromewebdriver_windows", "move", "unzip"]);
     grunt.registerTask("mac-install", ["mkdir:chromedriver", "download:chromewebdriver_mac", "move", "unzip"]);
     //Create dist directory
-    grunt.registerTask("default", ["clean:dist", "mkdir:dist", "copy:dist"]);
+    grunt.registerTask("default", ["clean:dist", "mkdir:dist", "zip:dist"]);
     //Create a test distribution
     grunt.registerTask("testBuild", ["clean:testBuild", "mkdir:testBuild", "copy:testBuild"]);
 };
