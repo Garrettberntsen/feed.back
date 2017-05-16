@@ -141,6 +141,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "resetReadCount":
         {
             setReadCount(0);
+            break;
         }
         case "update_current_article":
         {
