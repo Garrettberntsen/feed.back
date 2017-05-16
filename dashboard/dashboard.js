@@ -472,12 +472,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             }
                             var currentArticleUserInfo = userArticleInformation[key];
                             var currentArticle = articleInformation.snapshots[id_index].val();
+                            var dateRead = {
+                                string: '',
+                                unix: 0
+                            };
 
-                            console.log(userEvaluation);
                             var userEvaluation = userArticleInformation[key].stars; //to add
-                            var dateRead = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
-                            var dateUnix = userArticleInformation[key].dateRead;
-                            console.log(dateUnix);
+                            dateRead.string = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
+                            dateRead.unix = userArticleInformation[key].dateRead;
+                            console.log(dateRead.unix);
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
                             var type = ""; //to add
@@ -491,7 +494,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
 
                     articlesRead.sort(function (a, b) {
-                        return Date.parse(b[1]) - Date.parse(a[1]);
+                        var articleA = a[1].unix;
+                        var articleB = b[1].unix;
+                        if (articleA > articleB) {
+                            return -1;
+                        }
+                        if (articleA < articleB) {
+                            return 1;
+                        }
+                        return 0;
                     });
 
                     for (let i = 0; i < articlesRead.length; i++) {
@@ -499,7 +510,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         for (let j = 0; j < articlesRead[i].length; j++) {
                             var td = document.createElement("TD");
                             var content = articlesRead[i][j] ? articlesRead[i][j] : "";
-                            if (j == 6){
+                            if(j === 1) {
+                                var content = articlesRead[i][j].string ? articlesRead[i][j].string : "";
+                            }
+                            if (j === 6) {
                                 content = Math.floor(Number(content) * 100);
                             }
                             td.appendChild(document.createTextNode(content));
