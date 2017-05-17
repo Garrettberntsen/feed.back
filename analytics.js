@@ -21,7 +21,7 @@
     a.async = 1;
     a.src = g;
     m.parentNode.insertBefore(a, m)
-})(window, document, 'script', 'https://www.google-analytics.com/analytics_debug.js', 'ga');
+})(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 window.ga_debug = {trace: true};
 var analytics = Promise.resolve(_firebase).then(function (firebase) {
     return new Promise(function (resolve, reject) {
@@ -50,8 +50,8 @@ var analytics = Promise.resolve(_firebase).then(function (firebase) {
                 });
                 ga("set", "checkProtocolTask", null);
 
-                //Comment this out to test analytics
-                ga("set", "sendHitTask", null);
+                //Uncomment to disable sending event to analytics during development.
+                //ga("set", "sendHitTask", null);
                 ga(function (tracker) {
                     console.log("Initialized analytics.");
                     resolve(tracker);
