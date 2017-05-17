@@ -459,6 +459,8 @@ function updateLastVisited(tabId, changeInfo) {
         });
         if (sourceName) {
             last_visited_url = tab.url;
+        } else {
+            last_visited_url = null;
         }
     });
 }
