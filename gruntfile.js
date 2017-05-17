@@ -84,7 +84,7 @@ module.exports = function (grunt) {
             }
         },
         clean: {
-            dist: ["dist/", "*.pem", "*.crx"],
+            dist: ["dist/", "*.pem", "*.crx", "dist.zip"],
             testBuild: ["test-dist"]
         }
     });
