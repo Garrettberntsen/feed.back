@@ -254,16 +254,20 @@ function writeArticleData(article, user) {
     if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
         if (!article) {
             console.log("writeArticleData null article passed.");
+        } else {
+            if (!article.article_data) {
+                console.log("writeArticleData was called with no data.");
+            } else {
+                if (!article_data.url) {
+                    console.log("writeArticleData called without defined url");
+                }
+
+                if (!article.user_metadata.dateRead) {
+                    console.log("writeArticleData date read not set");
+                }
+            }
         }
-        if (!article.article_data) {
-            console.log("writeArticleData was called with no data.");
-        }
-        if (!article.user_metadata.dateRead) {
-            console.log("writeArticleData date read not set");
-        }
-        if (!article_data.url) {
-            console.log("writeArticleData called without defined url");
-        }
+
         return;
     }
     var article_data = article.article_data;
@@ -492,10 +496,10 @@ chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     if (tab_urls[tabId]) {
         tab_urls[tabId].forEach(function (url) {
             persistCurrentArticle(reduceUrl(url));
-
         });
         disposeArticles(tabId);
-    };
+    }
+    ;
 });
 chrome.tabs.onCreated.addListener(tabChangeHandler);
-chrome.tabs.onActiveChanged.addListener(updateLastVisited);
+chrome.tabs.onActivated.addListener(updateLastVisited);
