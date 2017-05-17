@@ -38,7 +38,7 @@ function SourceDefinition(definition) {
     //names to their matched values, or false if there was no match.
     this.testForArticleUrlMatch = function (url) {
         return this.urls.find(function (urlDescription) {
-            if (Array.isArray(urlDescription)) {
+            if (Array.isArray(urlDescription["article-url-matcher"])) {
                 return urlDescription["article-url-matcher"].reduce(function (current, next) {
                     if (!current) {
                         return testSingleUrlMatcher(next, urlDescription.urlRoot, url);
