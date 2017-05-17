@@ -1,7 +1,7 @@
 {
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzK+3vbHT7oJZg2AdGpt6wNGa8yfdSNtN6/xL6g1KtelX4YTByqGSDI4xbKQfzbkSYc/Od98RR3XNw6WP82RPaaWo7KErb0LPTyNWTNGxc3YEWwtnFlsnxn7UMG5GWmP3b22HkG2TGdnwslzH2tho72ftPW0nHs5FGRm67Yp4esN/MDEmYE8F+Yo07CbKvyoJJZ6ezeU5U2a++/+shWlBv02bwZUVh3Uccpn1Stu1p90KIksJLExDEwNmEZV/pdctNTmjYusH4uy3mwWt9Eqzw1i0JgL6jIh7oGfDa/hc3SjoihJoOxpGrenRkGQVBj0KKSkl957kOHd1YqPR7BXhFQIDAQAB",
   "name": "feed.back",
-  "version": "0.1",
+  "version": "0.1.1",
   "manifest_version": 2,
   "description": "POC reader for news articles",
   "browser_action": {
