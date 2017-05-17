@@ -35,7 +35,7 @@ module.exports = function (grunt) {
         zip: {
             dist: {
                 dest: "dist.zip",
-                src: ["**/**", "!.zip", "!*.ipynb", "!*.log", "!*.pem", "!spec", "!node_modules", "!.gitignore", "!gruntfile.js", "!*dist", "!package.json", "!*test*"],
+                src: ["**/*", "!.zip", "!*.ipynb", "!*.log", "!*.pem", "!spec/**", "!node_modules/**", "!.gitignore", "!gruntfile.js", "!*dist/**", "!package.json", "!**test**/**"],
             }
         },
         move: {
@@ -101,7 +101,7 @@ module.exports = function (grunt) {
     grunt.registerTask("windows-install", ["mkdir:chromedriver", "download:chromewebdriver_windows", "move", "unzip"]);
     grunt.registerTask("mac-install", ["mkdir:chromedriver", "download:chromewebdriver_mac", "move", "unzip"]);
     //Create dist directory
-    grunt.registerTask("default", ["clean:dist", "mkdir:dist", "zip:dist"]);
+    grunt.registerTask("default", ["clean:dist", "zip:dist"]);
     //Create a test distribution
     grunt.registerTask("testBuild", ["clean:testBuild", "mkdir:testBuild", "copy:testBuild"]);
 };
