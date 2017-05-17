@@ -450,19 +450,17 @@ function disposeArticles(tabId) {
 
 function updateLastVisited(tabId, changeInfo) {
     "use strict";
-    if (changeInfo && changeInfo.status == "complete") {
-        chrome.tabs.get(tabId, function (tab) {
-            var sourceName = Object.keys(sources).find(function (sourceName) {
-                return sources[sourceName].urls.find(function (def) {
-                    "use strict";
-                    return tab.url.indexOf(def.urlRoot) !== -1;
-                })
-            });
-            if (sourceName) {
-                last_visited_url = tab.url;
-            }
+    chrome.tabs.get(tabId, function (tab) {
+        var sourceName = Object.keys(sources).find(function (sourceName) {
+            return sources[sourceName].urls.find(function (def) {
+                "use strict";
+                return tab.url.indexOf(def.urlRoot) !== -1;
+            })
         });
-    }
+        if (sourceName) {
+            last_visited_url = tab.url;
+        }
+    });
 }
 
 function tabChangeHandler(tabId, changeInfo) {
@@ -490,7 +488,12 @@ function tabChangeHandler(tabId, changeInfo) {
     }
 };
 
-chrome.tabs.onUpdated.addListener(tabChangeHandler);
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo){
+    tabChangeHandler(tabId, changeInfo);
+    if(changeInfo && changeInfo.status == "completed"){
+        updateLastVisited(tabId, changeInfo);
+    }
+});
 chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     "use strict";
     if (tab_urls[tabId]) {
@@ -499,7 +502,8 @@ chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
         });
         disposeArticles(tabId);
     }
-    ;
 });
 chrome.tabs.onCreated.addListener(tabChangeHandler);
-chrome.tabs.onActivated.addListener(updateLastVisited);
+chrome.tabs.onActivated.addListener(function(event){
+    updateLastVisited(event.tabId);
+});
