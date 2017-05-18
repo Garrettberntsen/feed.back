@@ -531,7 +531,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
                                 linkElem.target = "_blank";
-                                linkElem.href = "https://www." + articlesRead[i][1].url;
+                                linkElem.href = "https://" + articlesRead[i][1].url;
                                 td.appendChild(linkElem);
                             }
                             else if (j === 6) {
@@ -547,13 +547,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
                 }
 
-                function hasSubdomains(articleSource) {
-                    console.log(articleSource.length);
+                function hasSubdomains(articleSource, isArticle) {
                     if(articleSource.length > 2) {
-                        console.log("more than 2:" + articleSource.length);
                         return "https://" + articleSource[0] + "." + articleSource[1] + ".com";
                     }
-                    console.log(articleSource[0]);
                     return "https://" + articleSource[0] + ".com"; 
                 }
 
