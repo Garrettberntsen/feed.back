@@ -488,7 +488,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 
                             articleInfo.url = currentArticle.url;
-                            articleInfo.sourceUrl = currentArticle.url.split(".")[0] + ".com";
+                            articleInfo.sourceUrl = currentArticle.url.split(".");
+
+                            console.log(articleInfo.sourceUrl);
 
 
                             var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
@@ -521,12 +523,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             else if(j === 2) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
-                                linkElem.href = "https://www." + articlesRead[i][1].sourceUrl;
+                                linkElem.target = "_blank";
+                                linkElem.href = hasSubdomains(articlesRead[i][1].sourceUrl);
                                 td.appendChild(linkElem);                                
                             }
                             else if(j === 3) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+                                linkElem.target = "_blank";
                                 linkElem.href = "https://www." + articlesRead[i][1].url;
                                 td.appendChild(linkElem);
                             }
@@ -541,6 +545,16 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         tableElem.appendChild(tr);
                     }
+                }
+
+                function hasSubdomains(articleSource) {
+                    console.log(articleSource.length);
+                    if(articleSource.length > 2) {
+                        console.log("more than 2:" + articleSource.length);
+                        return "https://" + articleSource[0] + "." + articleSource[1] + ".com";
+                    }
+                    console.log(articleSource[0]);
+                    return "https://" + articleSource[0] + ".com"; 
                 }
 
                 function getLastDays(days) {
