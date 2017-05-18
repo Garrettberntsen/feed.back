@@ -518,6 +518,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             if(j === 1) {
                                 content = articlesRead[i][j].dateString ? articlesRead[i][j].dateString : "";
                             }
+                            else if(j === 2) {
+                                var linkElem = document.createElement("a");
+                                linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+                                linkElem.href = "https://www." + articlesRead[i][1].sourceUrl;
+                                td.appendChild(linkElem);                                
+                            }
                             else if(j === 3) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
