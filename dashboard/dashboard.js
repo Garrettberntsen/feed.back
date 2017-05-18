@@ -525,13 +525,16 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             else if(j === 3) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
-                                linkElem.href =  articlesRead[i][1].url;
+                                linkElem.href = "https://www." + articlesRead[i][1].url;
                                 td.appendChild(linkElem);
                             }
                             else if (j === 6) {
                                 content = Math.floor(Number(content) * 100);
                             }
-                            td.appendChild(document.createTextNode(content));
+
+                            if(!td.firstChild){
+                                td.appendChild(document.createTextNode(content));
+                            }
                             tr.appendChild(td);
                         }
                         tableElem.appendChild(tr);
