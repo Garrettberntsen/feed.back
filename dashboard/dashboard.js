@@ -60,8 +60,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 *             the user has read an article
                 */ 
                 function countSources(articles, template) {
-                    var size = Object.keys(articles).length;
-                    var count = {};
                     var articleCount = {};
 
                     for (let key in articles) {
@@ -124,8 +122,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     });
 
                     var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
-
-                    var sum = 0;
 
                     for (let i = 0; i < finalData.length; i++) {
                         for (let property in finalData[i]) {
@@ -478,17 +474,17 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 url: '',
                                 sourceUrl: ''
                             };
-                            console.log( userArticleInformation[key].dateRead );
+                            
 
-                            var userEvaluation = userArticleInformation[key].stars; //to add
-                            articleInfo.dateString = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
-                            articleInfo.dateUnix = userArticleInformation[key].dateRead;
+                            var userEvaluation = currentArticleUserInfo.stars; //to add
+                            articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
+                            articleInfo.dateUnix = currentArticleUserInfo.dateRead;
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
                             var type = ""; //to add
                             var author = currentArticle.author;
                             var slant = currentArticle.lean;
-                            var read_percentage = userArticleInformation[key].scrolled_content_ratio;
+                            var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
 
 
                             articleInfo.url = currentArticle.url;
