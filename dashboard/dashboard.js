@@ -472,30 +472,39 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             }
                             var currentArticleUserInfo = userArticleInformation[key];
                             var currentArticle = articleInformation.snapshots[id_index].val();
-                            var dateRead = {
-                                string: '',
-                                unix: 0
+                            var articleInfo = {
+                                dateString: '',
+                                dateUnix: 0,
+                                url: '',
+                                sourceUrl: ''
                             };
+                            console.log( userArticleInformation[key].dateRead );
 
                             var userEvaluation = userArticleInformation[key].stars; //to add
-                            dateRead.string = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
-                            dateRead.unix = userArticleInformation[key].dateRead;
-                            console.log(dateRead.unix);
+                            articleInfo.dateString = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
+                            articleInfo.dateUnix = userArticleInformation[key].dateRead;
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
                             var type = ""; //to add
                             var author = currentArticle.author;
-                            var slant = currentArticle.lean; //to add
+                            var slant = currentArticle.lean;
                             var read_percentage = userArticleInformation[key].scrolled_content_ratio;
 
-                            var articleData = new Array(userEvaluation, dateRead, publisher, title, type, author, read_percentage);
+
+                            articleInfo.url = currentArticle.url;
+                            articleInfo.sourceUrl = currentArticle.url.split(".")[0] + ".com";
+
+
+                            var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
+                            console.log(articleData);
                             articlesRead.push(articleData);
                         }
                     }
 
                     articlesRead.sort(function (a, b) {
-                        var articleA = a[1].unix;
-                        var articleB = b[1].unix;
+                        console.log(a[1].dateUnix);
+                        var articleA = a[1].dateUnix;
+                        var articleB = b[1].dateUnix;
                         if (articleA > articleB) {
                             return -1;
                         }
@@ -511,9 +520,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var td = document.createElement("TD");
                             var content = articlesRead[i][j] ? articlesRead[i][j] : "";
                             if(j === 1) {
-                                var content = articlesRead[i][j].string ? articlesRead[i][j].string : "";
+                                content = articlesRead[i][j].dateString ? articlesRead[i][j].dateString : "";
                             }
-                            if (j === 6) {
+                            else if(j === 3) {
+                                var linkElem = document.createElement("a");
+                                linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+                                linkElem.href =  articlesRead[i][1].url;
+                                td.appendChild(linkElem);
+                            }
+                            else if (j === 6) {
                                 content = Math.floor(Number(content) * 100);
                             }
                             td.appendChild(document.createTextNode(content));
