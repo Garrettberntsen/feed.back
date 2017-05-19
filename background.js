@@ -45,44 +45,53 @@ function calculateAverageRatingForArticle(url) {
     return _firebase.then(function (firebase) {
         "use strict";
         var current_article = current_articles[url];
-        return current_article.then(function (article) {
-            return Promise.all([firebase.database()
-                .ref("articles/" + article.article_data.url.hashCode() + "/readers")
-                .once("value"),
-                article]).then(function (resolved) {
-                var article_snapshot = resolved[0];
-                var article = resolved[1];
-                var article_readers = article_snapshot.val();
-                if (article_readers) {
-                    var reader_ratings = [];
-                    Object.keys(article_readers).forEach(function (reader_id) {
-                        reader_ratings.push(firebase.database().ref("users/" + reader_id + "/articles/" + article.article_data.url.hashCode() + "/stars").once("value"))
-                    });
-                    return Promise.all(reader_ratings).then(function (ratings) {
-                        var rating_sum = 0;
-                        var rating_count = 0;
-                        ratings.forEach(function (rating) {
-                            if (rating.exists()) {
-                                var next_rating = Number.parseInt(rating.val());
-                                if (!isNaN(next_rating)) {
-                                    rating_sum += next_rating;
-                                    rating_count++;
-                                }
-                            }
-                        });
-                        if (rating_count) {
-                            return Promise.resolve(rating_sum / rating_count);
-                        } else {
-                            return Promise.resolve(0);
+        return current_article;
+    }).then(function (article) {
+        return Promise.all([firebase.database()
+            .ref("articles/" + article.article_data.url.hashCode() + "/readers")
+            .once("value"),
+            article])
+    }).catch(function (e) {
+        triggerGoogleAnalyticsEvent({
+            exDescription: JSON.stringify(e),
+            exFatal: true
+        })
+    }).then(function (resolved) {
+        var article_snapshot = resolved[0];
+        var article = resolved[1];
+        var article_readers = article_snapshot.val();
+        if (article_readers) {
+            var reader_ratings = [];
+            Object.keys(article_readers).forEach(function (reader_id) {
+                reader_ratings.push(firebase.database().ref("users/" + reader_id + "/articles/" + article.article_data.url.hashCode() + "/stars").once("value"))
+            });
+            return Promise.all(reader_ratings).then(function (ratings) {
+                var rating_sum = 0;
+                var rating_count = 0;
+                ratings.forEach(function (rating) {
+                    if (rating.exists()) {
+                        var next_rating = Number.parseInt(rating.val());
+                        if (!isNaN(next_rating)) {
+                            rating_sum += next_rating;
+                            rating_count++;
                         }
-                    })
-
+                    }
+                });
+                if (rating_count) {
+                    return Promise.resolve(rating_sum / rating_count);
                 } else {
                     return Promise.resolve(0);
                 }
-            });
+            })
 
-        });
+        } else {
+            return Promise.resolve(0);
+        }
+    }).catch(function (e) {
+        triggerGoogleAnalyticsEvent({
+            exDescription: JSON.stringify(e),
+            exFatal: true
+        })
     });
 }
 
@@ -131,6 +140,34 @@ function calculateAverageLeanForArticle(url) {
     });
 }
 
+function updateCurrentArticle(sender, message) {
+    "use strict";
+    if (!sender.tab) {
+        chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true
+        }, function (tabs) {
+            if (!tab_urls[tabs[0].id]) {
+                tab_urls[tabs[0].id] = [];
+            }
+            tab_urls[tabs[0].id].push(reduceUrl(tabs[0].url));
+            current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(request.message);
+            current_user.then(function (user) {
+                writeArticleData(request.message, user);
+            });
+        });
+    } else {
+        if (!tab_urls[sender.tab.id]) {
+            tab_urls[sender.tab.id] = [];
+        }
+        tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
+        current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(request.message);
+        current_user.then(function (user) {
+            writeArticleData(request.message, user);
+        });
+    }
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "incrementReadCount":
@@ -146,30 +183,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "update_current_article":
         {
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            if (!sender.tab) {
-                chrome.tabs.query({
-                    active: true,
-                    lastFocusedWindow: true
-                }, function (tabs) {
-                    if (!tab_urls[tabs[0].id]) {
-                        tab_urls[tabs[0].id] = [];
-                    }
-                    tab_urls[tabs[0].id].push(reduceUrl(tabs[0].url));
-                    current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(request.message);
-                    current_user.then(function (user) {
-                        writeArticleData(request.message, user);
-                    });
-                });
-            } else {
-                if (!tab_urls[sender.tab.id]) {
-                    tab_urls[sender.tab.id] = [];
-                }
-                tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
-                current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(request.message);
-                current_user.then(function (user) {
-                    writeArticleData(request.message, user);
-                });
-            }
+            updateCurrentArticle(sender, request.message);
             break;
         }
         case "getCurrentArticle":
@@ -465,7 +479,7 @@ function updateLastVisited(tabId, changeInfo) {
     });
 }
 
-function tabChangeHandler(tabId, changeInfo) {
+function tabUpdateHandler(tabId, changeInfo) {
     updateLastVisited(tabId, changeInfo);
     if (changeInfo.url) {
         disposeArticles(tabId);
@@ -490,9 +504,10 @@ function tabChangeHandler(tabId, changeInfo) {
     }
 };
 
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo){
-    tabChangeHandler(tabId, changeInfo);
-    if(changeInfo && changeInfo.status == "completed"){
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
+    tabUpdateHandler(tabId, changeInfo);
+    if (changeInfo && changeInfo.status == "completed") {
         updateLastVisited(tabId, changeInfo);
     }
 });
@@ -505,7 +520,7 @@ chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
         disposeArticles(tabId);
     }
 });
-chrome.tabs.onCreated.addListener(tabChangeHandler);
-chrome.tabs.onActivated.addListener(function(event){
+chrome.tabs.onCreated.addListener(tabUpdateHandler);
+chrome.tabs.onActivated.addListener(function (event) {
     updateLastVisited(event.tabId);
 });
