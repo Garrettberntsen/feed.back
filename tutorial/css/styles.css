@@ -171,15 +171,18 @@ html {
   font-size: 62.5%; 
   letter-spacing: 0.10px;
 }
-p { font-size: 2.1rem; 
-  line-height: 2.5rem;} /* =21px */
 
-h6   { font-size: 2.5rem; } /* =24px */
-h5   { font-size: 3.0rem; } /* =24px */
-h4   { font-size: 3.5rem; } /* =24px */
-h3   { font-size: 4.0rem; } /* =24px */
-h2   { font-size: 4.5rem; } /* =2px */
-h1   { font-size: 5.0rem; } /* =45px */
+p {
+  font-size: 2.1rem;  /* =21px */
+  line-height: 2.5rem;
+} 
+
+h6   { font-size: 2.5rem; } /* =25px */
+h5   { font-size: 3.0rem; } /* =30px */
+h4   { font-size: 3.5rem; } /* =35px */
+h3   { font-size: 4.0rem; } /* =40px */
+h2   { font-size: 4.5rem; } /* =45px */
+h1   { font-size: 5.0rem; } /* =50px */
 
 .container{
   display: flex;
@@ -197,7 +200,6 @@ h1   { font-size: 5.0rem; } /* =45px */
   background: white;
   width: 90%;
   max-width: 880px;
-
 
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.23), 0 10px 40px rgba(0, 0, 0, 0.19);
 }

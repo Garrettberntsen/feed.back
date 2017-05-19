@@ -250,6 +250,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 });
 
+//Will open up to a new page when user first installs app
+function installed(){
+    alert("Success");
+}
+
+chrome.runtime.onInstalled.addListener(installed);
+
+
 function writeArticleData(article, user) {
     if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
         if (!article) {
