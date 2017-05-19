@@ -480,7 +480,6 @@ function updateLastVisited(tabId, changeInfo) {
 }
 
 function tabUpdateHandler(tabId, changeInfo) {
-    updateLastVisited(tabId, changeInfo);
     if (changeInfo.url) {
         disposeArticles(tabId);
         persistCurrentArticle(reduceUrl(changeInfo.url));
@@ -503,14 +502,18 @@ function tabUpdateHandler(tabId, changeInfo) {
         );
     }
 };
-
-
+/**
+ * Triggered when a tab updates.
+ */
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
     tabUpdateHandler(tabId, changeInfo);
     if (changeInfo && changeInfo.status == "completed") {
         updateLastVisited(tabId, changeInfo);
     }
 });
+/**
+ * Triggered when a tab closes.
+ */
 chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     "use strict";
     if (tab_urls[tabId]) {
@@ -520,7 +523,13 @@ chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
         disposeArticles(tabId);
     }
 });
+/**
+ * Triggered when a tab is opened.
+ */
 chrome.tabs.onCreated.addListener(tabUpdateHandler);
+/**
+ * Triggered when the active tab changes.
+ */
 chrome.tabs.onActivated.addListener(function (event) {
     updateLastVisited(event.tabId);
 });
