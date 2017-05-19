@@ -171,7 +171,9 @@ html {
   font-size: 62.5%; 
   letter-spacing: 0.10px;
 }
-body { font-size: 2.1rem; } /* =21px */
+p { font-size: 2.1rem; 
+  line-height: 2.5rem;} /* =21px */
+
 h6   { font-size: 2.5rem; } /* =24px */
 h5   { font-size: 3.0rem; } /* =24px */
 h4   { font-size: 3.5rem; } /* =24px */
@@ -196,6 +198,7 @@ h1   { font-size: 5.0rem; } /* =45px */
   width: 90%;
   max-width: 880px;
 
+
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.23), 0 10px 40px rgba(0, 0, 0, 0.19);
 }
 
@@ -205,6 +208,7 @@ h1   { font-size: 5.0rem; } /* =45px */
 
 .card__image {
   max-width: 100%;
+  margin: 1rem;
 }
 
 .card__image-container {
@@ -215,4 +219,11 @@ h1   { font-size: 5.0rem; } /* =45px */
 
 .header {
   margin-bottom: 1.5rem;
+}
+
+.header--gradient-outline  {
+  background: linear-gradient(45deg, #c21500, #ffc500);
+  background: -webkit-linear-gradient(45deg, #c21500, #ffc500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
