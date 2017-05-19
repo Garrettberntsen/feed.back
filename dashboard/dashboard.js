@@ -60,8 +60,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 *             the user has read an article
                 */ 
                 function countSources(articles, template) {
-                    var size = Object.keys(articles).length;
-                    var count = {};
                     var articleCount = {};
 
                     for (let key in articles) {
@@ -124,8 +122,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     });
 
                     var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
-
-                    var sum = 0;
 
                     for (let i = 0; i < finalData.length; i++) {
                         for (let property in finalData[i]) {
@@ -472,30 +468,41 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             }
                             var currentArticleUserInfo = userArticleInformation[key];
                             var currentArticle = articleInformation.snapshots[id_index].val();
-                            var dateRead = {
-                                string: '',
-                                unix: 0
+                            var articleInfo = {
+                                dateString: '',
+                                dateUnix: 0,
+                                url: '',
+                                sourceUrl: ''
                             };
+                            
 
-                            var userEvaluation = userArticleInformation[key].stars; //to add
-                            dateRead.string = new Date(userArticleInformation[key].dateRead).toString("M/dd/yyyy");
-                            dateRead.unix = userArticleInformation[key].dateRead;
-                            console.log(dateRead.unix);
+                            var userEvaluation = currentArticleUserInfo.stars; //to add
+                            articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
+                            articleInfo.dateUnix = currentArticleUserInfo.dateRead;
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
                             var type = ""; //to add
                             var author = currentArticle.author;
-                            var slant = currentArticle.lean; //to add
-                            var read_percentage = userArticleInformation[key].scrolled_content_ratio;
+                            var slant = currentArticle.lean;
+                            var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
 
-                            var articleData = new Array(userEvaluation, dateRead, publisher, title, type, author, read_percentage);
+
+                            articleInfo.url = currentArticle.url;
+                            articleInfo.sourceUrl = currentArticle.url.split(".");
+
+                            console.log(articleInfo.sourceUrl);
+
+
+                            var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
+                            console.log(articleData);
                             articlesRead.push(articleData);
                         }
                     }
 
                     articlesRead.sort(function (a, b) {
-                        var articleA = a[1].unix;
-                        var articleB = b[1].unix;
+                        console.log(a[1].dateUnix);
+                        var articleA = a[1].dateUnix;
+                        var articleB = b[1].dateUnix;
                         if (articleA > articleB) {
                             return -1;
                         }
@@ -511,16 +518,40 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var td = document.createElement("TD");
                             var content = articlesRead[i][j] ? articlesRead[i][j] : "";
                             if(j === 1) {
-                                var content = articlesRead[i][j].string ? articlesRead[i][j].string : "";
+                                content = articlesRead[i][j].dateString ? articlesRead[i][j].dateString : "";
                             }
-                            if (j === 6) {
+                            else if(j === 2) {
+                                var linkElem = document.createElement("a");
+                                linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+                                linkElem.target = "_blank";
+                                linkElem.href = hasSubdomains(articlesRead[i][1].sourceUrl);
+                                td.appendChild(linkElem);                                
+                            }
+                            else if(j === 3) {
+                                var linkElem = document.createElement("a");
+                                linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+                                linkElem.target = "_blank";
+                                linkElem.href = "https://" + articlesRead[i][1].url;
+                                td.appendChild(linkElem);
+                            }
+                            else if (j === 6) {
                                 content = Math.floor(Number(content) * 100);
                             }
-                            td.appendChild(document.createTextNode(content));
+
+                            if(!td.firstChild){
+                                td.appendChild(document.createTextNode(content));
+                            }
                             tr.appendChild(td);
                         }
                         tableElem.appendChild(tr);
                     }
+                }
+
+                function hasSubdomains(articleSource, isArticle) {
+                    if(articleSource.length > 2) {
+                        return "https://" + articleSource[0] + "." + articleSource[1] + ".com";
+                    }
+                    return "https://" + articleSource[0] + ".com"; 
                 }
 
                 function getLastDays(days) {
