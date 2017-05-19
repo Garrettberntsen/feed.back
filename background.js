@@ -434,7 +434,7 @@ function UserMetadata(dateRead, source, lean, stars, tags, notes) {
  * Write the article associated with the given url to firebase.
  * @param url
  */
-function persistCurrentArticle(url) {
+function persistArticle(url) {
     "use strict";
     //Persist the current article as we navigate away
     Promise.all([current_articles[reduceUrl(url)], current_user]).then(function (resolved) {
@@ -482,7 +482,7 @@ function updateLastVisited(tabId, changeInfo) {
 function tabUpdateHandler(tabId, changeInfo) {
     if (changeInfo.url) {
         disposeArticles(tabId);
-        persistCurrentArticle(reduceUrl(changeInfo.url));
+        persistArticle(reduceUrl(changeInfo.url));
         //Try to find an existing entry for a new url
         Promise.all([_firebase, current_user]).then(function (resolved) {
                 var firebase = resolved[0];
@@ -518,7 +518,7 @@ chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     "use strict";
     if (tab_urls[tabId]) {
         tab_urls[tabId].forEach(function (url) {
-            persistCurrentArticle(reduceUrl(url));
+            persistArticle(reduceUrl(url));
         });
         disposeArticles(tabId);
     }
