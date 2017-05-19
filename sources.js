@@ -167,9 +167,16 @@ var sources = {
             urlRoot: 'newyorker.com',
             'article-url-matcher': {
                 pattern: "{type}/{year}/{month}/{day}/{title}",
-                groups: ["year", "month", "day", "title"]
+                groups: ["type", "year", "month", "day", "title"]
             }
-        }],
+        },
+            {
+                urlRoot: 'newyorker.com',
+                'article-url-matcher': {
+                    pattern: "{category}/{subcategory}/{title}",
+                    groups: ["category", "subcategory", "title"]
+                }
+            }],
         'author-selector': 'span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'time',
