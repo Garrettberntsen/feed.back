@@ -24,6 +24,7 @@ function testSingleUrlMatcher(matcher, urlRootUrl, url) {
 
 function SourceDefinition(definition) {
     this.urls = definition.urls;
+    console.log(definition.urls);
     this["article-url-matcher"] = definition["article-url-matcher"];
     this["author-selector"] = definition["author-selector"];
     this["author-selector-property"] = definition["author-selector-property"];
