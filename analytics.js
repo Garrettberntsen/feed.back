@@ -1,5 +1,5 @@
 /**
- * This module is responsible for dispatching Google Analytics events.
+ * This module is responsible for dispatching Google Analytics events, including error reports.
  *
  * To use analytics elsewhere in the background, call the relevant code inside of a resolve handler for analytics.
  *
@@ -7,7 +7,7 @@
  * - type: "analytics"
  * - message: array
  *      - command: string, type of command
- *          allowed: "send"
+ *          allowed: "send", "error"
  *      - category: string, event category, e.g. "Lifecycle"
  *      - action: string, the action that occured, e.g. "Extension Started"
  */
@@ -64,16 +64,48 @@ var analytics = Promise.resolve(_firebase).then(function (firebase) {
 });
 //Need to disable protocol check, GA only allows from http/https by default.
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendReponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "analytics":
-            switch (request.message.command) {
-                case "send":
-                    analytics.then(function () {
-                        request.message.hitType = "event";
-                        ga("send", request.message);
-                    });
-                    break;
+            try {
+                var response;
+                switch (request.message.hitType) {
+                    case "event":
+                    case "exception":
+                        response = triggerGoogleAnalyticsEvent(request.message);
+                        break;
+                    default:
+                        response = Promise.reject();
+                }
+                response.then(function () {
+                    "use strict";
+                    "use strict";
+                    console.log("Sending resolved response")
+                    sendResponse(response);
+                }, function (response) {
+                    "use strict";
+                    console.log("Sending rejection response")
+                    sendResponse(response);
+                })
+            } catch (err) {
+                sendResponse(err);
             }
+            return true;
     }
 });
+
+/**
+ * Dispatches the given event to Google Analytics.
+ *
+ * @param event
+ * @returns {Promise.<TResult>} resolves to true or rejects with a Google Analytics error.
+ */
+function triggerGoogleAnalyticsEvent(event) {
+    "use strict";
+    return analytics.then(function () {
+        ga("send", event);
+        true;
+    }).catch(function (err) {
+        throw err;
+    });
+}
