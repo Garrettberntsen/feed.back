@@ -250,12 +250,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 });
 
-//Will open up to a new page when user first installs app
-function installed(){
-    alert("Success");
-}
-
-chrome.runtime.onInstalled.addListener(installed);
+/**
+ * Opens up a specific page whenever the extension is installed or updated.
+ * @object {Object} info about the installataion/update/etc. 
+ */
+chrome.runtime.onInstalled.addListener(function (object){
+    if(object.reason === 'install'){
+        chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+    }else if(object.reason === 'update'){
+        chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+    }
+});
 
 
 function writeArticleData(article, user) {
