@@ -9,6 +9,17 @@
  * - type: "get_article":
  *
  */
+String.prototype.hashCode = function () {
+    var hash = 0,
+        i, chr, len;
+    if (this.length === 0) return hash;
+    for (i = 0, len = this.length; i < len; i++) {
+        chr = this.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
 /**
  * The article definitions, mapped from reduced url to article.
  * @type {{}}
@@ -19,15 +30,20 @@ var current_articles = {};
  * @type {{}}
  */
 var tab_urls = {};
-
+var last_visited_url;
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     "use strict";
     switch (request.type) {
         case "update_article":
         {
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            updateCurrentArticle(sender, request.message);
-            break;
+            updateCurrentArticle(sender, request.message).then(function(){
+                sendResponse();
+            }).catch(function(err){
+                console.log(err);
+                sendResponse(err);
+            });
+            return true;
         }
         case "getCurrentArticle":
         {
@@ -40,10 +56,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                             current_articles[reduced_url] = new Promise(function (resolve, reject) {
                                 current_user.then(function (user) {
                                     Promise.all([
-                                        firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
-                                        firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
-                                        var article_data = resolved[0].val();
-                                        var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                                        getArticle(reduced_url.hashCode()),
+                                        getUser(user.id)]).then(function (resolved) {
+                                        var article_data = resolved[0];
+                                        var user_metadata = resolved[1].articles[reduced_url.hashCode()];
                                         resolve(new Article(article_data, user_metadata));
                                     });
                                 });
@@ -62,15 +78,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     if (!current_article) {
                         current_articles[reduced_url] = new Promise(function (resolve, reject) {
                             current_user.then(function (user) {
-                                "use strict";
                                 Promise.all([
-                                    firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
-                                    firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
-                                    var article_data = resolved[0].val();
-                                    var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                                    getArticle(reduced_url.hashCode()),
+                                    getUser(user.id)]).then(function (resolved) {
+                                    var article_data = resolved[0];
+                                    var user_metadata = resolved[1].articles[reduced_url.hashCode()];
                                     resolve(new Article(article_data, user_metadata));
                                 });
-                            })
+                            });
                         });
                         current_article = current_articles[reduced_url];
                     }
@@ -208,19 +223,23 @@ function updateCurrentArticle(sender, message) {
     if (!sender.tab) {
         if (last_visited_url) {
             current_articles[reduceUrl(last_visited_url)] = Promise.resolve(message);
-            current_user.then(function (user) {
+            return current_user.then(function (user) {
                 writeArticleData(message, user);
             });
+        } else {
+            return Promise.reject("Last visited url was not defined but an update was dispatched from a non-content script source.")
         }
-        ;
     } else {
+        console.log("Sender tab defined")
         if (!tab_urls[sender.tab.id]) {
             tab_urls[sender.tab.id] = [];
         }
         tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
         current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(message);
-        current_user.then(function (user) {
+        return current_user.then(function (user) {
             writeArticleData(message, user);
+        }).catch(function (err) {
+            console.log(err)
         });
     }
 }
@@ -267,16 +286,15 @@ function tabUpdateHandler(tabId, changeInfo) {
     }
     if (changeInfo.url) {
         //Try to find an existing entry for a new url
-        Promise.all([_firebase, current_user]).then(function (resolved) {
-                var firebase = resolved[0];
+        current_user.then(function (resolved) {
                 var user = resolved[1];
                 var reduced_url = reduceUrl(changeInfo.url);
                 current_articles[reduced_url] = new Promise(function (resolve, reject) {
                     Promise.all([
-                        firebase.database().ref("articles/" + reduced_url.hashCode()).once("value"),
-                        firebase.database().ref("users/" + user.id + "/articles/" + reduced_url.hashCode()).once("value")]).then(function (resolved) {
-                        var article_data = resolved[0].val();
-                        var user_metadata = resolved[1].val() ? resolved[1].val() : {};
+                        getArticle(reduced_url.hashCode()),
+                        getUser(user.id)]).then(function (resolved) {
+                        var article_data = resolved[0];
+                        var user_metadata = resolved[1].articles[reduced_url.hashCode()];
                         resolve(new Article(article_data, user_metadata));
                     });
                 });
@@ -336,6 +354,46 @@ function persistArticle(url) {
             writeArticleData(resolved[0], resolved[1]);
         }
     });
+}
+
+function writeArticleData(article, chrome_user) {
+    if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
+        if (!article) {
+            console.log("writeArticleData null article passed.");
+        } else {
+            if (!article.article_data) {
+                console.log("writeArticleData was called with no data.");
+            } else {
+                if (!article.article_data.url) {
+                    console.log("writeArticleData called without defined url");
+                }
+
+                if (!article.user_metadata.dateRead) {
+                    console.log("writeArticleData date read not set");
+                }
+            }
+        }
+
+        return;
+    }
+    var article_data = article.article_data;
+
+    var article_key = article_data.url.hashCode();
+
+    //Check if the article has already been scraped or the new record is not a partial record.
+    Promise.all([getArticle(article_key), getUser(chrome_user.id)])
+        .then(function (resolved) {
+            var existing_article = resolved[0];
+            var user = resolved[1];
+            if (!existing_article || !article_data.partialRecord) {
+                setArticle(article_key, article_data);
+                if (article.user_metadata) {
+                    user.articles[article_key] = article.user_metadata;
+                    setUser(chrome_user.id, user);
+                }
+            }
+        });
+    console.log("feed.back data written to firebase!");
 }
 
 chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
