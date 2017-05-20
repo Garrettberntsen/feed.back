@@ -1,8 +1,10 @@
 /**
- * This module is responsible for the currently authenticated Google User. To get user information stored in firebase,
+ * This module is responsible for managing the currently authenticated Google User. To get user information stored in firebase,
  * use the database module.
  *
  * Other modules in the background context may access the current user via a promise resolution handler.
+ *
+ * Other modules which depend on the identity of the authenticated users should update
  *
  * This modules responds to the following messages
  *  - type : "getUser"
@@ -11,6 +13,10 @@
  * Created by Damie on 5/3/2017.
  */
 
+/**
+ * A promise which resolves to the currently Authenticated Google User.
+ * @type {Promise}
+ */
 var current_user = new Promise(function (resolve, reject) {
     chrome.identity.getAuthToken({
         interactive: true
@@ -22,6 +28,9 @@ var current_user = new Promise(function (resolve, reject) {
     });
 });
 
+/**
+ * Updates current_user when the authentication changes.
+ */
 chrome.identity.onSignInChanged.addListener(function (userInfo) {
     current_user = new Promise(function (resolve, reject) {
         chrome.identity.getAuthToken({
