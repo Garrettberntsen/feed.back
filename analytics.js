@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                         response = triggerGoogleAnalyticsEvent(request.message);
                         break;
                     default:
-                        response = Promise.reject();
+                        response = Promise.reject("hitType must be 'event' or 'exception', was " + request.message.hitType);
                 }
                 response.then(function () {
                     "use strict";
