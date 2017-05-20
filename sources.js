@@ -709,6 +709,23 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.article__heading',
         'title-selector-property': ''
+    }),
+    'Tutorial': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'chrome-extension://',
+            'article-url-matcher': {
+                pattern: "",
+                groups: [""]
+            }
+        }],
+        'author-selector': 'span.author',
+        'author-selector-property': '',
+        'date-selector': '',
+        'date-selector-property': '',
+        'text-selector': '',
+        'text-selector-property': '',
+        'title-selector': '',
+        'title-selector-property': ''
     })
 };
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
