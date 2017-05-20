@@ -134,7 +134,9 @@ $(document).ready(function () {
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
             if (!article || !article.article_data) {
-                addCircleGraph();
+                console.log("Not article")
+                addTrackThisQuestion();
+                //addCircleGraph();
             } else {
                 displayed_article = article;
                 $('#title').text(article.article_data.title);
@@ -309,12 +311,10 @@ function addCircleGraph() {
 
                 createDonutGraph(articleDataset);
 
-
                 /* Creats an object with a count of all the the articles read and their sournce in
                  *  the past X amount of days
                  *
                  *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-
                  *
                  *  Returns -> List of sources read and their count
                  */
@@ -358,16 +358,12 @@ function addCircleGraph() {
                         }
                         return 0;
                     });
-
                     return dataset;
                 }
 
-
                 /* Creats an object with a count of all the the articles read and their sournce in
                  *  the past X amount of days
-                 *
                  *  @articlesToParse -> List of articles that user has read, obtained from JSON file
-                 *
                  *  Returns -> List of sources read and their count
                  */
                 function createDonutGraph(data) {
@@ -469,14 +465,31 @@ function addCircleGraph() {
 
                     tooltip.append('div')
                         .attr('class', 'tooltip__percent')
-
-
                 }
-
-
             }).catch(function (error) {
                 console.log(error);
             });
         });
     });
+}
+
+function addTrackThisQuestion() {
+    var trackElem = document.getElementById("track-this");
+    var question = document.createElement("P");
+    var questionText = document.createTextNode("We don't track this yet. Should we?");
+    question.appendChild(questionText);
+
+    var btn = document.createElement("BUTTON");
+    var btnText = document.createTextNode("Yes - this is news!");
+    btn.appendChild(btnText);
+
+    btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
+
+    console.log("trackElem");
+    console.log(trackElem);
+    console.log(question);
+    console.log(btn);
+
+    trackElem.appendChild(question);
+    trackElem.appendChild(btn);
 }
