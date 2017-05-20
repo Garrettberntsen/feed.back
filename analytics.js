@@ -104,7 +104,7 @@ function triggerGoogleAnalyticsEvent(event) {
     "use strict";
     return analytics.then(function () {
         ga("send", event);
-        true;
+        return true;
     }).catch(function (err) {
         throw err;
     });
