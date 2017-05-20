@@ -11,11 +11,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
             }
             Promise.all(article_definitions).then(function (articleSnapshots) {
                 var daysBack = 10;
+
+                var todaysDate = Date.now();
+                var millisecondsPerDay = 86400000;
+                var millisecondsBack = daysBack * millisecondsPerDay;
+                var articlesFromThisDate = todaysDate - millisecondsBack;
+
                 var userData = userSnapshot.val();
                 var email = user.email;
                 var articlesRead = userData.articles;
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
+
+                console.log(sourceCount);
 
                 createPieChart(sourceCount, articleObj, daysBack);
                 createBarChart(sourceCount, articleObj, daysBack);
@@ -270,6 +278,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     delete templateCategories.date;
 
                     var finalFinalData = trimObjects(finalData, template);
+                    console.log(finalFinalData);
 
                     function trimObjects(array, template) {
                         var trimmed = [];
@@ -326,7 +335,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     
                     var dataset = d3.layout.stack()(categoryKeys.map(function (objective) {
                         return finalFinalData.map(function (d) {
-                            console.log( +d[objective] );
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
                                 y: +d[objective]
@@ -345,7 +353,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var y = d3.scale.linear()
                         .domain([0, d3.max(dataset, function (d) {
                             return d3.max(d, function (d) {
-                                return d.y + d.y;
+                                console.log(d.y);
+                                return d.y * 3;
                             });
                         })])
                         .range([height, 0]);
@@ -490,17 +499,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             articleInfo.url = currentArticle.url;
                             articleInfo.sourceUrl = currentArticle.url.split(".");
 
-                            console.log(articleInfo.sourceUrl);
-
-
                             var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
-                            console.log(articleData);
                             articlesRead.push(articleData);
                         }
                     }
 
                     articlesRead.sort(function (a, b) {
-                        console.log(a[1].dateUnix);
                         var articleA = a[1].dateUnix;
                         var articleB = b[1].dateUnix;
                         if (articleA > articleB) {
