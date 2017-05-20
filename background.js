@@ -170,6 +170,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 });
 
+/**
+ * Opens up a specific page whenever the extension is installed or updated.
+ * @object {Object} info about the installataion/update/etc. 
+ */
+chrome.runtime.onInstalled.addListener(function (object){
+    if(object.reason === 'install'){
+        chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+    }else if(object.reason === 'update'){
+        chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+    }
+});
+
+
 function writeArticleData(article, user) {
     if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
         if (!article) {

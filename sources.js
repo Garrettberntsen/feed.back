@@ -24,6 +24,7 @@ function testSingleUrlMatcher(matcher, urlRootUrl, url) {
 
 function SourceDefinition(definition) {
     this.urls = definition.urls;
+    console.log(definition.urls);
     this["article-url-matcher"] = definition["article-url-matcher"];
     this["author-selector"] = definition["author-selector"];
     this["author-selector-property"] = definition["author-selector-property"];
@@ -714,6 +715,23 @@ var sources = {
         'text-selector': 'div.article__text',
         'text-selector-property': '',
         'title-selector': 'h1.article__heading',
+        'title-selector-property': ''
+    }),
+    'Tutorial': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'chrome-extension://',
+            'article-url-matcher': {
+                pattern: "",
+                groups: [""]
+            }
+        }],
+        'author-selector': 'span.author',
+        'author-selector-property': '',
+        'date-selector': '',
+        'date-selector-property': '',
+        'text-selector': '',
+        'text-selector-property': '',
+        'title-selector': '',
         'title-selector-property': ''
     })
 };

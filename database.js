@@ -37,7 +37,7 @@ chrome.runtime.onMessage(function (request, sender, sendResponse) {
             getUser(request.message).then(function (user) {
                 sendResponse(user);
             });
-            return true;
+        return true;
     }
 });
 
