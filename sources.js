@@ -161,7 +161,7 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title", "id", "title"]
             }
         }],
-        'author-selector': 'meta[name="author"]',
+        'author-selector': 'meta[property="author"]',
         'author-selector-property': 'content',
         'date-selector': 'time.c-byline__item',
         'date-selector-property': '',
