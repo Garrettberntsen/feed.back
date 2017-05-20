@@ -134,8 +134,8 @@ $(document).ready(function () {
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
             if (!article || !article.article_data) {
-                console.log("test");
-                addTrackThisQuestion();
+                console.log("Not article")
+                // addTrackThisQuestion();
                 //addCircleGraph();
             } else {
                 displayed_article = article;
@@ -483,6 +483,7 @@ function addTrackThisQuestion() {
     var btnText = document.createTextNode("Yes - this is news!");
     btn.appendChild(btnText);
 
+    btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
 
     console.log("trackElem");
     console.log(trackElem);
