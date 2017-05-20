@@ -151,7 +151,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 function updateScrollRatio(url) {
     var content_element;
     if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-        content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).find(content_element_selector);
+        content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).find(encountered_urls[encountered_urls.current_index].content_element_selector);
     } else {
         content_element = $(encountered_urls[encountered_urls.current_index].content_element_selector);
     }
