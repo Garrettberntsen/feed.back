@@ -1,6 +1,14 @@
 /**
  * This module is responsible for managing the cache of recently-viewed articles.
  *
+ * Non-background scripts can interact with this module via the following messages:
+ * - type: "update_article"
+ * - message: array
+ *      - command: string, type of command
+ *          allowed: "send", "error"
+ *      - category: string, event category, e.g. "Lifecycle"
+ *      - action: string, the action that occured, e.g. "Extension Started"
+ *
  */
 /**
  * The article definitions, mapped from reduced url to article.
@@ -16,7 +24,7 @@ var tab_urls = {};
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     "use strict";
     switch (request.type) {
-        case "update_current_article":
+        case "update_article":
         {
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
             updateCurrentArticle(sender, request.message);

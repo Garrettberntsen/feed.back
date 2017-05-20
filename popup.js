@@ -1,6 +1,7 @@
 chrome.runtime.sendMessage({
     type: "analytics",
     message: {
+        hitType: "event",
         command: "send",
         eventCategory: "User Action",
         eventAction: "Popup Opened"
@@ -119,6 +120,15 @@ $(document).ready(function () {
     chrome.runtime.sendMessage({type: "resetReadCount"});
     $('#dashboard-link').on('click', function () {
         chrome.tabs.create({url: '../dashboard/dashboard.html'});
+        chrome.runtime.sendMessage({
+            type: "analytics",
+            message: {
+                hitType: "event",
+                command: "send",
+                eventCategory: "User Action",
+                eventAction: "Opened Dashboard"
+            }
+        });
     });
 
     chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
@@ -145,6 +155,7 @@ $(document).ready(function () {
                         chrome.runtime.sendMessage({
                             type: "analytics",
                             message: {
+                                hitType: "event",
                                 command: "send",
                                 eventCategory: "User Action",
                                 eventAction: "Article Lean Set"
@@ -153,7 +164,7 @@ $(document).ready(function () {
                         setLeanColor(value);
                         article.user_metadata.lean = $('#leanRating').val();
                         chrome.runtime.sendMessage({
-                            type: "update_current_article",
+                            type: "update_article",
                             message: article
                         }, function () {
                             console.log("We should be updating the average lean here.");
@@ -173,6 +184,7 @@ $(document).ready(function () {
                         chrome.runtime.sendMessage({
                             type: "analytics",
                             message: {
+                                hitType: "event",
                                 command: "send",
                                 eventCategory: "User Action",
                                 eventAction: "Article Rating Set"
@@ -180,7 +192,7 @@ $(document).ready(function () {
                         });
                         article.user_metadata.stars = $('#starRating').val();
                         chrome.runtime.sendMessage({
-                            type: "update_current_article",
+                            type: "update_article",
                             message: article
                         }, function () {
                             "use strict";
@@ -202,6 +214,7 @@ $(document).ready(function () {
                     chrome.runtime.sendMessage({
                         type: "analytics",
                         message: {
+                            hitType: "event",
                             command: "send",
                             eventCategory: "User Action",
                             eventAction: "Article Notes Set"
@@ -210,7 +223,7 @@ $(document).ready(function () {
                     article.user_metadata.notes = $("#notes-area").val();
                     console.log(article.user_metadata);
                     chrome.runtime.sendMessage({
-                        type: "update_current_article",
+                        type: "update_article",
                         message: article
                     });
                 });
@@ -223,13 +236,14 @@ $(document).ready(function () {
                         chrome.runtime.sendMessage({
                             type: "analytics",
                             message: {
+                                hitType: "event",
                                 command: "send",
                                 eventCategory: "User Action",
                                 eventAction: "Article Tags Set"
                             }
                         });
                         chrome.runtime.sendMessage({
-                            type: "update_current_article",
+                            type: "update_article",
                             message: article
                         });
                     }
@@ -247,6 +261,7 @@ $(document).ready(function () {
                         chrome.runtime.sendMessage({
                             type: "analytics",
                             message: {
+                                hitType: "event",
                                 command: "send",
                                 eventCategory: "User Action",
                                 eventAction: "Article Tags Set"
@@ -257,7 +272,7 @@ $(document).ready(function () {
                         console.log(article.user_metadata.tags);
 
                         chrome.runtime.sendMessage({
-                            type: "update_current_article",
+                            type: "update_article",
                             message: article
                         });
                     }

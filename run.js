@@ -131,7 +131,7 @@ function scrapePage(url) {
                     console.log(JSON.stringify(data));
                     console.log("The user is: " + user.email);
                     chrome.runtime.sendMessage({
-                        type: "update_current_article", message: article
+                        type: "update_article", message: article
                     });
                 } else {
                     console.log("No source was found matching " + window.location.href);
