@@ -37,9 +37,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "update_article":
         {
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            updateCurrentArticle(sender, request.message).then(function(){
+            updateCurrentArticle(sender, request.message).then(function () {
                 sendResponse();
-            }).catch(function(err){
+            }).catch(function (err) {
                 console.log(err);
                 sendResponse(err);
             });
@@ -52,7 +52,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 if (last_visited_url) {
                     var reduced_url = reduceUrl(last_visited_url);
                     Promise.resolve(current_articles[reduced_url]).then(function (current_article) {
-                        if (!current_article) {
+                        if (Object.keys(sources).find(function (source_name) {
+                                return sources[source_name].testForArticleUrlMatch(reduced_url);
+                            }) == "tutorial") {
+                            current_article = new Article(
+                                new ArticleData(reduced_url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
+                                new UserMetadata(new Date().getTime(),"tutorial")
+                            );
+                        }
+                        else if (!current_article) {
                             current_articles[reduced_url] = new Promise(function (resolve, reject) {
                                 current_user.then(function (user) {
                                     Promise.all([
@@ -279,27 +287,29 @@ function updateLastVisited(tabId, changeInfo) {
 }
 
 function tabUpdateHandler(tabId, changeInfo) {
-    //If the tab is loading, clear it
-    if (changeInfo.status == "loading") {
-        disposeArticles(tabId);
-        persistArticle(reduceUrl(changeInfo.url));
-    }
-    if (changeInfo.url) {
-        //Try to find an existing entry for a new url
-        current_user.then(function (user) {;
-                var reduced_url = reduceUrl(changeInfo.url);
-                current_articles[reduced_url] = new Promise(function (resolve, reject) {
-                    Promise.all([
-                        getArticle(reduced_url.hashCode()),
-                        getUser(user.id)]).then(function (resolved) {
-                        var article_data = resolved[0];
-                        var user_metadata = resolved[1].articles[reduced_url.hashCode()];
-                        resolve(new Article(article_data, user_metadata));
+    if (changeInfo) {
+        //If the tab is loading, clear it
+        if (changeInfo.status == "loading") {
+            disposeArticles(tabId);
+            persistArticle(reduceUrl(changeInfo.url));
+        }
+        if (changeInfo.url) {
+            //Try to find an existing entry for a new url
+            current_user.then(function (user) {
+                    var reduced_url = reduceUrl(changeInfo.url);
+                    current_articles[reduced_url] = new Promise(function (resolve, reject) {
+                        Promise.all([
+                            getArticle(reduced_url.hashCode()),
+                            getUser(user.id)]).then(function (resolved) {
+                            var article_data = resolved[0];
+                            var user_metadata = resolved[1].articles[reduced_url.hashCode()];
+                            resolve(new Article(article_data, user_metadata));
+                        });
                     });
-                });
-                chrome.tabs.sendMessage(tabId, {type: "urlChanged", message: changeInfo.url});
-            }
-        );
+                    chrome.tabs.sendMessage(tabId, {type: "urlChanged", message: changeInfo.url});
+                }
+            );
+        }
     }
 };
 
