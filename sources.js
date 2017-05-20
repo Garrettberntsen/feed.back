@@ -8,8 +8,9 @@
  * Created by Damie on 5/2/2017.
  */
 
-function testSingleUrlMatcher(matcher, urlRootUrl, url) {
-    var regexString = urlRootUrl + "/" + matcher.pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
+function testSingleUrlMatcher(matcher, urlRoot, url) {
+    var matcher_pattern = matcher.pattern.replace(new RegExp("\{.*?\}", "g"), "(.*)");
+    var regexString = matcher_pattern ? urlRoot + "/" + matcher_pattern : urlRoot;
     var regex = new RegExp(regexString).exec(url);
     if (regex) {
         var groupNames = matcher.groups;
@@ -54,6 +55,23 @@ function SourceDefinition(definition) {
 }
 
 var sources = {
+    'tutorial': new SourceDefinition({
+        'urls': [{
+            urlRoot: ".*?/tutorial/tutorial-page.html",
+            'article-url-matcher': {
+                pattern: "",
+                groups: []
+            }
+        }],
+        'author-selector': 'span.author',
+        'author-selector-property': '',
+        'date-selector': '',
+        'date-selector-property': '',
+        'text-selector': '',
+        'text-selector-property': '',
+        'title-selector': 'title',
+        'title-selector-property': ''
+    }),
     'washingtonpost': new SourceDefinition({
         'urls': [{
             urlRoot: 'washingtonpost.com',
