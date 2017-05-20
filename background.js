@@ -107,11 +107,11 @@ function writeArticleData(article, user) {
 }
 
 /*
- * Replace leading www. and http: and https:, trailing # fragment and query parameters.
+ * Replace scheme and leading www., trailing # fragment and query parameters.
  */
 function reduceUrl(url) {
     if (url) {
-        return url.replace(/https?:\/\//, "").replace(/www\./, '').replace(/\?.*/, '').replace(/#.*/, '');
+        return url.replace(/.*:\/\//, "").replace(/www\./, '').replace(/\?.*/, '').replace(/#.*/, '');
     } else {
         return url;
     }
