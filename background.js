@@ -42,96 +42,100 @@ function setReadCount(new_count) {
 function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    var article_id = current_articles[url].url.hashCode();
-    return getArticle(article_id)
-        .catch(function (e) {
-            triggerGoogleAnalyticsEvent({
-                exDescription: JSON.stringify(e),
-                exFatal: true
+    return current_articles[url].then(function (article) {
+        var article_id = article.article_data.url.hashCode();
+        return getArticle(article_id)
+            .catch(function (e) {
+                triggerGoogleAnalyticsEvent({
+                    exDescription: JSON.stringify(e),
+                    exFatal: true
+                })
             })
-        })
-        .then(function (article) {
-            if (article.readers) {
-                Promise.all(Object.keys(article.readers).map(function (reader_id) {
-                    return getUser(reader_id);
-                })).then(function (readers) {
-                    return readers.map(function (reader) {
-                        return reader.articles[article_id].stars;
-                    })
-                }).then(function (ratings) {
-                    var rating_count = 0;
-                    var rating_sum = ratings.reduce(function (total, next) {
-                        var next_rating = Number.parseInt(next);
-                        if (!isNaN(next_rating)) {
-                            total += next_rating;
-                            rating_count++;
+            .then(function (article) {
+                if (article.readers) {
+                    Promise.all(Object.keys(article.readers).map(function (reader_id) {
+                        return getUser(reader_id);
+                    })).then(function (readers) {
+                        return readers.map(function (reader) {
+                            return reader.articles[article_id].stars;
+                        })
+                    }).then(function (ratings) {
+                        var rating_count = 0;
+                        var rating_sum = ratings.reduce(function (total, next) {
+                            var next_rating = Number.parseInt(next);
+                            if (!isNaN(next_rating)) {
+                                total += next_rating;
+                                rating_count++;
+                            }
+                            return total;
+                        });
+                        if (rating_count) {
+                            return Promise.resolve(rating_sum / rating_count);
+                        } else {
+                            return Promise.resolve(0);
                         }
-                        return total;
                     });
-                    if (rating_count) {
-                        return Promise.resolve(rating_sum / rating_count);
-                    } else {
-                        return Promise.resolve(0);
-                    }
-                });
 
-            } else {
-                return Promise.resolve(0);
-            }
-        }).catch(function (e) {
-            triggerGoogleAnalyticsEvent({
-                exDescription: JSON.stringify(e),
-                exFatal: true
-            })
-        });
+                } else {
+                    return Promise.resolve(0);
+                }
+            }).catch(function (e) {
+                triggerGoogleAnalyticsEvent({
+                    exDescription: JSON.stringify(e),
+                    exFatal: true
+                })
+            });
+    });
 }
 
 function calculateAverageLeanForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    var article_id = current_articles[url].url.hashCode();
-    return getArticle(article_id)
-        .catch(function (e) {
-            triggerGoogleAnalyticsEvent({
-                exDescription: JSON.stringify(e),
-                exFatal: true
+    return current_articles[url].then(function (article) {
+        var article_id = article.article_data.url.hashCode();
+        return getArticle(article_id)
+            .catch(function (e) {
+                triggerGoogleAnalyticsEvent({
+                    exDescription: JSON.stringify(e),
+                    exFatal: true
+                })
             })
-        })
-        .then(function (article) {
-            if (article.readers) {
-                Promise.all(Object.keys(article.readers).map(function (reader_id) {
-                    return getUser(reader_id);
-                })).then(function (readers) {
-                    return readers.map(function (reader) {
-                        return reader.articles[article_id].lean;
-                    })
-                }).then(function (ratings) {
-                    var rating_count = 0;
-                    var rating_sum = ratings.reduce(function (total, next) {
-                        var next_rating = Number.parseInt(next);
-                        if (!isNaN(next_rating)) {
-                            total += next_rating;
-                            rating_count++;
+            .then(function (article) {
+                if (article.readers) {
+                    Promise.all(Object.keys(article.readers).map(function (reader_id) {
+                        return getUser(reader_id);
+                    })).then(function (readers) {
+                        return readers.map(function (reader) {
+                            return reader.articles[article_id].lean;
+                        })
+                    }).then(function (ratings) {
+                        var rating_count = 0;
+                        var rating_sum = ratings.reduce(function (total, next) {
+                            var next_rating = Number.parseInt(next);
+                            if (!isNaN(next_rating)) {
+                                total += next_rating;
+                                rating_count++;
+                            }
+                            return total;
+                        });
+                        if (rating_count) {
+                            return Promise.resolve(rating_sum / rating_count);
+                        } else {
+                            return Promise.resolve(0);
                         }
-                        return total;
                     });
-                    if (rating_count) {
-                        return Promise.resolve(rating_sum / rating_count);
-                    } else {
-                        return Promise.resolve(0);
-                    }
-                });
 
-            } else {
-                return Promise.resolve(0);
-            }
-        }).catch(function (e) {
-            triggerGoogleAnalyticsEvent({
-                exDescription: JSON.stringify(e),
-                exFatal: true
-            })
-        });
-}
+                } else {
+                    return Promise.resolve(0);
+                }
+            }).catch(function (e) {
+                triggerGoogleAnalyticsEvent({
+                    exDescription: JSON.stringify(e),
+                    exFatal: true
+                })
+            });
+    });
+};
 
 function updateCurrentArticle(sender, message) {
     "use strict";
@@ -144,9 +148,9 @@ function updateCurrentArticle(sender, message) {
                 tab_urls[tabs[0].id] = [];
             }
             tab_urls[tabs[0].id].push(reduceUrl(tabs[0].url));
-            current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(request.message);
+            current_articles[reduceUrl(tabs[0].url)] = Promise.resolve(message);
             current_user.then(function (user) {
-                writeArticleData(request.message, user);
+                writeArticleData(message, user);
             });
         });
     } else {
@@ -311,7 +315,7 @@ function extractPageData(url, content) {
         'title': '',
         'dateRead': ''
     };
-    var url = window.location.href; //TODO url is being declared but it is also a parameter for the method. Should be one or the other - Daniel 
+    var url = window.location.href; //TODO url is being declared but it is also a parameter for the method. Should be one or the other - Daniel
     var sourceName = Object.keys(sources).find(function (sourceName) {
         return url.indexOf(sources[sourceName].url) !== -1;
     });
