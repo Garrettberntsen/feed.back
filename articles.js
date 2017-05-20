@@ -286,8 +286,7 @@ function tabUpdateHandler(tabId, changeInfo) {
     }
     if (changeInfo.url) {
         //Try to find an existing entry for a new url
-        current_user.then(function (resolved) {
-                var user = resolved[1];
+        current_user.then(function (user) {;
                 var reduced_url = reduceUrl(changeInfo.url);
                 current_articles[reduced_url] = new Promise(function (resolve, reject) {
                     Promise.all([
