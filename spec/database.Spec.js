@@ -19,26 +19,26 @@ beforeEach(function () {
     firebase_snapshot = {
         exists: sinon.stub().returns(true),
         val: sinon.stub().returns({})
-    }
+    };
     firebase_ref = {
         once: sinon.stub().resolves(firebase_snapshot),
         set: sinon.stub()
-    }
+    };
     firebase_database = {
         ref: sinon.stub().returns(firebase_ref)
-    }
+    };
     firebase = {
         database: sinon.stub().returns(firebase_database),
         initializeApp: sinon.stub(),
         auth: sinon.stub()
-    }
+    };
 
     firebase.auth.GoogleAuthProvider = {
         credential: sinon.stub()
-    }
+    };
     var firebase_auth = {
         signInWithCredential: sinon.stub()
-    }
+    };
     firebase.auth.returns(firebase_auth);
 
     context = vm.createContext({
