@@ -42,102 +42,95 @@ function setReadCount(new_count) {
 function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    return _firebase.then(function (firebase) {
-        "use strict";
-        var current_article = current_articles[url];
-        return current_article;
-    }).then(function (article) {
-        return Promise.all([firebase.database()
-            .ref("articles/" + article.article_data.url.hashCode() + "/readers")
-            .once("value"),
-            article])
-    }).catch(function (e) {
-        triggerGoogleAnalyticsEvent({
-            exDescription: JSON.stringify(e),
-            exFatal: true
+    var article_id = current_articles[url].url.hashCode();
+    return getArticle(article_id)
+        .catch(function (e) {
+            triggerGoogleAnalyticsEvent({
+                exDescription: JSON.stringify(e),
+                exFatal: true
+            })
         })
-    }).then(function (resolved) {
-        var article_snapshot = resolved[0];
-        var article = resolved[1];
-        var article_readers = article_snapshot.val();
-        if (article_readers) {
-            var reader_ratings = [];
-            Object.keys(article_readers).forEach(function (reader_id) {
-                reader_ratings.push(firebase.database().ref("users/" + reader_id + "/articles/" + article.article_data.url.hashCode() + "/stars").once("value"))
-            });
-            return Promise.all(reader_ratings).then(function (ratings) {
-                var rating_sum = 0;
-                var rating_count = 0;
-                ratings.forEach(function (rating) {
-                    if (rating.exists()) {
-                        var next_rating = Number.parseInt(rating.val());
+        .then(function (article) {
+            if (article.readers) {
+                Promise.all(Object.keys(article.readers).map(function (reader_id) {
+                    return getUser(reader_id);
+                })).then(function (readers) {
+                    return readers.map(function (reader) {
+                        return reader.articles[article_id].stars;
+                    })
+                }).then(function (ratings) {
+                    var rating_count = 0;
+                    var rating_sum = ratings.reduce(function (total, next) {
+                        var next_rating = Number.parseInt(next);
                         if (!isNaN(next_rating)) {
-                            rating_sum += next_rating;
+                            total += next_rating;
                             rating_count++;
                         }
+                        return total;
+                    });
+                    if (rating_count) {
+                        return Promise.resolve(rating_sum / rating_count);
+                    } else {
+                        return Promise.resolve(0);
                     }
                 });
-                if (rating_count) {
-                    return Promise.resolve(rating_sum / rating_count);
-                } else {
-                    return Promise.resolve(0);
-                }
-            })
 
-        } else {
-            return Promise.resolve(0);
-        }
-    }).catch(function (e) {
-        triggerGoogleAnalyticsEvent({
-            exDescription: JSON.stringify(e),
-            exFatal: true
-        })
-    });
+            } else {
+                return Promise.resolve(0);
+            }
+        }).catch(function (e) {
+            triggerGoogleAnalyticsEvent({
+                exDescription: JSON.stringify(e),
+                exFatal: true
+            })
+        });
 }
 
 function calculateAverageLeanForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    return _firebase.then(function (firebase) {
-        "use strict";
-        var current_article = current_articles[url];
-        return current_article.then(function (article) {
-            return Promise.all([firebase.database()
-                .ref("articles/" + article.article_data.url.hashCode() + "/readers")
-                .once("value"),
-                article]).then(function (resolved) {
-                var article_snapshot = resolved[0];
-                var article = resolved[1];
-                var article_readers = article_snapshot.val();
-                if (article_readers) {
-                    var reader_ratings = [];
-                    Object.keys(article_readers).forEach(function (reader_id) {
-                        reader_ratings.push(firebase.database().ref("users/" + reader_id + "/articles/" + article.article_data.url.hashCode() + "/lean").once("value"))
-                    });
-                    return Promise.all(reader_ratings).then(function (ratings) {
-                        var lean_sum = 0;
-                        var reader_count = 0;
-                        ratings.forEach(function (rating) {
-                            if (rating.exists()) {
-                                var next_lean = Number.parseInt(rating.val());
-                                if (!isNaN(next_lean)) {
-                                    lean_sum += Number.parseInt(next_lean);
-                                    reader_count++;
-                                }
-                            }
-                        });
-                        if (reader_count) {
-                            return Promise.resolve(lean_sum / reader_count);
-                        } else {
-                            return Promise.resolve(0);
-                        }
+    var article_id = current_articles[url].url.hashCode();
+    return getArticle(article_id)
+        .catch(function (e) {
+            triggerGoogleAnalyticsEvent({
+                exDescription: JSON.stringify(e),
+                exFatal: true
+            })
+        })
+        .then(function (article) {
+            if (article.readers) {
+                Promise.all(Object.keys(article.readers).map(function (reader_id) {
+                    return getUser(reader_id);
+                })).then(function (readers) {
+                    return readers.map(function (reader) {
+                        return reader.articles[article_id].lean;
                     })
-                } else {
-                    return Promise.resolve(0);
-                }
-            });
+                }).then(function (ratings) {
+                    var rating_count = 0;
+                    var rating_sum = ratings.reduce(function (total, next) {
+                        var next_rating = Number.parseInt(next);
+                        if (!isNaN(next_rating)) {
+                            total += next_rating;
+                            rating_count++;
+                        }
+                        return total;
+                    });
+                    if (rating_count) {
+                        return Promise.resolve(rating_sum / rating_count);
+                    } else {
+                        return Promise.resolve(0);
+                    }
+                });
+
+            } else {
+                return Promise.resolve(0);
+            }
+        }).catch(function (e) {
+            triggerGoogleAnalyticsEvent({
+                exDescription: JSON.stringify(e),
+                exFatal: true
+            })
         });
-    });
 }
 
 function updateCurrentArticle(sender, message) {
@@ -161,9 +154,9 @@ function updateCurrentArticle(sender, message) {
             tab_urls[sender.tab.id] = [];
         }
         tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
-        current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(request.message);
+        current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(message);
         current_user.then(function (user) {
-            writeArticleData(request.message, user);
+            writeArticleData(message, user);
         });
     }
 }
