@@ -79,6 +79,12 @@ var sources = {
                 pattern: "{type}/{category}/{subcategory}/{title}/{year}/{month}/{day}",
                 groups: ["type", "category", "subcategory", "title", "year", "month", "day"]
             }
+        }, {
+            urlRoot: 'washingtonpost.com',
+            'article-url-matcher': {
+                pattern: "{category}/{subcategory}/{title}/{year}/{month}/{day}",
+                groups: ["category", "subcategory", "title", "year", "month", "day"]
+            }
         },
             {
                 urlRoot: 'washingtonpost.com',
@@ -91,7 +97,7 @@ var sources = {
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
         'date-selector-property': 'content',
-        'text-selector': 'article[itemprop="articleBody"]',
+        'text-selector': 'article > p',
         'text-selector-property': '',
         'title-selector': 'meta[property="og:title"]',
         'title-selector-property': 'content'
