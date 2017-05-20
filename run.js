@@ -99,7 +99,7 @@ function scrapePage(url) {
                         textElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
                         textElement = textElement.find(sources[source_name]["text-selector"]);
                     } else {
-                        textElement = $(encountered_urls[encountered_urls.current_index]["text-selector"]);
+                        textElement = $(encountered_urls[encountered_urls.current_index].content_element_selector);
                     }
                     if (sources[source_name]["text-selector"] !== "") {
                         if (sources[source_name]["text-selector-property"] === "") {
@@ -210,7 +210,7 @@ function pageUrlChange(new_url) {
                             if (!source_name) {
                                 console.log("No source description was found for this url");
                             } else {
-                                console.log("No content element could be found with selector " + sources[source_name]["text-selector"])
+                                console.log("No content element could be found with selector " + sources[source_name].content_element_selector)
                             }
                         }
                         scrapePage(new_url);
