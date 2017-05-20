@@ -12,6 +12,7 @@
     "scripts": [
       "firebase.js",
       "identity.js",
+      "articles.js",
       "database.js",
       "analytics.js",
       "background.js",
