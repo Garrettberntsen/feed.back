@@ -3,11 +3,10 @@
  *
  * Non-background scripts can interact with this module via the following messages:
  * - type: "update_article"
- * - message: array
- *      - command: string, type of command
- *          allowed: "send", "error"
- *      - category: string, event category, e.g. "Lifecycle"
- *      - action: string, the action that occured, e.g. "Extension Started"
+ * - message: Article object
+ *      - article_data: ArticleData object
+ *      - user_metadata: UserMetadata object
+ * - type: "get_article":
  *
  */
 /**
@@ -107,6 +106,124 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
     }
 });
+
+function calculateAverageRatingForArticle(url) {
+    "use strict";
+    url = reduceUrl(url);
+    var article_id;
+    return current_articles[url].then(function (article) {
+        article_id = article.article_data.url.hashCode();
+        return getArticle(article_id);
+    }).catch(function (e) {
+        triggerGoogleAnalyticsEvent({
+            exDescription: JSON.stringify(e),
+            exFatal: true
+        })
+    })
+        .then(function (article) {
+            if (article.readers) {
+                return Promise.all(Object.keys(article.readers).map(function (reader_id) {
+                    return getUser(reader_id);
+                })).then(function (readers) {
+                    return readers.map(function (reader) {
+                        return reader.articles[article_id].stars;
+                    })
+                }).then(function (ratings) {
+                    var rating_count = 0;
+                    var rating_sum = ratings.reduce(function (total, next) {
+                        var next_rating = Number.parseInt(next);
+                        if (!isNaN(next_rating)) {
+                            total += next_rating;
+                            rating_count++;
+                        }
+                        return total;
+                    }, 0);
+                    if (rating_count) {
+                        return Promise.resolve(rating_sum / rating_count);
+                    } else {
+                        return Promise.resolve(0);
+                    }
+                });
+            } else {
+                return Promise.resolve(0);
+            }
+        }).catch(function (e) {
+            triggerGoogleAnalyticsEvent({
+                exDescription: JSON.stringify(e),
+                exFatal: true
+            })
+        });
+}
+
+function calculateAverageLeanForArticle(url) {
+    "use strict";
+    url = reduceUrl(url);
+    var article_id;
+    return current_articles[url].then(function (article) {
+        article_id = article.article_data.url.hashCode();
+        return getArticle(article_id);
+    }).catch(function (e) {
+        triggerGoogleAnalyticsEvent({
+            exDescription: JSON.stringify(e),
+            exFatal: true
+        })
+    })
+        .then(function (article) {
+            if (article.readers) {
+                return Promise.all(Object.keys(article.readers).map(function (reader_id) {
+                    return getUser(reader_id);
+                })).then(function (readers) {
+                    return readers.map(function (reader) {
+                        return reader.articles[article_id].lean;
+                    })
+                }).then(function (ratings) {
+                    var rating_count = 0;
+                    var rating_sum = ratings.reduce(function (total, next) {
+                        var next_rating = Number.parseInt(next);
+                        if (!isNaN(next_rating)) {
+                            total += next_rating;
+                            rating_count++;
+                        }
+                        return total;
+                    }, 0);
+                    if (rating_count) {
+                        return Promise.resolve(rating_sum / rating_count);
+                    } else {
+                        return Promise.resolve(0);
+                    }
+                });
+            } else {
+                return Promise.resolve(0);
+            }
+        }).catch(function (e) {
+            triggerGoogleAnalyticsEvent({
+                exDescription: JSON.stringify(e),
+                exFatal: true
+            })
+        });
+};
+
+function updateCurrentArticle(sender, message) {
+    "use strict";
+    if (!sender.tab) {
+        if (last_visited_url) {
+            current_articles[reduceUrl(last_visited_url)] = Promise.resolve(message);
+            current_user.then(function (user) {
+                writeArticleData(message, user);
+            });
+        }
+        ;
+    } else {
+        if (!tab_urls[sender.tab.id]) {
+            tab_urls[sender.tab.id] = [];
+        }
+        tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
+        current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(message);
+        current_user.then(function (user) {
+            writeArticleData(message, user);
+        });
+    }
+}
 /**
  * Discard all article definitions associated with the given tab.
  *
