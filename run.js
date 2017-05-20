@@ -14,7 +14,7 @@ var sources = new Promise(function (resolve, reject) {
 
 function scrapePage(url) {
     chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-        if (!article) {
+        if (!article || !article.user_metadata) {
             article = {
                 user_metadata: {}
             }
