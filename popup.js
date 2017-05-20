@@ -135,7 +135,7 @@ $(document).ready(function () {
         chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
             if (!article || !article.article_data) {
                 console.log("Not article")
-                // addTrackThisQuestion();
+                addTrackThisQuestion();
                 //addCircleGraph();
             } else {
                 displayed_article = article;
