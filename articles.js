@@ -31,6 +31,39 @@ var current_articles = {};
  */
 var tab_urls = {};
 var last_visited_url;
+
+function resolveArticleForUrl(url) {
+    "use strict";
+    console.log(current_articles[url]);
+    return Promise.resolve(current_articles[url]).then(function (current_article) {
+        console.log("Resolved current article");
+        if (Object.keys(sources).find(function (source_name) {
+                return sources[source_name].testForArticleUrlMatch(url);
+            }) == "tutorial") {
+            current_article = new Article(
+                new ArticleData(url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
+                new UserMetadata(new Date().getTime(), "tutorial")
+            );
+        }
+        else if (!current_article) {
+            console.log("Current article doesn't exist, trying to retrieve from firebase");
+            current_articles[url] = new Promise(function (resolve, reject) {
+                current_user.then(function (user) {
+                    Promise.all([
+                        getArticle(url.hashCode()),
+                        getUser(user.id)]).then(function (resolved) {
+                        var article_data = resolved[0];
+                        var hashCode = url.hashCode();
+                        var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
+                        resolve(new Article(article_data, user_metadata));
+                    });
+                });
+            });
+            current_article = current_articles[url];
+        }
+        return current_article;
+    })
+}
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     "use strict";
     switch (request.type) {
@@ -47,59 +80,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
         case "getCurrentArticle":
         {
+            var request_start_time = new Date().getTime();
             //Request is coming from a non-content script origin
+            console.log("Article request received")
             if (!sender.tab) {
+                console.log("Request from a non-tab origin.");
                 if (last_visited_url) {
-                    var reduced_url = reduceUrl(last_visited_url);
-                    Promise.resolve(current_articles[reduced_url]).then(function (current_article) {
-                        if (Object.keys(sources).find(function (source_name) {
-                                return sources[source_name].testForArticleUrlMatch(reduced_url);
-                            }) == "tutorial") {
-                            current_article = new Article(
-                                new ArticleData(reduced_url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
-                                new UserMetadata(new Date().getTime(),"tutorial")
-                            );
-                        }
-                        else if (!current_article) {
-                            current_articles[reduced_url] = new Promise(function (resolve, reject) {
-                                current_user.then(function (user) {
-                                    Promise.all([
-                                        getArticle(reduced_url.hashCode()),
-                                        getUser(user.id)]).then(function (resolved) {
-                                        var article_data = resolved[0];
-                                        var user_metadata = resolved[1].articles ? resolved[1][reduced_url.hashCode()] : {};
-                                        resolve(new Article(article_data, user_metadata));
-                                    });
-                                });
-                            });
-                            current_article = current_articles[reduced_url];
-                        }
-                        return current_article;
-                    }).then(function (article) {
+                    console.log("Requesting previous visit url.");
+                    resolveArticleForUrl(reduceUrl(last_visited_url)).then(function (article) {
                         "use strict";
+                        console.log("Sending article response");
+                        console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
                         sendResponse(article);
                     });
                 } else {
+                    console.log("No previous url, sending empty response.");
                     sendResponse()
                 }
             } else {
                 Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
-                    var reduced_url = reduceUrl(request.message);
-                    if (!current_article) {
-                        current_articles[reduced_url] = new Promise(function (resolve, reject) {
-                            current_user.then(function (user) {
-                                Promise.all([
-                                    getArticle(reduced_url.hashCode()),
-                                    getUser(user.id)]).then(function (resolved) {
-                                    var article_data = resolved[0];
-                                    var user_metadata = resolved[1].articles ? resolved[1][reduced_url.hashCode()] : {};
-                                    resolve(new Article(article_data, user_metadata));
-                                });
-                            });
-                        });
-                        current_article = current_articles[reduced_url];
-                    }
-                    return current_article;
+                    return resolveArticleForUrl(reduceUrl(request.message));
                 }).then(function (article) {
                     sendResponse(article);
                 });
