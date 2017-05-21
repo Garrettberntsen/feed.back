@@ -6,12 +6,20 @@
 
 var only_scrape_new_user_history = false;
 
-_firebase.then(function (firebase) {
-    current_user.then(function (user) {
-        var database = firebase.database();
-        database.ref("/users/" + user.id).once("value").then(function (userSnapshot) {
-            if (!userSnapshot.exists() || !only_scrape_new_user_history) {
-                Object.values(sources).forEach(function (source) {
+function extractHistory(firebase){
+    "use strict";
+    return current_user.then(function (user) {
+        return Promise.all([
+            firebase.database().ref("/users/" + user.id).once("value"),
+            current_user]);
+    }).then(function (resolved) {
+        var userSnapshot = resolved[0];
+        var chrome_user = resolved[1];
+        if (!userSnapshot.exists() || !only_scrape_new_user_history) {
+            Object.keys(sources).map(function (name) {
+                return sources[name];
+            }).forEach(function (source) {
+                try {
                     var now = new Date();
                     //TODO: Get rid of these magic numbers.
                     var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
@@ -31,28 +39,32 @@ _firebase.then(function (firebase) {
                                 var extractedItem = extractHistoryItemData(historyItem);
                                 if (extractedItem) {
                                     console.log("Extracted");
-                                    writeArticleData(extractedItem, user);
+                                    writeArticleData(extractedItem, chrome_user);
                                 }
                             });
                         });
                     })
-                });
-            }
-        });
-    })
-});
+                } catch (e) {
+                    console.log(e);
+                }
+            });
+        }
+    }).catch(function (e) {
+        console.log(e);
+    });
+}
 
 function extractHistoryItemData(historyItem) {
     var reducedUrl = reduceUrl(historyItem.url);
     var source = Object.keys(sources).reduce(function (found, nextSourceName) {
-        if(found){
+        if (found) {
             return found;
         }
-        var found_source = sources[nextSourceName].urls.find(function(url_definition){
+        var found_source = sources[nextSourceName].urls.find(function (url_definition) {
             "use strict";
             return reducedUrl.indexOf(url_definition.urlRoot) !== -1;
         });
-        if(found_source){
+        if (found_source) {
             return {name: nextSourceName, definition: sources[nextSourceName]};
         }
     }, null);
@@ -68,3 +80,8 @@ function extractHistoryItemData(historyItem) {
         return new Article(article_data, new UserMetadata(historyItem.lastVisitTime, source.name));
     }
 }
+
+chrome.runtime.onInstalled.addListener(function(){
+    "use strict";
+    return _firebase.then(extractHistory);
+})
