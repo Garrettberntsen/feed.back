@@ -41,7 +41,6 @@ var last_visited_url;
 function resolveArticleForUrl(url) {
     "use strict";
     return Promise.resolve(current_articles[url]).then(function (current_article) {
-        console.log("Resolved current article");
         if (Object.keys(sources).find(function (source_name) {
                 return sources[source_name].testForArticleUrlMatch(url);
             }) == "tutorial") {
@@ -65,6 +64,9 @@ function resolveArticleForUrl(url) {
                         } else {
                             resolve(null);
                         }
+                    }, function(error){
+                        console.log(error);
+                        reject("There was an error resolving the article and user from firebase");
                     });
                 });
             });
@@ -155,13 +157,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     sendResponse()
                 }
             } else {
-                Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
+                resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
                     sendResponse(current_article);
                 }, function(err){
-                    console.log("There was an error resolving the article");
                     console.log(err);
                     sendResponse("There was an error resolving the article");
-                })
+                });
             }
             return true;
         }
