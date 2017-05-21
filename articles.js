@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                                         getArticle(reduced_url.hashCode()),
                                         getUser(user.id)]).then(function (resolved) {
                                         var article_data = resolved[0];
-                                        var user_metadata = resolved[1].articles[reduced_url.hashCode()];
+                                        var user_metadata = resolved[1].articles ? resolved[1][reduced_url.hashCode()] : {};
                                         resolve(new Article(article_data, user_metadata));
                                     });
                                 });
@@ -92,7 +92,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                                     getArticle(reduced_url.hashCode()),
                                     getUser(user.id)]).then(function (resolved) {
                                     var article_data = resolved[0];
-                                    var user_metadata = resolved[1].articles[reduced_url.hashCode()];
+                                    var user_metadata = resolved[1].articles ? resolved[1][reduced_url.hashCode()] : {};
                                     resolve(new Article(article_data, user_metadata));
                                 });
                             });
