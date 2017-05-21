@@ -28,6 +28,15 @@
   justify-content: space-around;
 }
 
+#table {
+  font-size: 1.6rem;
+}
+
+.dataTable-top, .dataTable-bottom{
+  padding: 0;
+  font-size: 1.6rem;
+}
+
 .container--dashboard {
   margin-left: 18rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
   flex-wrap: wrap;
