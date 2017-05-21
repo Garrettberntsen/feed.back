@@ -133,6 +133,7 @@ function scrapePage(existing_article, url) {
                     resolve(existing_article);
                 } else {
                     console.log("No source was found matching " + window.location.href);
+                    reject();
                 }
             }, function () {
                 "use strict";
@@ -167,63 +168,58 @@ function updateScrollRatio(url) {
     console.log("new scroll ratio: " + encountered_urls[encountered_urls.current_index].scroll_ratio);
 }
 
-function pageUrlChange(new_url) {
-    chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-        var port = chrome.runtime.connect(chrome.runtime.id, {name: "scraper"});
-        port.postMessage({
-            type: "begun_scraping",
-            message: new_url
-        });
-        encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
-            return new_url == e.url;
-        });
-        if (encountered_urls.current_index == -1) {
-            var scroll_ratio = article && article.user_metadata && article.user_metadata.scrolled_content_ratio ? article.user_metadata.scrolled_content_ratio : 0;
-            encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
-            encountered_urls.current_index = encountered_urls.length - 1;
-        }
-        sources.then(function (sources) {
-            var source_name = Object.keys(sources).find(function (source_name) {
-                if (sources[source_name].urls.find(function (source_url_definition) {
-                        return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
-                    })) {
-                    return source_name;
-                }
-            });
-            if (source_name) {
-                chrome.runtime.sendMessage({type: "incrementReadCount"});
-                chrome.runtime.sendMessage({
-                    type: "getSourceUrlMatches",
-                    message: {
-                        location: window.location.href,
-                        source_name: source_name
-                    }
-                }, function (response) {
-                    if (response) {
-                        encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
-                        encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
-                        //If content_element_selector contains multiple elements, get the last
-                        if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
-                            $(document).scroll(updateScrollRatio);
-                        } else {
-                            if (!source_name) {
-                                console.log("No source description was found for this url");
-                            } else {
-                                console.log("No content element could be found with selector " + sources[source_name].content_element_selector)
-                            }
-                        }
-                        scrapePage(article, new_url).then(function (article) {
-                            "use strict";
-                            updateScrollRatio(new_url);
-                            port.postMessage({
-                                type: "finished_scraping",
-                                message: {url: new_url, article: article}
-                            })
-                        });
-                    }
-                });
+var port;
+
+function pageUrlChange(new_url, existing_article) {
+    encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
+        return new_url == e.url;
+    });
+    if (encountered_urls.current_index == -1) {
+        var scroll_ratio = existing_article && existing_article.user_metadata && existing_article.user_metadata.scrolled_content_ratio ? existing_article.user_metadata.scrolled_content_ratio : 0;
+        encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
+        encountered_urls.current_index = encountered_urls.length - 1;
+    }
+    sources.then(function (sources) {
+        var source_name = Object.keys(sources).find(function (source_name) {
+            if (sources[source_name].urls.find(function (source_url_definition) {
+                    return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
+                })) {
+                return source_name;
             }
         });
+        if (source_name) {
+            chrome.runtime.sendMessage({type: "incrementReadCount"});
+            chrome.runtime.sendMessage({
+                type: "getSourceUrlMatches",
+                message: {
+                    location: window.location.href,
+                    source_name: source_name
+                }
+            }, function (response) {
+                if (response) {
+                    encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
+                    encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
+                    //If content_element_selector contains multiple elements, get the last
+                    if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
+                        $(document).scroll(updateScrollRatio);
+                    } else {
+                        if (!source_name) {
+                            console.log("No source description was found for this url");
+                        } else {
+                            console.log("No content element could be found with selector " + sources[source_name].content_element_selector)
+                        }
+                    }
+                    scrapePage(existing_article, new_url).then(function (article) {
+                        "use strict";
+                        updateScrollRatio(new_url);
+                        port.postMessage({
+                            type: "finished_scraping",
+                            message: {url: new_url, article: article}
+                        })
+                    });
+                }
+            });
+        }
     });
 }
 
@@ -235,6 +231,22 @@ chrome.runtime.onMessage.addListener(function (message) {
     }
 });
 
-$(window).on("load", function () {
-    pageUrlChange(window.location.href);
+
+var scraping = false;
+
+$(document).ready(function () {
+    "use strict";
+    chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
+        if (!article || (article.article_data && article.article_data.partialRecord)) {
+            scraping = true;
+            port = chrome.runtime.connect(chrome.runtime.id, {name: "scraper"});
+            port.postMessage({
+                type: "begun_scraping",
+                message: window.location.href
+            });
+            pageUrlChange(window.location.href, article);
+        } else {
+            pageUrlChange(window.location.href, null);
+        }
+    });
 });

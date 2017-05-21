@@ -142,14 +142,14 @@ $(document).ready(function () {
                     console.log("Tab finished loading: " + tabId);
                     console.log("Requesting current article")
                     request_time = new Date().getTime();
-                    chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
+                    chrome.runtime.sendMessage({type: "getCurrentArticle", message: {waitForScrape:true}}, refreshDisplayedArticle);
                 }
             });
         } else {
             console.log("Tab already loaded.");
             console.log("Requesting current article")
             request_time = new Date().getTime();
-            chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
+            chrome.runtime.sendMessage({type: "getCurrentArticle", message: {waitForScrape:true}}, refreshDisplayedArticle);
         }
     })
 
@@ -172,7 +172,7 @@ function refreshDisplayedArticle(article) {
     "use strict";
     if (!article || !article.article_data) {
         console.log("Not article")
-        $(".loading").fadeOut(500, function(){
+        $(".loading").fadeOut(500, function () {
             $(".loading").remove();
             addTrackThisQuestion();
         });
@@ -320,7 +320,7 @@ function refreshDisplayedArticle(article) {
                 });
             }
         })
-        $(".loading").fadeOut(500, function(){
+        $(".loading").fadeOut(500, function () {
             $(".loading").remove();
             $("form").show();
         });

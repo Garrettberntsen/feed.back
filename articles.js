@@ -31,10 +31,12 @@ var current_articles = {};
  * @type {{}}
  */
 var tab_urls = {};
+var scraping_in_progress = {};
 var last_visited_url;
 
 /**
- *
+ * Resolves the article definition for the given url. First, it determines if the cache contains a promise for the given
+ * url. If it does not, it gets the definition from firebase and loads it into the cache.
  * @param url   the url to retrieve the article for
  * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
  */
@@ -50,7 +52,6 @@ function resolveArticleForUrl(url) {
             );
         }
         else if (!current_article) {
-            console.log("Current article doesn't exist, trying to retrieve from firebase");
             current_articles[url] = new Promise(function (resolve, reject) {
                 current_user.then(function (user) {
                     Promise.all([
@@ -64,7 +65,7 @@ function resolveArticleForUrl(url) {
                         } else {
                             resolve(null);
                         }
-                    }, function(error){
+                    }, function (error) {
                         console.log(error);
                         reject("There was an error resolving the article and user from firebase");
                     });
@@ -82,11 +83,13 @@ chrome.runtime.onConnect.addListener(function (port) {
                 port.onMessage.addListener(function (message) {
                     switch (message.type) {
                         case "begun_scraping":
+                            scraping_in_progress[reduceUrl(message.message)] = true;
                             current_articles[reduceUrl(message.message)] = new Promise(function (resolve, reject) {
                                 var scrapingCompletionHandler = function (message) {
                                     "use strict";
                                     var url = reduceUrl(message.message.url);
                                     if (message.type === "finished_scraping") {
+                                        delete scraping_in_progress[url]
                                         resolve(message.message.article);
                                         port.onMessage.removeListener(scrapingCompletionHandler);
                                     }
@@ -100,10 +103,10 @@ chrome.runtime.onConnect.addListener(function (port) {
     }
 )
 
-function updateTabUrls(tabId, url){
+function updateTabUrls(tabId, url) {
     "use strict";
-    if(tabId){
-        if(tab_urls[tabId]) {
+    if (tabId) {
+        if (tab_urls[tabId]) {
             tab_urls[tabId].push(reduceUrl(url));
         } else {
             tab_urls[tabId] = [reduceUrl(url)];
@@ -120,7 +123,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 updateTabUrls(sender.tab.id, request.message.article_data.url);
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            current_articles[request.message.article_data.url] = Promise.resolve(request.message);
+            current_articles[request.message.article_data.url] = current_articles[request.message.article_data.url].then(function () {
+                return request.message;
+            });
             current_user.then(function (user) {
                 return writeArticleData(request.message, user);
             }).then(function () {
@@ -141,28 +146,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "getCurrentArticle":
         {
             var request_start_time = new Date().getTime();
-            //Request is coming from a non-content script origin
-            if (!sender.tab) {
-                console.log("Request from a non-tab origin.");
-                if (last_visited_url) {
+            if (!scraping_in_progress[last_visited_url] || !(request.message && request.message.waitForScrape)) {
+                if (!sender.tab) {
+                    console.log("Request from a non-tab origin.");
                     console.log("Requesting previous visit url.");
-                    resolveArticleForUrl(reduceUrl(last_visited_url)).then(function (article) {
+                    var resolution = resolveArticleForUrl(reduceUrl(last_visited_url)).then(function (article) {
                         "use strict";
                         console.log("Sending article response");
                         console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
                         sendResponse(article);
                     });
                 } else {
-                    console.log("No previous url, sending empty response.");
-                    sendResponse()
+                    var resolution = resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
+                        sendResponse(current_article);
+                    }, function (err) {
+                        console.log(err);
+                        sendResponse("There was an error resolving the article");
+                    });
                 }
             } else {
-                resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
-                    sendResponse(current_article);
-                }, function(err){
-                    console.log(err);
-                    sendResponse("There was an error resolving the article");
-                });
+                sendResponse()
             }
             return true;
         }
@@ -326,7 +329,7 @@ function updateLastVisited(tabId, changeInfo) {
             })
         });
         if (sourceName) {
-            last_visited_url = tab.url;
+            last_visited_url = reduceUrl(tab.url);
         } else {
             last_visited_url = null;
         }
