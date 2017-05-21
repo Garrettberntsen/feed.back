@@ -79,9 +79,13 @@ function setUser(user_id, user) {
  * @param article_id
  */
 function getArticle(article_id) {
+    console.log("Getting article from firebase");
+    var request_time = new Date().getTime();
     return _firebase.then(function (firebase) {
         return firebase.database().ref("articles/" + article_id).once("value");
     }).then(function (snapshot) {
+        console.log("Article resolved from firebase");
+        console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
         return snapshot.val();
     });
 }
