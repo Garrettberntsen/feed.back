@@ -10,7 +10,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 article_ids.push(key);
             }
             Promise.all(article_definitions).then(function (articleSnapshots) {
-                var daysBack = 10;
+                var daysBack = 14;
 
                 var todaysDate = Date.now();
                 var millisecondsPerDay = 86400000;
@@ -191,6 +191,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var svg = d3.select("div.donut-chart")
                         .append("svg")
                         .attr("class", "chart")
+                        .attr("class","chart--font")
                         .attr("width", width)
                         .attr("height", height)
                         .append("g")
@@ -216,7 +217,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("transform", function (d, i) {
                             var height = legendRectSize + legendSpacing;
                             var offset = height * color.domain().length / 2;
-                            var horz = 12 * legendRectSize;
+                            var horz = 9 * legendRectSize;
                             var vert = i * height - offset;
                             return "translate( " + horz + "," + vert + ")";
                         });
@@ -320,12 +321,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         left: 30
                     };
 
-                    var width = 640 - margin.left - margin.right,
+                    var width = 960 - margin.left - margin.right,
                         height = 288 - margin.top - margin.bottom;
 
                     var svg = d3.select("div.bar-chart")
                         .append("svg")
                         .attr("class", "chart")
+                        .attr("class","chart--font")
                         .attr("width", width + margin.left + margin.right)
                         .attr("height", height + margin.top + margin.bottom)
                         .append("g")
@@ -343,8 +345,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             };
                         });
                     }));
-
-                    console.log(dataset);
 
                     var x = d3.scale.ordinal()
                         .domain(dataset[0].map(function (d) {
@@ -422,29 +422,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                             tooltip.select("text").text(d.y);
                         });
-
-                    // //Draw the Legend
-                    // var legend = svg.selectAll(".legend")
-                    //   .data(color.domain())
-                    //   .enter().append("g")
-                    //   .attr("class", "legend")
-                    //   .attr("transform", function(d,i) {
-                    //     return "translate(30, " + i * 20 + ")";
-                    //   });
-
-                    // legend.append("rect")
-                    //   .attr("x", width - 10)
-                    //   .attr("width", 10)
-                    //   .attr("height", 10)
-                    //   .style("fill", color)
-                    //   .style("stroke", color);
-
-                    // legend.append("text")
-                    //   .attr("x", width + 5)
-                    //   .attr("y", 5)
-                    //   .attr("dy", ".35em")
-                    //   .style("text-anchor", "start")
-                    //   .text(function(d) {return categoryKeys[d] ; });
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")

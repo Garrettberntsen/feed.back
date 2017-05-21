@@ -7,6 +7,10 @@
   height: 25px;
 }
 
+.chart--font {
+  font-size: 1.6rem;
+}
+
 .sidebar {
   float: left;
   height: 100vh;
@@ -23,18 +27,8 @@
 .dashboard-row {
   width: 100%;
 
-
   display: flex;
   justify-content: space-around;
-}
-
-#table {
-  font-size: 1.6rem;
-}
-
-.dataTable-top, .dataTable-bottom{
-  padding: 0;
-  font-size: 1.6rem;
 }
 
 .container--dashboard {
@@ -48,3 +42,17 @@
   width: 100%;
   max-width: 100%;
 }
+
+
+/* ------------ ------------Table Styling ------------ ------------ */
+
+#table {
+  font-size: 1.6rem;
+}
+
+.dataTable-top, .dataTable-bottom{
+  padding: 0;
+  font-size: 1.6rem;
+}
+
+/* ------------ ------------Table Styling ------------ ------------ */
