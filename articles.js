@@ -7,6 +7,7 @@
  *      - article_data: ArticleData object
  *      - user_metadata: UserMetadata object
  * - type: "get_article":
+ * - message: none
  *
  */
 String.prototype.hashCode = function () {
@@ -99,7 +100,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 }
             } else {
                 Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
-                    return resolveArticleForUrl(reduceUrl(request.message));
+                    return resolveArticleForUrl(reduceUrl(sender.tab.url));
                 }).then(function (article) {
                     sendResponse(article);
                 });
@@ -431,7 +432,7 @@ chrome.tabs.onActivated.addListener(function (event) {
  */
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
     tabUpdateHandler(tabId, changeInfo);
-    if (changeInfo && changeInfo.status == "completed") {
+    if (changeInfo && changeInfo.status == "complete") {
         updateLastVisited(tabId, changeInfo);
     }
 });
