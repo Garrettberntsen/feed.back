@@ -89,9 +89,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
             current_articles[request.message.article_data.url] = Promise.resolve(request.message);
             current_user.then(function (user) {
-                writeArticleData(request.message, user);
-                sendResponse(true);
-            }).catch(function (err) {
+                return writeArticleData(request.message, user);
+            }).then(function(){
+                sendResponse();
+            }, function(err){
                 console.log(err);
                 if (sender.tab) {
                     tab_urls[sender.tab.id] = tab_urls[sender.tab.id].splice(tab_urls[sender.tab.id].indexOf(request.message.article_data.url));
@@ -101,7 +102,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 }
                 delete current_articles[request.message.article_data.url];
                 sendResponse("An error occurred while attempting to save the article.");
-            })
+            });
             return true;
         }
         case
@@ -391,7 +392,7 @@ function writeArticleData(article, chrome_user) {
     var article_key = article_data.url.hashCode();
 
     //Check if the article has already been scraped or the new record is not a partial record.
-    Promise.all([getArticle(article_key), getUser(chrome_user.id)])
+    return Promise.all([getArticle(article_key), getUser(chrome_user.id)])
         .then(function (resolved) {
             var existing_article = resolved[0];
             var user = resolved[1];
@@ -401,9 +402,9 @@ function writeArticleData(article, chrome_user) {
                     user.articles[article_key] = article.user_metadata;
                     setUser(chrome_user.id, user);
                 }
+                console.log("feed.back data written to firebase!");
             }
         });
-    console.log("feed.back data written to firebase!");
 }
 
 chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
