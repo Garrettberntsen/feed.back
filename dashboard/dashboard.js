@@ -23,10 +23,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articlesRead = userData.articles;
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
-
-                console.log(sourceCount);
-
-                appendData("username", email);
+                
                 appendData("days-back", daysBack);
 
                 createPieChart(sourceCount, articleObj, daysBack);
