@@ -32,6 +32,9 @@ beforeEach(function () {
             runtime: {
                 onMessage: {
                     addListener: sinon.stub()
+                },
+                onConnect: {
+                    addListener: sinon.stub()
                 }
             },
             tabs: {
@@ -57,7 +60,7 @@ beforeEach(function () {
             id: 1
         }),
         getArticle: sinon.stub().resolves({}),
-        getUser: sinon.stub().resolves({id: 1, articles: []}),
+        getUser: sinon.stub(),
         setArticle: sinon.spy(),
         setUser: sinon.spy(),
         writeArticleData: sinon.stub(),
@@ -223,17 +226,19 @@ describe("The articles module", function () {
                 });
                 context.getArticle.resolves(null);
                 var user = {
+                    id: 1,
                     articles: {}
                 }
-                context.getUser.resolves(user);
+                context.getUser.withArgs(1).callsFake(function(id){
+                    console.log("getUser was called");
+                    return Promise.resolve(user);
+                });
                 vm.runInContext(out, context);
                 expect(Object.keys(context.current_articles).length).toBe(0);
                 expect(Object.keys(context.tab_urls).length).toBe(0);
                 message_handler({
                     type: "getCurrentArticle"
                 }, {tab: {id: 1, url: "cba.com"}}, function (response) {
-                    expect(context.getArticle.calledWith("cba.com".hashCode())).toBeTruthy();
-                    expect(context.getUser.calledWith(1)).toBeTruthy();
                     expect(response).toBeFalsy();
                     done();
                 });
@@ -266,6 +271,52 @@ describe("The articles module", function () {
                     expect(context.getArticle.calledWith("abc.com".hashCode())).toBeTruthy();
                     expect(context.getUser.calledWith(1)).toBeTruthy();
                     expect(response).toBeFalsy();
+                    done();
+                });
+            } catch (err) {
+                console.log(err);
+            }
+        })
+    });
+    it("will wait to respond to a request for an article while it is being scraped", function (done) {
+        "use strict";
+        fs.readFile(script, function (err, out) {
+            try {
+                var existing_article = {
+                    article_data: {url: "abcdef.com", source: "test"},
+                    user_metadata: {dateRead: new Date().getTime(), source: "test"}
+                };
+                var message_handler;
+                context.chrome.runtime.onMessage.addListener.callsFake(function (callback) {
+                    message_handler = callback;
+                });
+                context.getArticle.resolves(existing_article);
+                context.writeArticleData.callsFake(function(){
+                    return new Promise(function(resolve){
+                        setTimeout(resolve, 10000);
+                    })
+                });
+
+                var user = {
+                    id:1,
+                    articles: {}
+                }
+                context.getUser.withArgs(1).resolves(user);
+                vm.runInContext(out, context);
+                context.last_visited_url = "abc.com";
+                expect(Object.keys(context.current_articles).length).toBe(0);
+                expect(Object.keys(context.tab_urls).length).toBe(0);
+                message_handler({
+                    type: "update_article",
+                    message: existing_article
+                }, {tab: {id: 1, url: "abc.com"}}, function (response) {
+                    expect(context.writeArticleData.called).toBeTruthy();
+                    expect(response).toBeFalsy();
+                });
+                message_handler({
+                    type: "getCurrentArticle"
+                }, {}, function(response){
+                    expect(context.writeArticleData.called).toBeTruthy();
                     done();
                 });
             } catch (err) {
