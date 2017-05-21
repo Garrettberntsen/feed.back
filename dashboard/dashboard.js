@@ -23,7 +23,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articlesRead = userData.articles;
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
-                
+
                 appendData("days-back", daysBack);
 
                 createPieChart(sourceCount, articleObj, daysBack);
@@ -287,7 +287,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     delete templateCategories.date;
 
                     var finalFinalData = trimObjects(finalData, template);
-                    console.log(finalFinalData);
 
                     function trimObjects(array, template) {
                         var trimmed = [];
@@ -343,11 +342,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     categoryKeys.sort();
                     
-                    var dataset = d3.layout.stack()(categoryKeys.map(function (objective) {
+                    var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
                         return finalFinalData.map(function (d) {
+                            console.log(d);
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
-                                y: +d[objective]
+                                y: +d[source],
+                                label: source
                             };
                         });
                     }));
@@ -361,7 +362,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var y = d3.scale.linear()
                         .domain([0, d3.max(dataset, function (d) {
                             return d3.max(d, function (d) {
-                                console.log(d.y);
                                 return d.y * 3;
                             });
                         })])
@@ -426,18 +426,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var xPosition = d3.mouse(this)[0] - 15;
                             var yPosition = d3.mouse(this)[1] - 25;
                             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                            tooltip.select("text").text(d.y);
+                            tooltip.select("text").text(returnSource(d.label, d.y) ) ;
                         });
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
                         .style("display", "none");
-
-                    tooltip.append("rect")
-                        .attr("width", 30)
-                        .attr("height", 20)
-                        .attr("fill", "white")
-                        .style("opacity", 0.5);
 
                     tooltip.append("text")
                         .attr("x", 15)
@@ -445,6 +439,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .style("text-anchor", "middle")
                         .attr("font-size", "12px")
                         .attr("font-weight", "bold");
+                }
+
+                function returnSource(label, articlesRead) {
+                    var tooltipText = "Source: " + label + "\n" + "Articles: " + articlesRead;
+                    console.log(tooltipText);
+                    return tooltipText;
                 }
 
                 function createTable(userArticleInformation, articleInformation) {
