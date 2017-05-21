@@ -140,25 +140,42 @@ $(document).ready(function () {
                 "use strict";
                 if (tabId == tabs[0].id && changeInfo && changeInfo.status == "complete") {
                     console.log("Tab finished loading: " + tabId);
+                    console.log("Requesting current article")
+                    request_time = new Date().getTime();
                     chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
                 }
             });
         } else {
             console.log("Tab already loaded.");
+            console.log("Requesting current article")
+            request_time = new Date().getTime();
             chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
         }
     })
 
 });
 
+var request_time;
+
 function refreshDisplayedArticle(article) {
+    var response_time = new Date().getTime() - request_time;
+    console.log("Response took " + response_time + " ms");
+    chrome.runtime.sendMessage({
+        type: "analytics",
+        message: {
+            hitType: "event",
+            command: "send",
+            eventCategory: "Performance",
+            metric1: response_time
+        }
+    });
     "use strict";
     if (!article || !article.article_data) {
         console.log("Not article")
-        $(".loading").fadeOut(100, function(){
+        $(".loading").fadeOut(500, function(){
             $(".loading").remove();
+            addTrackThisQuestion();
         });
-        addTrackThisQuestion();
         //addCircleGraph();
     } else {
         console.log("Article found.");
@@ -303,10 +320,10 @@ function refreshDisplayedArticle(article) {
                 });
             }
         })
-        $(".loading").fadeOut(100, function(){
+        $(".loading").fadeOut(500, function(){
             $(".loading").remove();
+            $("form").show();
         });
-        $("form").show();
     }
 }
 
