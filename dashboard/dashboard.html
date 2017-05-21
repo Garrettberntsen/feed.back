@@ -7,34 +7,29 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="libraries/css/normalize.css">
-        <link rel="stylesheet" href="libraries/css/bulma.css">
+<!--         <link rel="stylesheet" href="libraries/css/bulma.css"> -->
         <link rel="stylesheet" href="libraries/css/vanilla-datatables.css">
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="/app-assets/css/reset.css">
+        <link rel="stylesheet" href="/app-assets/css/styles.css">
+        <link rel="stylesheet" href="styles/dashboard.css">
+
         
     </head>
   <body>
-        <!--[if lt IE 8]>
-            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
 
-    <div class="container">
-    <nav class="nav">
-      <div class="nav-left">
-        <a class="nav-item is-active">Dashboard</a>
-<!--         <a class="nav-item">Goals</a>
-        <a class="nav-item">Analysis</a> -->
-      </div>
-      <div class="nav-right">
-        <a class="nav-item">
-          <img class="nav-logo" src="logo.svg" alt="Feedback logo">
-        </a>
-      </div>
+    <nav class="sidebar">
+        <img class="sidebar__image" src=logo.svg>
+        <section class="sidebar__items">
+        	<p>Dashboard</p>
+        	<p>Goals</p>
+          <p>Notes</p>
+        	<p>Tutorial</p>
+        </section>
     </nav>
-      <div class="columns">
-        <div class="column bar-chart"></div>
-        <div class="column donut-chart"></div>
-      </div>
-      <table id="table">
+    <main class="container container--dashboard">
+      <div class="card bar-chart"></div>
+      <div class="card donut-chart"></div>
+      <table class="card" id="table">
         <thead>
           <tr>
             <th class="table-header--eval">Eval</th>
@@ -43,14 +38,13 @@
             <th class="table-header--title">Title</th>
             <th class="table-header--type">Type</th>
             <th class="table-header--author">Author</th>
-<!--             <th class="table-header--slant">Slant</th> -->
             <th class="table-header--read">% Read</th>
           </tr>
         </thead>
         <tbody id="table-body">
         </tbody>
       </table>
-    </div>
+    </main>
 
 
     <script src="libraries/js/vanilla-datatables.js"></script>

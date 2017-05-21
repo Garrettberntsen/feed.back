@@ -1,0 +1,27 @@
+
+
+.chart {
+  display: block;
+  margin: 0 auto;
+}
+
+.nav-logo {
+  height: 25px;
+}
+
+.sidebar {
+  float: left;
+  height: 100vh;
+  background-color: #343C48;
+  color: #ffa400;
+  position: fixed;
+  width: 16rem;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.container--dashboard {
+  margin-left: 16rem;
+}

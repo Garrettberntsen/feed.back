@@ -1,0 +1,62 @@
+html { 
+  font-size: 62.5%; 
+  letter-spacing: 0.10px;
+}
+
+p {
+  font-size: 2.1rem;  /* =21px */
+  line-height: 2.5rem;
+} 
+
+h6   { font-size: 2.5rem; } /* =25px */
+h5   { font-size: 3.0rem; } /* =30px */
+h4   { font-size: 3.5rem; } /* =35px */
+h3   { font-size: 4.0rem; } /* =40px */
+h2   { font-size: 4.5rem; } /* =45px */
+h1   { font-size: 5.0rem; } /* =50px */
+
+.container{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  background: #ffa400;
+
+  padding: 2rem;
+}
+
+.card{
+  margin: 1.0rem;
+  padding: 2.0rem;
+  background: white;
+  width: 90%;
+  max-width: 880px;
+
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.23), 0 10px 40px rgba(0, 0, 0, 0.19);
+}
+
+.card--header {
+  max-width: 720px;
+}
+
+.card__image {
+  max-height: 450px;
+  margin: 1rem;
+}
+
+.card__image-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.header--gradient-outline  {
+  background: linear-gradient(45deg, #c21500, #ffc500);
+  background: -webkit-linear-gradient(45deg, #c21500, #ffc500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
