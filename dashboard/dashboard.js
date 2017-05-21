@@ -36,6 +36,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     perPageSelect: [25, 50, 100]
                 }); 
 
+                document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard";
+                
                 /* Creates an empty object filled with a 0 count for every source the user has read
                 *
                 *  @articles -> List of articles that user has read, obtained from JSON file
@@ -484,7 +486,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 sourceUrl: ''
                             };
                             
-
                             var userEvaluation = currentArticleUserInfo.stars; //to add
                             articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
                             articleInfo.dateUnix = currentArticleUserInfo.dateRead;
