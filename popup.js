@@ -204,15 +204,21 @@ function refreshDisplayedArticle(article) {
                         eventAction: "Article Lean Set"
                     }
                 });
-                setLeanColor(value);
-                article.user_metadata.lean = $('#leanRating').val();
-                chrome.runtime.sendMessage({
-                    type: "update_article",
-                    message: article
-                }, function () {
-                    console.log("We should be updating the average lean here.");
-                    updateLeanAverage(article);
-                });
+
+                if($("#title").text() === "Feedback - How To"){
+                    $("#avg-lean").text(value);
+                    setLeanColor(value);
+                } else {
+                    article.user_metadata.lean = $('#leanRating').val();
+                    chrome.runtime.sendMessage({
+                        type: "update_article",
+                        message: article
+                    }, function () {
+                        console.log("We should be updating the average lean here.");
+                        updateLeanAverage(article);
+                        setLeanColor(value);
+                    });
+                }
             }
         });
 
@@ -233,14 +239,19 @@ function refreshDisplayedArticle(article) {
                         eventAction: "Article Rating Set"
                     }
                 });
-                article.user_metadata.stars = $('#starRating').val();
-                chrome.runtime.sendMessage({
-                    type: "update_article",
-                    message: article
-                }, function () {
-                    "use strict";
-                    updateRatingAverage(article);
-                });
+                if($("#title").text() === "Feedback - How To"){
+                    $("#avg-rating").text(value);
+                } else {
+                    article.user_metadata.stars = $('#starRating').val();
+                    chrome.runtime.sendMessage({
+                        type: "update_article",
+                        message: article
+                    }, function () {
+                        "use strict";
+                        updateRatingAverage(article);
+                    });
+                }
+
             }
         });
 
