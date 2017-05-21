@@ -33,9 +33,13 @@ var current_articles = {};
 var tab_urls = {};
 var last_visited_url;
 
+/**
+ *
+ * @param url   the url to retrieve the article for
+ * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
+ */
 function resolveArticleForUrl(url) {
     "use strict";
-    console.log(current_articles[url]);
     return Promise.resolve(current_articles[url]).then(function (current_article) {
         console.log("Resolved current article");
         if (Object.keys(sources).find(function (source_name) {
@@ -53,10 +57,14 @@ function resolveArticleForUrl(url) {
                     Promise.all([
                         getArticle(url.hashCode()),
                         getUser(user.id)]).then(function (resolved) {
-                        var article_data = resolved[0];
-                        var hashCode = url.hashCode();
-                        var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
-                        resolve(new Article(article_data, user_metadata));
+                        if(resolved[0]) {
+                            var article_data = resolved[0];
+                            var hashCode = url.hashCode();
+                            var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
+                            resolve(new Article(article_data, user_metadata));
+                        } else {
+                            resolve(null);
+                        }
                     });
                 });
             });
@@ -65,25 +73,42 @@ function resolveArticleForUrl(url) {
         return current_article;
     })
 }
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     "use strict";
     switch (request.type) {
         case "update_article":
         {
+            if (sender.tab) {
+                if (!tab_urls[sender.tab.id]) {
+                    tab_urls[sender.tab.id] = [sender.tab.url];
+                } else if (tab_urls[sender.tab.id].indexOf(sender.tab.id) == -1) {
+                    tab_urls[sender.tab.id].push(sender.tab.url);
+                }
+            }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            updateCurrentArticle(sender, request.message).then(function () {
-                sendResponse();
+            current_articles[request.message.article_data.url] = Promise.resolve(request.message);
+            current_user.then(function (user) {
+                writeArticleData(request.message, user);
+                sendResponse(true);
             }).catch(function (err) {
                 console.log(err);
-                sendResponse(err);
-            });
+                if (sender.tab) {
+                    tab_urls[sender.tab.id] = tab_urls[sender.tab.id].splice(tab_urls[sender.tab.id].indexOf(request.message.article_data.url));
+                    if (!tab_urls[sender.tab.id].length) {
+                        delete tab_urls[sender.tab.id];
+                    }
+                }
+                delete current_articles[request.message.article_data.url];
+                sendResponse("An error occurred while attempting to save the article.");
+            })
             return true;
         }
-        case "getCurrentArticle":
+        case
+        "getCurrentArticle":
         {
             var request_start_time = new Date().getTime();
             //Request is coming from a non-content script origin
-            console.log("Article request received")
             if (!sender.tab) {
                 console.log("Request from a non-tab origin.");
                 if (last_visited_url) {
@@ -107,22 +132,31 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             return true;
         }
-        case "updateScrollMetric" :
+        case
+        "updateScrollMetric"
+        :
         {
             current_articles[reduceUrl(sender.tab.url)].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
         }
-        case "getAverageRating":
+        case
+        "getAverageRating"
+        :
         {
-            calculateAverageRatingForArticle(request.message).then(function (rating) {
-                "use strict";
-                sendResponse(rating);
+            Promise.resolve(current_articles[request.message]).then(function (article) {
+                calculateAverageRatingForArticle(request.message).then(function (rating) {
+                    "use strict";
+                    sendResponse(rating);
+                })
             })
+
             return true;
         }
-        case "getAverageLean":
+        case
+        "getAverageLean"
+        :
         {
             calculateAverageLeanForArticle(request.message).then(function (rating) {
                 "use strict";
@@ -131,13 +165,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             return true;
         }
     }
-});
+})
+;
 
 function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
     var article_id;
-    return current_articles[url].then(function (article) {
+    return Promise.resolve(current_articles[url]).then(function (article) {
         article_id = article.article_data.url.hashCode();
         return getArticle(article_id);
     }).catch(function (e) {
@@ -229,31 +264,6 @@ function calculateAverageLeanForArticle(url) {
         });
 };
 
-function updateCurrentArticle(sender, message) {
-    "use strict";
-    if (!sender.tab) {
-        if (last_visited_url) {
-            current_articles[reduceUrl(last_visited_url)] = Promise.resolve(message);
-            return current_user.then(function (user) {
-                writeArticleData(message, user);
-            });
-        } else {
-            return Promise.reject("Last visited url was not defined but an update was dispatched from a non-content script source.")
-        }
-    } else {
-        console.log("Sender tab defined")
-        if (!tab_urls[sender.tab.id]) {
-            tab_urls[sender.tab.id] = [];
-        }
-        tab_urls[sender.tab.id].push(reduceUrl(sender.tab.url));
-        current_articles[reduceUrl(sender.tab.url)] = Promise.resolve(message);
-        return current_user.then(function (user) {
-            writeArticleData(message, user);
-        }).catch(function (err) {
-            console.log(err)
-        });
-    }
-}
 /**
  * Discard all article definitions associated with the given tab.
  *
@@ -298,20 +308,8 @@ function tabUpdateHandler(tabId, changeInfo) {
         }
         if (changeInfo.url) {
             //Try to find an existing entry for a new url
-            current_user.then(function (user) {
-                    var reduced_url = reduceUrl(changeInfo.url);
-                    current_articles[reduced_url] = new Promise(function (resolve, reject) {
-                        Promise.all([
-                            getArticle(reduced_url.hashCode()),
-                            getUser(user.id)]).then(function (resolved) {
-                            var article_data = resolved[0];
-                            var user_metadata = resolved[1].articles ? resolved[1][reduced_url.hashCode()] : {};
-                            resolve(new Article(article_data, user_metadata));
-                        });
-                    });
-                    chrome.tabs.sendMessage(tabId, {type: "urlChanged", message: changeInfo.url});
-                }
-            );
+            chrome.tabs.sendMessage(tabId, {type: "urlChanged", message: changeInfo.url});
+            updateLastVisited(tabId, changeInfo.url);
         }
     }
 };
