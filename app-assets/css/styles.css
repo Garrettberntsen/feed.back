@@ -35,6 +35,10 @@ h1   { font-size: 5.0rem; } /* =50px */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.23), 0 10px 40px rgba(0, 0, 0, 0.19);
 }
 
+.card--half {
+  width: 40%;
+}
+
 .card--header {
   max-width: 720px;
 }

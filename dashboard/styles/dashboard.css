@@ -1,5 +1,3 @@
-
-
 .chart {
   display: block;
   margin: 0 auto;
@@ -22,6 +20,22 @@
   flex-direction: column;
 }
 
+.dashboard-row {
+  width: 100%;
+
+
+  display: flex;
+  justify-content: space-around;
+}
+
 .container--dashboard {
-  margin-left: 16rem;
+  margin-left: 18rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.card--dashboard {
+  width: 100%;
+  max-width: 100%;
 }
