@@ -87,7 +87,6 @@ function updateLeanAverage(article) {
     }, function (response) {
         var value = Number.parseFloat(response);
         if (value && displayed_article.user_metadata.lean) {
-            debugger;
             "use strict";
             var definition = lean_descriptions.find(function (description) {
                 return description.min <= value && description.max >= value;
@@ -107,7 +106,7 @@ function updateRatingAverage(article) {
         message: article.article_data.url
     }, function (response) {
         "use strict";
-        if(response) {
+        if (response) {
             $("#avg-rating").text(response);
         } else {
             $("#avg-rating").text("-");
@@ -130,163 +129,180 @@ $(document).ready(function () {
             }
         });
     });
-
-    chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-        chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-            if (!article || !article.article_data) {
-                console.log("Not article")
-                addTrackThisQuestion();
-                //addCircleGraph();
-            } else {
-                displayed_article = article;
-                $('#title').text(article.article_data.title);
-                if (article.article_data.author) {
-                    var authors = '';
-                    for (var author in article.article_data.author) {
-                        authors += article.article_data.author[author] + ', ';
-                    }
-                    authors = authors.substring(0, authors.length - 2);
-                    $('#author').text('by ' + authors);
+    chrome.tabs.query({
+        active: true,
+        status: chrome.tabs.TabStatus.LOADING
+    }, function (tabs) {
+        if (tabs.length) {
+            console.log("Loading tabs were found: " + tabs[0].id);
+            "use strict";
+            chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
+                "use strict";
+                if (tabId == tabs[0].id && changeInfo && changeInfo.status == "complete") {
+                    console.log("Tab finished loading: " + tabId);
+                    chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
                 }
-                $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
+            });
+        } else {
+            chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
+        }
+    })
 
-                $('#leanRating').barrating({
-                    theme: 'bars-movie',
-                    initialRating: article.user_metadata.lean,
-                    onSelect: function (value, text) {
-                        chrome.runtime.sendMessage({
-                            type: "analytics",
-                            message: {
-                                hitType: "event",
-                                command: "send",
-                                eventCategory: "User Action",
-                                eventAction: "Article Lean Set"
-                            }
-                        });
-                        setLeanColor(value);
-                        article.user_metadata.lean = $('#leanRating').val();
-                        chrome.runtime.sendMessage({
-                            type: "update_article",
-                            message: article
-                        }, function () {
-                            console.log("We should be updating the average lean here.");
-                            updateLeanAverage(article);
-                        });
-                    }
-                });
-
-                if (article.user_metadata.lean) {
-                    setLeanColor(article.user_metadata.lean);
-                }
-
-                $('#starRating').barrating({
-                    theme: 'fontawesome-stars',
-                    initialRating: article.user_metadata.stars,
-                    onSelect: function (value, text) {
-                        chrome.runtime.sendMessage({
-                            type: "analytics",
-                            message: {
-                                hitType: "event",
-                                command: "send",
-                                eventCategory: "User Action",
-                                eventAction: "Article Rating Set"
-                            }
-                        });
-                        article.user_metadata.stars = $('#starRating').val();
-                        chrome.runtime.sendMessage({
-                            type: "update_article",
-                            message: article
-                        }, function () {
-                            "use strict";
-                            updateRatingAverage(article);
-                        });
-                    }
-                });
-
-                if (article.user_metadata.stars) {
-                    $('#avg-rating-message').show();
-                }
-
-                if (article.user_metadata.notes) {
-                    $("#notes-area").val(article.user_metadata.notes);
-                }
-
-                //Keep track of any notes that user adds. When pressed, update the userData object.
-                $("#notes-area").keyup(function () {
-                    chrome.runtime.sendMessage({
-                        type: "analytics",
-                        message: {
-                            hitType: "event",
-                            command: "send",
-                            eventCategory: "User Action",
-                            eventAction: "Article Notes Set"
-                        }
-                    });
-                    article.user_metadata.notes = $("#notes-area").val();
-                    console.log(article.user_metadata);
-                    chrome.runtime.sendMessage({
-                        type: "update_article",
-                        message: article
-                    });
-                });
-
-                var articleTags = new Taggle('tags', {
-                    tags: article.user_metadata.tags ? article.user_metadata.tags : [],
-                    //Update userData.tags when a tag is removed
-                    onTagRemove: function (event, tag) {
-                        article.user_metadata.tags = articleTags.getTagValues()
-                        chrome.runtime.sendMessage({
-                            type: "analytics",
-                            message: {
-                                hitType: "event",
-                                command: "send",
-                                eventCategory: "User Action",
-                                eventAction: "Article Tags Set"
-                            }
-                        });
-                        chrome.runtime.sendMessage({
-                            type: "update_article",
-                            message: article
-                        });
-                    }
-                });
-                updateLeanAverage(article);
-                updateRatingAverage(article);
-
-                //Keep track of any tags that user adds.
-                $("#tags").keyup(function () {
-                    if (article.user_metadata.tags === undefined) {
-                        article.user_metadata.tags = [];
-                    }
-
-                    if (article.user_metadata.tags.length !== articleTags.getTagValues().length) {
-                        chrome.runtime.sendMessage({
-                            type: "analytics",
-                            message: {
-                                hitType: "event",
-                                command: "send",
-                                eventCategory: "User Action",
-                                eventAction: "Article Tags Set"
-                            }
-                        });
-
-                        article.user_metadata.tags = articleTags.getTagValues()
-                        console.log(article.user_metadata.tags);
-
-                        chrome.runtime.sendMessage({
-                            type: "update_article",
-                            message: article
-                        });
-                    }
-                })
-                $("form").show();
-            }
-        });
-    });
 });
 
+function refreshDisplayedArticle(article) {
+    "use strict";
+    if (!article || !article.article_data) {
+        console.log("Not article")
+        addTrackThisQuestion();
+        //addCircleGraph();
+    } else {
+        displayed_article = article;
+        $('#title').text(article.article_data.title);
+        if (article.article_data.author) {
+            var authors = '';
+            for (var author in article.article_data.author) {
+                authors += article.article_data.author[author] + ', ';
+            }
+            authors = authors.substring(0, authors.length - 2);
+            $('#author').text('by ' + authors);
+        }
+        $('#read-count').text(Object.keys(article.article_data.readers ? article.article_data.readers : {}).length);
+
+        $('#leanRating').barrating({
+            theme: 'bars-movie',
+            initialRating: article.user_metadata.lean,
+            onSelect: function (value, text) {
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        hitType: "event",
+                        command: "send",
+                        eventCategory: "User Action",
+                        eventAction: "Article Lean Set"
+                    }
+                });
+                setLeanColor(value);
+                article.user_metadata.lean = $('#leanRating').val();
+                chrome.runtime.sendMessage({
+                    type: "update_article",
+                    message: article
+                }, function () {
+                    console.log("We should be updating the average lean here.");
+                    updateLeanAverage(article);
+                });
+            }
+        });
+
+        if (article.user_metadata.lean) {
+            setLeanColor(article.user_metadata.lean);
+        }
+
+        $('#starRating').barrating({
+            theme: 'fontawesome-stars',
+            initialRating: article.user_metadata.stars,
+            onSelect: function (value, text) {
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        hitType: "event",
+                        command: "send",
+                        eventCategory: "User Action",
+                        eventAction: "Article Rating Set"
+                    }
+                });
+                article.user_metadata.stars = $('#starRating').val();
+                chrome.runtime.sendMessage({
+                    type: "update_article",
+                    message: article
+                }, function () {
+                    "use strict";
+                    updateRatingAverage(article);
+                });
+            }
+        });
+
+        if (article.user_metadata.stars) {
+            $('#avg-rating-message').show();
+        }
+
+        if (article.user_metadata.notes) {
+            $("#notes-area").val(article.user_metadata.notes);
+        }
+
+        //Keep track of any notes that user adds. When pressed, update the userData object.
+        $("#notes-area").keyup(function () {
+            chrome.runtime.sendMessage({
+                type: "analytics",
+                message: {
+                    hitType: "event",
+                    command: "send",
+                    eventCategory: "User Action",
+                    eventAction: "Article Notes Set"
+                }
+            });
+            article.user_metadata.notes = $("#notes-area").val();
+            console.log(article.user_metadata);
+            chrome.runtime.sendMessage({
+                type: "update_article",
+                message: article
+            });
+        });
+
+        var articleTags = new Taggle('tags', {
+            tags: article.user_metadata.tags ? article.user_metadata.tags : [],
+            //Update userData.tags when a tag is removed
+            onTagRemove: function (event, tag) {
+                article.user_metadata.tags = articleTags.getTagValues()
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        hitType: "event",
+                        command: "send",
+                        eventCategory: "User Action",
+                        eventAction: "Article Tags Set"
+                    }
+                });
+                chrome.runtime.sendMessage({
+                    type: "update_article",
+                    message: article
+                });
+            }
+        });
+        updateLeanAverage(article);
+        updateRatingAverage(article);
+
+        //Keep track of any tags that user adds.
+        $("#tags").keyup(function () {
+            if (article.user_metadata.tags === undefined) {
+                article.user_metadata.tags = [];
+            }
+
+            if (article.user_metadata.tags.length !== articleTags.getTagValues().length) {
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        hitType: "event",
+                        command: "send",
+                        eventCategory: "User Action",
+                        eventAction: "Article Tags Set"
+                    }
+                });
+
+                article.user_metadata.tags = articleTags.getTagValues()
+                console.log(article.user_metadata.tags);
+
+                chrome.runtime.sendMessage({
+                    type: "update_article",
+                    message: article
+                });
+            }
+        })
+        $("form").show();
+    }
+}
+
 function addCircleGraph() {
-    debugger;
     chrome.runtime.sendMessage({type: "getUser"}, function (user) {
         chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
             firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
