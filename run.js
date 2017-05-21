@@ -12,144 +12,135 @@ var sources = new Promise(function (resolve, reject) {
     });
 });
 
-function scrapePage(url) {
+function scrapePage(existing_article, url) {
     return new Promise(function (resolve, reject) {
-        chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
-            if (!article || !article.user_metadata) {
-                article = {
-                    user_metadata: {}
-                }
+        if (!existing_article || !existing_article.user_metadata) {
+            existing_article = {
+                user_metadata: {}
             }
-            chrome.runtime.sendMessage({type: "getUser"}, function (user) {
-                sources.then(function (sources) {
-                    var source_name = Object.keys(sources).find(function (source_name) {
-                        return sources[source_name].urls.find(function (url_definition) {
-                            return window.location.href.indexOf(url_definition.urlRoot) !== -1;
-                        });
+        }
+        chrome.runtime.sendMessage({type: "getUser"}, function (user) {
+            sources.then(function (sources) {
+                var source_name = Object.keys(sources).find(function (source_name) {
+                    return sources[source_name].urls.find(function (url_definition) {
+                        return window.location.href.indexOf(url_definition.urlRoot) !== -1;
                     });
-                    if (source_name) {
-                        var data = {
-                            'source': '',
-                            'url': '',
-                            'author': '',
-                            'date': '',
-                            'text': '',
-                            'title': '',
-                        };
-                        data.source = source_name;
-                        article.user_metadata.source = source_name;
-                        data.url = url;
-                        var d = new Date();
-                        article.user_metadata.dateRead = d.getTime();
-                        var dateElement;
-                        if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-                            dateElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                            dateElement = dateElement.find(sources[source_name]["date-selector"]);
-                        } else {
-                            dateElement = $(sources[source_name]["date-selector"]);
-                        }
-                        if (sources[source_name]["date-selector-property"] === "") {
-                            data.date = dateElement.text();
-                        } else {
-                            data.date = dateElement.attr(sources[source_name]["date-selector-property"]);
-                        }
-                        //Clean-up
-                        if (data.date) {
-                            data.date = data.date.trim();
-                        }
-                        var authorElement;
-                        if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-                            authorElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                            authorElement = authorElement.find(sources[source_name]["author-selector"]);
-                        } else {
-                            authorElement = $(sources[source_name]["author-selector"]);
-                        }
-
-                        if (sources[source_name]["author-selector-property"] === "") {
-                            data.author = authorElement.contents().not(authorElement.children())
-                                .toArray().filter(function (element) {
-                                    "use strict";
-                                    return element.textContent.trim() && element.textContent.indexOf("ng") === -1;
-                                }).map(function (element) {
-                                    "use strict";
-                                    return element.textContent;
-                                }).join(", ");
-                        } else {
-                            data.author = authorElement.attr(sources[source_name]["author-selector-property"]);
-                        }
-                        //Clean-up
-                        data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
-
-                        var titleElement;
-                        if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-                            titleElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                            titleElement = titleElement.find(sources[source_name]["title-selector"]);
-                        } else {
-                            titleElement = $(sources[source_name]["title-selector"]);
-                        }
-                        if (sources[source_name]["title-selector-property"] === "") {
-                            data.title = titleElement.text();
-                        } else {
-                            data.title = titleElement.attr(sources[source_name]["title-selector-property"]);
-                        }
-                        //Clean-up
-                        data.title = data.title.trim().replace(/\s{3,}/, ' ');
-
-                        var textElement;
-                        if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-                            textElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
-                            textElement = textElement.find(sources[source_name]["text-selector"]);
-                        } else {
-                            textElement = $(encountered_urls[encountered_urls.current_index].content_element_selector);
-                        }
-                        if (sources[source_name]["text-selector"] !== "") {
-                            if (sources[source_name]["text-selector-property"] === "") {
-                                data.text = textElement.text().trim();
-                            } else {
-                                data.text = textElement.attr(sources[source_name]["text-selector-property"]);
-                            }
-                        } else {
-                            data.text = $('p').text();
-                        }
-                        //Clean-up
-                        //remove whitespace, tags, linebreaks
-                        data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\"", "\"").replace(/\s\s+/g, " ");
-                        //remove text between {} and <>
-                        var index = data.text.search(/{([^{}]+)}/g);
-                        //while(data.text.indexOf("{") > -1) {
-                        while (data.text.search(/{([^{}]+)}/g) > -1) {
-                            data.text = data.text.replace(/{([^{}]+)}/g, "");
-                        }
-                        while (data.text.search(/<([^<>]+)>/g) > -1) {
-                            data.text = data.text.replace(/<([^<>]+)>/g, "");
-                        }
-
-                        data.readers = article.article_data && article.article_data.readers ? article.article_data.readers : {};
-                        data.readers[user.id] = true;
-
-                        article.article_data = data;
-
-                        console.log(JSON.stringify(data));
-                        console.log("The user is: " + user.email);
-                        chrome.runtime.sendMessage({
-                            type: "update_article", message: article
-                        });
-                        resolve(article);
-                    } else {
-                        console.log("No source was found matching " + window.location.href);
-                    }
                 });
+                if (source_name) {
+                    var data = {
+                        'source': '',
+                        'url': '',
+                        'author': '',
+                        'date': '',
+                        'text': '',
+                        'title': '',
+                    };
+                    data.source = source_name;
+                    existing_article.user_metadata.source = source_name;
+                    data.url = url;
+                    var d = new Date();
+                    existing_article.user_metadata.dateRead = d.getTime();
+                    var dateElement;
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
+                        dateElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
+                        dateElement = dateElement.find(sources[source_name]["date-selector"]);
+                    } else {
+                        dateElement = $(sources[source_name]["date-selector"]);
+                    }
+                    if (sources[source_name]["date-selector-property"] === "") {
+                        data.date = dateElement.text();
+                    } else {
+                        data.date = dateElement.attr(sources[source_name]["date-selector-property"]);
+                    }
+                    //Clean-up
+                    if (data.date) {
+                        data.date = data.date.trim();
+                    }
+                    var authorElement;
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
+                        authorElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
+                        authorElement = authorElement.find(sources[source_name]["author-selector"]);
+                    } else {
+                        authorElement = $(sources[source_name]["author-selector"]);
+                    }
+
+                    if (sources[source_name]["author-selector-property"] === "") {
+                        data.author = authorElement.contents().not(authorElement.children())
+                            .toArray().filter(function (element) {
+                                "use strict";
+                                return element.textContent.trim() && element.textContent.indexOf("ng") === -1;
+                            }).map(function (element) {
+                                "use strict";
+                                return element.textContent;
+                            }).join(", ");
+                    } else {
+                        data.author = authorElement.attr(sources[source_name]["author-selector-property"]);
+                    }
+                    //Clean-up
+                    data.author = data.author.trim().replace(/By .*?By /, '').replace(/By /, '').replace(" and ", ", ").replace(", and ", ", ").replace(" & ", ", ").split(", ");
+
+                    var titleElement;
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
+                        titleElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
+                        titleElement = titleElement.find(sources[source_name]["title-selector"]);
+                    } else {
+                        titleElement = $(sources[source_name]["title-selector"]);
+                    }
+                    if (sources[source_name]["title-selector-property"] === "") {
+                        data.title = titleElement.text();
+                    } else {
+                        data.title = titleElement.attr(sources[source_name]["title-selector-property"]);
+                    }
+                    //Clean-up
+                    data.title = data.title.trim().replace(/\s{3,}/, ' ');
+
+                    var textElement;
+                    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
+                        textElement = $(encountered_urls[encountered_urls.current_index].article_root_element_selector);
+                        textElement = textElement.find(sources[source_name]["text-selector"]);
+                    } else {
+                        textElement = $(encountered_urls[encountered_urls.current_index].content_element_selector);
+                    }
+                    if (sources[source_name]["text-selector"] !== "") {
+                        if (sources[source_name]["text-selector-property"] === "") {
+                            data.text = textElement.text().trim();
+                        } else {
+                            data.text = textElement.attr(sources[source_name]["text-selector-property"]);
+                        }
+                    } else {
+                        data.text = $('p').text();
+                    }
+                    //Clean-up
+                    //remove whitespace, tags, linebreaks
+                    data.text = data.text.trim().replace("\n", "").replace("\t", "").replace("\\\"", "\"").replace(/\s\s+/g, " ");
+                    //remove text between {} and <>
+                    var index = data.text.search(/{([^{}]+)}/g);
+                    //while(data.text.indexOf("{") > -1) {
+                    while (data.text.search(/{([^{}]+)}/g) > -1) {
+                        data.text = data.text.replace(/{([^{}]+)}/g, "");
+                    }
+                    while (data.text.search(/<([^<>]+)>/g) > -1) {
+                        data.text = data.text.replace(/<([^<>]+)>/g, "");
+                    }
+
+                    data.readers = existing_article.article_data && existing_article.article_data.readers ? existing_article.article_data.readers : {};
+                    data.readers[user.id] = true;
+
+                    existing_article.article_data = data;
+
+                    console.log(JSON.stringify(data));
+                    console.log("The user is: " + user.email);
+                    resolve(existing_article);
+                } else {
+                    console.log("No source was found matching " + window.location.href);
+                }
+            }, function () {
+                "use strict";
+                console.log("There was an error resolving the news sources.");
             });
         });
-    })
+    });
 }
-
-chrome.runtime.onMessage.addListener(function (request, sender) {
-    if (request.type == "userUpdated") {
-        console.log("User identity updated");
-        scrapePage(window.location.href);
-    }
-});
 
 function updateScrollRatio(url) {
     var content_element;
@@ -177,12 +168,17 @@ function updateScrollRatio(url) {
 }
 
 function pageUrlChange(new_url) {
-    chrome.runtime.sendMessage({type: "getCurrentArticle", message: new_url}, function (article) {
+    chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (article) {
+        var port = chrome.runtime.connect(chrome.runtime.id, {name: "scraper"});
+        port.postMessage({
+            type: "begun_scraping",
+            message: new_url
+        });
         encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
             return new_url == e.url;
         });
         if (encountered_urls.current_index == -1) {
-            var scroll_ratio = article.user_metadata && article.user_metadata.scrolled_content_ratio ? article.user_metadata.scrolled_content_ratio : 0;
+            var scroll_ratio = article && article.user_metadata && article.user_metadata.scrolled_content_ratio ? article.user_metadata.scrolled_content_ratio : 0;
             encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
             encountered_urls.current_index = encountered_urls.length - 1;
         }
@@ -216,9 +212,13 @@ function pageUrlChange(new_url) {
                                 console.log("No content element could be found with selector " + sources[source_name].content_element_selector)
                             }
                         }
-                        scrapePage(new_url).then(function(){
+                        scrapePage(article, new_url).then(function (article) {
                             "use strict";
                             updateScrollRatio(new_url);
+                            port.postMessage({
+                                type: "finished_scraping",
+                                message: {url: new_url, article: article}
+                            })
                         });
                     }
                 });
@@ -235,6 +235,6 @@ chrome.runtime.onMessage.addListener(function (message) {
     }
 });
 
-$(document).ready(function () {
+$(window).on("load", function () {
     pageUrlChange(window.location.href);
 });

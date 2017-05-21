@@ -57,7 +57,7 @@ function resolveArticleForUrl(url) {
                     Promise.all([
                         getArticle(url.hashCode()),
                         getUser(user.id)]).then(function (resolved) {
-                        if(resolved[0]) {
+                        if (resolved[0]) {
                             var article_data = resolved[0];
                             var hashCode = url.hashCode();
                             var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
@@ -74,25 +74,56 @@ function resolveArticleForUrl(url) {
     })
 }
 
+chrome.runtime.onConnect.addListener(function (port) {
+        switch (port.name) {
+            case "scraper":
+                port.onMessage.addListener(function (message) {
+                    switch (message.type) {
+                        case "begun_scraping":
+                            current_articles[reduceUrl(message.message)] = new Promise(function (resolve, reject) {
+                                var scrapingCompletionHandler = function (message) {
+                                    "use strict";
+                                    var url = reduceUrl(message.message.url);
+                                    if (message.type === "finished_scraping") {
+                                        resolve(message.message.article);
+                                        port.onMessage.removeListener(scrapingCompletionHandler);
+                                    }
+                                }
+                                port.onMessage.addListener(scrapingCompletionHandler);
+                            });
+                    }
+                });
+                break;
+        }
+    }
+)
+
+function updateTabUrls(tabId, url){
+    "use strict";
+    if(tabId){
+        if(tab_urls[tabId]) {
+            tab_urls[tabId].push(reduceUrl(url));
+        } else {
+            tab_urls[tabId] = [reduceUrl(url)];
+        }
+    }
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     "use strict";
     switch (request.type) {
         case "update_article":
         {
             if (sender.tab) {
-                if (!tab_urls[sender.tab.id]) {
-                    tab_urls[sender.tab.id] = [sender.tab.url];
-                } else if (tab_urls[sender.tab.id].indexOf(sender.tab.id) == -1) {
-                    tab_urls[sender.tab.id].push(sender.tab.url);
-                }
+                updateTabUrls(sender.tab.id, request.message.article_data.url);
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
             current_articles[request.message.article_data.url] = Promise.resolve(request.message);
             current_user.then(function (user) {
                 return writeArticleData(request.message, user);
-            }).then(function(){
+            }).then(function () {
                 sendResponse();
-            }, function(err){
+            }, function (err) {
                 console.log(err);
                 if (sender.tab) {
                     tab_urls[sender.tab.id] = tab_urls[sender.tab.id].splice(tab_urls[sender.tab.id].indexOf(request.message.article_data.url));
@@ -105,8 +136,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             });
             return true;
         }
-        case
-        "getCurrentArticle":
+        case "getCurrentArticle":
         {
             var request_start_time = new Date().getTime();
             //Request is coming from a non-content script origin
@@ -126,10 +156,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 }
             } else {
                 Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (current_article) {
-                    return resolveArticleForUrl(reduceUrl(sender.tab.url));
-                }).then(function (article) {
-                    sendResponse(article);
-                });
+                    sendResponse(current_article);
+                }, function(err){
+                    console.log("There was an error resolving the article");
+                    console.log(err);
+                    sendResponse("There was an error resolving the article");
+                })
             }
             return true;
         }
