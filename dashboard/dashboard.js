@@ -19,11 +19,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                 var userData = userSnapshot.val();
                 var email = user.email;
+                console.log(email);
                 var articlesRead = userData.articles;
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
                 console.log(sourceCount);
+
+                appendData("username", email);
+                appendData("days-back", daysBack);
 
                 createPieChart(sourceCount, articleObj, daysBack);
                 createBarChart(sourceCount, articleObj, daysBack);
@@ -37,6 +41,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 }); 
 
                 document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard";
+
+                function appendData(elem, name) {
+                    var elem = document.getElementsByClassName(elem)[0];
+                    var elemText = elem.innerHTML += " " + name;
+                }
                 
                 /* Creates an empty object filled with a 0 count for every source the user has read
                 *
@@ -217,7 +226,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("transform", function (d, i) {
                             var height = legendRectSize + legendSpacing;
                             var offset = height * color.domain().length / 2;
-                            var horz = 9 * legendRectSize;
+                            var horz = 9     * legendRectSize;
                             var vert = i * height - offset;
                             return "translate( " + horz + "," + vert + ")";
                         });

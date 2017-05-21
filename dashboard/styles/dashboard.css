@@ -1,3 +1,11 @@
+/* ------------ ------------Table Styling ------------ ------------ */
+
+.user-info {
+  display: flex;
+  justify-content: space-around;
+}
+
+/* ------------ ------------Table Styling ------------ ------------ */
 .chart {
   display: block;
   margin: 0 auto;
@@ -43,8 +51,8 @@
   max-width: 100%;
 }
 
-
 /* ------------ ------------Table Styling ------------ ------------ */
+
 
 #table {
   font-size: 1.6rem;

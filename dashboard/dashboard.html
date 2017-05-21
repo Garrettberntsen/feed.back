@@ -16,17 +16,22 @@
         
     </head>
   <body>
-
     <nav class="sidebar">
         <img class="sidebar__image" src=logo.svg>
         <section class="sidebar__items">
         	<p>Dashboard</p>
         	<p>Goals</p>
           <p>Notes</p>
-        	<p>Tutorial</p>
+          <p>Tutorial</p>
         </section>
     </nav>
     <main class="container container--dashboard">
+      <section class="dashboard-row">
+        <div class="card card--dashboard user-info">
+          <p class="username">User:</p>
+          <p class="days-back">Days Back:</p>
+        </div>
+      </section>
       <section class="dashboard-row">
         <div class="card card--dashboard bar-chart"></div>
       </section>  
