@@ -57,7 +57,11 @@ function getUser(user_id) {
     return _firebase.then(function (firebase) {
         return firebase.database().ref("users/" + user_id).once("value");
     }).then(function (snapshot) {
-        return snapshot.val();
+        if(snapshot.exists()) {
+            return snapshot.val();
+        } else {
+            return null;
+        }
     });
 }
 
@@ -85,8 +89,15 @@ function getArticle(article_id) {
         return firebase.database().ref("articles/" + article_id).once("value");
     }).then(function (snapshot) {
         console.log("Article resolved from firebase");
-        console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
-        return snapshot.val();
+
+        //For some reason, calling val on a non-existent object is slower than checking exists.
+        if(snapshot.exists()) {
+            console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
+            return snapshot.val();
+        } else {
+            console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
+            return null;
+        }
     });
 }
 
