@@ -144,6 +144,7 @@ $(document).ready(function () {
                 }
             });
         } else {
+            console.log("Tab already loaded.");
             chrome.runtime.sendMessage({type: "getCurrentArticle"}, refreshDisplayedArticle);
         }
     })
@@ -154,9 +155,13 @@ function refreshDisplayedArticle(article) {
     "use strict";
     if (!article || !article.article_data) {
         console.log("Not article")
+        $(".loading").fadeOut(100, function(){
+            $(".loading").remove();
+        });
         addTrackThisQuestion();
         //addCircleGraph();
     } else {
+        console.log("Article found.");
         displayed_article = article;
         $('#title').text(article.article_data.title);
         if (article.article_data.author) {
@@ -298,6 +303,9 @@ function refreshDisplayedArticle(article) {
                 });
             }
         })
+        $(".loading").fadeOut(100, function(){
+            $(".loading").remove();
+        });
         $("form").show();
     }
 }
