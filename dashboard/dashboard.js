@@ -19,8 +19,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                 var userData = userSnapshot.val();
                 var email = user.email;
-                console.log(email);
+
                 var articlesRead = userData.articles;
+
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
@@ -28,6 +29,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                 createPieChart(sourceCount, articleObj, daysBack);
                 createBarChart(sourceCount, articleObj, daysBack);
+
+                var total = calculateTotalArticleCounts(sourceCount, articleObj);
+                appendFacts(total);
+
+
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
 
                 var myTable = document.querySelector("#table");
@@ -37,7 +43,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     perPageSelect: [25, 50, 100]
                 }); 
 
-                document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard";
+                document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard card--table";
 
                 function appendData(elem, name) {
                     var elem = document.getElementsByClassName(elem)[0];
@@ -242,6 +248,44 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         });
                 }
 
+                function calculateTotalArticleCounts(articles, sources) {
+                    var totalCount = sources;
+
+                    for (let key in articles) {
+                        for(let count in articles[key]) {
+                            if( articles[key][count] > 0) {
+                                totalCount[count]++;
+                            }
+                        }
+                    }
+                    return totalCount;
+                }
+
+                function appendFacts(articlesRead) {
+                    document.getElementsByClassName("facts")[0].appendChild( createBubbleFact(8, "test") );
+                    
+
+            
+
+                    function createBubbleFact(data, description){
+                        var bubbleElem = document.createElement("div");
+                        bubbleElem.className = "bubble";
+
+                        var factElem = document.createElement("p");
+                        factElem.className = "bubble__data";
+                        factElem.appendChild( document.createTextNode(data) );
+
+
+                        var descriptionElem = document.createElement("p");
+                        descriptionElem.className = "bubble__description";
+                        descriptionElem.appendChild( document.createTextNode(description) );
+
+                        bubbleElem.appendChild(factElem);
+                        bubbleElem.appendChild(descriptionElem);
+                        return bubbleElem;
+                    };
+                }
+
                 function createBarChart(data, obj, timeBack) {
                     var daysBack = timeBack;
                     var daysBackArr = getLastDays(daysBack);
@@ -344,7 +388,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     
                     var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
                         return finalFinalData.map(function (d) {
-                            console.log(d);
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
                                 y: +d[source],

@@ -80,6 +80,11 @@
 }
 
 .card--dashboard {
+  width: 100%;
+  max-width: 100%;
+}
+
+.card--dashboard {
   display: flex;
   justify-content: center;
 
