@@ -41,6 +41,9 @@ var last_visited_url;
  * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
  */
 function resolveArticleForUrl(url) {
+    if(!url){
+        return Promise.resolve(null);
+    }
     "use strict";
     return Promise.resolve(current_articles[url]).then(function (current_article) {
         if (Object.keys(sources).find(function (source_name) {
