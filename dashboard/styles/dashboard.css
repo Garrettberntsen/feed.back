@@ -80,16 +80,15 @@
 }
 
 .card--dashboard {
+  display: flex;
+  justify-content: space-around;
+
   width: 100%;
   max-width: 100%;
 }
 
-.card--dashboard {
-  display: flex;
-  justify-content: center;
-
-  width: 100%;
-  max-width: 100%;
+.donut-chart{
+  align-items: center;
 }
 
 /* ------------ ------------Table Styling ------------ ------------ */
@@ -102,6 +101,10 @@
   font-size: 1.6rem;
 }
 
+.card--table {
+  display: block;
+}
+
 /* ------------ ------------Facts Styling ------------ ------------ */
 .facts {
   flex-wrap: wrap;
@@ -112,8 +115,8 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   margin: 10px;
   position: relative;
   border-radius: 100%;
@@ -129,8 +132,8 @@
   /*background-color: rgb(0,0,0);*/
   padding: 3px;
   border-radius: 20px; /* IE 9 */ /* Safari */
-  -webkit-transform: translate(0, 45px);
-          transform: translate(0, 45px);
+  -webkit-transform: translate(0, 50px);
+          transform: translate(0, 50px);
   text-align: center;
   color: white;
   font-size: 1.6rem;
@@ -138,6 +141,7 @@
 }
 
 .bubble__data{
+  font-size: 3rem;
   position: absolute;
   text-align: center;
   right: 0px;

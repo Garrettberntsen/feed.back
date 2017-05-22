@@ -267,9 +267,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var factContainer = document.getElementsByClassName("facts")[0]
                     console.log(articlesRead);
                     var count = countArticles(articlesRead);
+                    var faveSource = findFavoriteSource(articlesRead, false);
+                    var faveSourceRead = findFavoriteSource(articlesRead, true);
 
                     factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
                     factContainer.appendChild( createBubbleFact(count, "articles", "green") );
+                    factContainer.appendChild( createBubbleFact(faveSource, "fav. source", "orange") );
+                    factContainer.appendChild( createBubbleFact(faveSourceRead, "fav. source # read", "purple") );
                     
                     function createBubbleFact(data, description, color){
                         var bubbleElem = document.createElement("div");
@@ -281,7 +285,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         var factElem = document.createElement("p");
                         factElem.className = "bubble__data";
                         factElem.appendChild( document.createTextNode(data) );
-
+                        if(data.length > 10) {
+                            factElem.setAttribute("style", "font-size: 1.6rem");
+                        }
 
                         var descriptionElem = document.createElement("p");
                         descriptionElem.className = "bubble__description";
@@ -292,15 +298,34 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         bubbleElem.appendChild(factElem);
                         bubbleElem.appendChild(descriptionElem);
                         return bubbleElem;
-                    };
+                    }
 
-                    function countArticles(data){
+
+
+                    function findFavoriteSource(data, findingMaxArticles) {
+                        var returnValue;
+                        var arr = Object.keys( data ).map(function ( key ) { return data[key]; });
+                        var max = Math.max.apply(null, arr);
+
+                        if(findingMaxArticles === true){
+                            return max;
+                        }else{
+                            for(let key in data) {
+                                if(data[key] === max) {
+                                    return key;
+                                } 
+                            }
+                        }
+                    }
+
+                    function countArticles(data) {
                         var count = 0;
                         for (let key in data) {
                             count += data[key];
                         }
                         return count;
                     }
+
                 }
 
                 function createBarChart(data, obj, timeBack) {
