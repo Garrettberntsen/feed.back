@@ -157,7 +157,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             var sourceName = Object.keys(sources).find(function (sourceName) {
                 return sources[sourceName].urls.find(function (def) {
                     "use strict";
-                    return tab.url.indexOf(def.urlRoot) !== -1;
+                    return last_visited_url && last_visited_url.indexOf(def.urlRoot) !== -1;
                 })
             });
             var last_url;
