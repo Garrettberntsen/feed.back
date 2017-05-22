@@ -102,4 +102,44 @@
   font-size: 1.6rem;
 }
 
-/* ------------ ------------Table Styling ------------ ------------ */
+/* ------------ ------------Facts Styling ------------ ------------ */
+.facts {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bubble{
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100px;
+  height: 100px;
+  margin: 10px;
+  position: relative;
+  border-radius: 100%;
+  border: solid 5px rgba(0,0,0,1);
+  background-color: rgba(0,0,0,0);
+
+  -webkit-box-align:  center;
+  -ms-flex-align:     center;
+  align-items:        center;
+}
+
+.bubble__description{
+  /*background-color: rgb(0,0,0);*/
+  padding: 3px;
+  border-radius: 20px; /* IE 9 */ /* Safari */
+  -webkit-transform: translate(0, 45px);
+          transform: translate(0, 45px);
+  text-align: center;
+  color: white;
+  font-size: 1.6rem;
+  width: 100%;
+}
+
+.bubble__data{
+  position: absolute;
+  text-align: center;
+  right: 0px;
+  left: 0px;
+}

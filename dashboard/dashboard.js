@@ -30,7 +30,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 createPieChart(sourceCount, articleObj, daysBack);
                 createBarChart(sourceCount, articleObj, daysBack);
 
-                var total = calculateTotalArticleCounts(sourceCount, articleObj);
+                var total = calculateTotalArticleCounts(articlesRead);
                 appendFacts(total);
 
 
@@ -248,28 +248,35 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         });
                 }
 
-                function calculateTotalArticleCounts(articles, sources) {
-                    var totalCount = sources;
-
+                function calculateTotalArticleCounts(articles) {
+                    var totalCount = {};
                     for (let key in articles) {
-                        for(let count in articles[key]) {
-                            if( articles[key][count] > 0) {
-                                totalCount[count]++;
-                            }
+                        var tempSource = articles[key].source;
+
+                        if( totalCount.hasOwnProperty(tempSource) ){
+                            totalCount[tempSource]++;
+                        }else {
+                            totalCount[tempSource] = 1;
                         }
+
                     }
                     return totalCount;
                 }
 
                 function appendFacts(articlesRead) {
-                    document.getElementsByClassName("facts")[0].appendChild( createBubbleFact(8, "test") );
+                    var factContainer = document.getElementsByClassName("facts")[0]
+                    console.log(articlesRead);
+                    var count = countArticles(articlesRead);
+
+                    factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
+                    factContainer.appendChild( createBubbleFact(count, "articles", "green") );
                     
-
-            
-
-                    function createBubbleFact(data, description){
+                    function createBubbleFact(data, description, color){
                         var bubbleElem = document.createElement("div");
                         bubbleElem.className = "bubble";
+
+                        var bubbleElemStyle = "border: solid 5px " + color
+                        bubbleElem.setAttribute("style", bubbleElemStyle );
 
                         var factElem = document.createElement("p");
                         factElem.className = "bubble__data";
@@ -279,11 +286,21 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         var descriptionElem = document.createElement("p");
                         descriptionElem.className = "bubble__description";
                         descriptionElem.appendChild( document.createTextNode(description) );
+                        var descriptionElemStyle = "background-color: " + color
+                        descriptionElem.setAttribute("style", descriptionElemStyle);
 
                         bubbleElem.appendChild(factElem);
                         bubbleElem.appendChild(descriptionElem);
                         return bubbleElem;
                     };
+
+                    function countArticles(data){
+                        var count = 0;
+                        for (let key in data) {
+                            count += data[key];
+                        }
+                        return count;
+                    }
                 }
 
                 function createBarChart(data, obj, timeBack) {
