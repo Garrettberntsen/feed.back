@@ -1,0 +1,149 @@
+/* ------------ ------------Sidebar Styling ------------ ------------ */
+.sidebar {
+  float: left;
+  height: 100vh;
+  background-color: #343C48;
+  position: fixed;
+  width: 16rem;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar__items {
+  font-size: 2.0rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info {
+  color: #fff;
+  margin-left: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar__link {
+  color: #ffa400;
+  text-decoration: none;
+
+  padding: 1rem 1rem;
+  margin-left: 2px;
+}
+
+.sidebar__link:hover {
+  text-shadow: 0 0 3px #ffa400;
+}
+
+.sidebar__link--disabled {
+  color: #1f242b
+}
+
+.sidebar__link--disabled:hover {
+  text-shadow: 0 0 0px #0f1215;
+}
+
+.sidebar__link--active {
+  margin-left: 0;
+  border-left: 2px solid #ffa400;
+}
+
+
+/* ------------ ------------Dashboard Styling ------------ ------------ */
+.chart {
+  display: block;
+  margin: 0 auto;
+}
+
+.nav-logo {
+  height: 25px;
+}
+
+.chart--font {
+  font-size: 1.6rem;
+}
+
+
+.dashboard-row {
+  width: 100%;
+  max-width: 1024px;
+
+  display: flex;
+  justify-content: space-around;
+}
+
+.container--dashboard {
+  margin-left: 18rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.card--dashboard {
+  display: flex;
+  justify-content: space-around;
+
+  width: 100%;
+  max-width: 100%;
+}
+
+.donut-chart{
+  align-items: center;
+}
+
+/* ------------ ------------Table Styling ------------ ------------ */
+#table {
+  font-size: 1.6rem;
+}
+
+.dataTable-top, .dataTable-bottom{
+  padding: 0;
+  font-size: 1.6rem;
+}
+
+.card--table {
+  display: block;
+}
+
+/* ------------ ------------Facts Styling ------------ ------------ */
+.facts {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bubble{
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 120px;
+  height: 120px;
+  margin: 10px;
+  position: relative;
+  border-radius: 100%;
+  border: solid 5px rgba(0,0,0,1);
+  background-color: rgba(0,0,0,0);
+
+  -webkit-box-align:  center;
+  -ms-flex-align:     center;
+  align-items:        center;
+}
+
+.bubble__description{
+  /*background-color: rgb(0,0,0);*/
+  padding: 3px;
+  border-radius: 20px; /* IE 9 */ /* Safari */
+  -webkit-transform: translate(0, 50px);
+          transform: translate(0, 50px);
+  text-align: center;
+  color: white;
+  font-size: 1.6rem;
+  width: 100%;
+}
+
+.bubble__data{
+  font-size: 3rem;
+  position: absolute;
+  text-align: center;
+  right: 0px;
+  left: 0px;
+}
