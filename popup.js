@@ -142,14 +142,20 @@ $(document).ready(function () {
                     console.log("Tab finished loading: " + tabId);
                     console.log("Requesting current article")
                     request_time = new Date().getTime();
-                    chrome.runtime.sendMessage({type: "getCurrentArticle", message: {waitForScrape:true}}, refreshDisplayedArticle);
+                    chrome.runtime.sendMessage({
+                        type: "getCurrentArticle",
+                        message: {waitForScrape: true}
+                    }, refreshDisplayedArticle);
                 }
             });
         } else {
             console.log("Tab already loaded.");
             console.log("Requesting current article")
             request_time = new Date().getTime();
-            chrome.runtime.sendMessage({type: "getCurrentArticle", message: {waitForScrape:true}}, refreshDisplayedArticle);
+            chrome.runtime.sendMessage({
+                type: "getCurrentArticle",
+                message: {waitForScrape: true}
+            }, refreshDisplayedArticle);
         }
     })
 
@@ -178,7 +184,7 @@ function refreshDisplayedArticle(article) {
         });
         //addCircleGraph();
     } else {
-        if(!article.user_metadata){
+        if (!article.user_metadata) {
             article.user_metadata = {};
         }
         console.log("Article found.");
@@ -208,7 +214,7 @@ function refreshDisplayedArticle(article) {
                     }
                 });
 
-                if($("#title").text() === "Feedback - How To"){
+                if ($("#title").text() === "Feedback - How To") {
                     $("#avg-lean").text(value);
                     setLeanColor(value);
                 } else {
@@ -242,7 +248,7 @@ function refreshDisplayedArticle(article) {
                         eventAction: "Article Rating Set"
                     }
                 });
-                if($("#title").text() === "Feedback - How To"){
+                if ($("#title").text() === "Feedback - How To") {
                     $("#avg-rating").text(value);
                 } else {
                     article.user_metadata.stars = $('#starRating').val();
@@ -539,6 +545,20 @@ function addTrackThisQuestion() {
     btn.appendChild(btnText);
 
     btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
+
+    var button = $(btn);
+    button.click(function () {
+        "use strict";
+        chrome.runtime.sendMessage({
+            type: "analytics",
+            message: {
+                hitType: "event",
+                command: "send",
+                eventCategory: "Tracking",
+                eventAction: "Track This Page"
+            }
+        });
+    })
 
     console.log("trackElem");
     console.log(trackElem);
