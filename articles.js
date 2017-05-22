@@ -154,11 +154,21 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "getCurrentArticle":
         {
             var request_start_time = new Date().getTime();
-            if (!scraping_in_progress[last_visited_url] || !(request.message && request.message.waitForScrape)) {
+            var sourceName = Object.keys(sources).find(function (sourceName) {
+                return sources[sourceName].urls.find(function (def) {
+                    "use strict";
+                    return tab.url.indexOf(def.urlRoot) !== -1;
+                })
+            });
+            var last_url;
+            if(sourceName){
+                last_url = last_visited_url;
+            }
+            if (!scraping_in_progress[last_url] || !(request.message && request.message.waitForScrape)) {
                 if (!sender.tab) {
                     console.log("Request from a non-tab origin.");
                     console.log("Requesting previous visit url.");
-                    var resolution = resolveArticleForUrl(reduceUrl(last_visited_url)).then(function (article) {
+                    var resolution = resolveArticleForUrl(reduceUrl(last_url)).then(function (article) {
                         "use strict";
                         console.log("Sending article response");
                         console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
@@ -314,17 +324,7 @@ function disposeArticles(tabId) {
 function updateLastVisited(tabId, changeInfo) {
     "use strict";
     chrome.tabs.get(tabId, function (tab) {
-        var sourceName = Object.keys(sources).find(function (sourceName) {
-            return sources[sourceName].urls.find(function (def) {
-                "use strict";
-                return tab.url.indexOf(def.urlRoot) !== -1;
-            })
-        });
-        if (sourceName) {
-            last_visited_url = reduceUrl(tab.url);
-        } else {
-            last_visited_url = null;
-        }
+        last_visited_url = reduceUrl(tab.url);
     });
 }
 
