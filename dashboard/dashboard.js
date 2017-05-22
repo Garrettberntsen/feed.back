@@ -527,7 +527,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 }
 
                 function returnSource(label, articlesRead) {
-                    var tooltipText = "Source: " + label + "\n" + "Articles: " + articlesRead;
+                    var tooltipText = label + " - " + articlesRead;
                     console.log(tooltipText);
                     return tooltipText;
                 }
