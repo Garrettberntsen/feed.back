@@ -123,7 +123,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 updateTabUrls(sender.tab.id, request.message.article_data.url);
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            if(current_articles[request.message.article_data.url]){
+            if (current_articles[request.message.article_data.url]) {
                 current_articles[request.message.article_data.url] = current_articles[request.message.article_data.url].then(function () {
                     return request.message;
                 });
@@ -213,19 +213,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    var article_id;
-    return resolveArticleForUrl(url).then(function (article) {
-        article_id = article.article_data.url.hashCode();
-        return getArticle(article_id);
-    }).catch(function (e) {
-        triggerGoogleAnalyticsEvent({
-            exDescription: JSON.stringify(e),
-            exFatal: true
-        })
-    })
+    var article_id = url.hashCode();
+    return resolveArticleForUrl(url)
         .then(function (article) {
-            if (article.readers) {
-                return Promise.all(Object.keys(article.readers).map(function (reader_id) {
+            if (article.article_data.readers) {
+                return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
                     return getUser(reader_id);
                 })).then(function (readers) {
                     return readers.map(function (reader) {
@@ -261,19 +253,11 @@ function calculateAverageRatingForArticle(url) {
 function calculateAverageLeanForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    var article_id;
-    return resolveArticleForUrl(url).then(function (article) {
-        article_id = article.article_data.url.hashCode();
-        return getArticle(article_id);
-    }).catch(function (e) {
-        triggerGoogleAnalyticsEvent({
-            exDescription: JSON.stringify(e),
-            exFatal: true
-        })
-    })
+    var article_id = url.hashCode();
+    return resolveArticleForUrl(url)
         .then(function (article) {
-            if (article.readers) {
-                return Promise.all(Object.keys(article.readers).map(function (reader_id) {
+            if (article.article_data.readers) {
+                return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
                     return getUser(reader_id);
                 })).then(function (readers) {
                     return readers.map(function (reader) {
@@ -304,7 +288,7 @@ function calculateAverageLeanForArticle(url) {
                 exFatal: true
             })
         });
-};
+}
 
 /**
  * Discard all article definitions associated with the given tab.
