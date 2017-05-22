@@ -178,6 +178,9 @@ function refreshDisplayedArticle(article) {
         });
         //addCircleGraph();
     } else {
+        if(!article.user_metadata){
+            article.user_metadata = {};
+        }
         console.log("Article found.");
         displayed_article = article;
         $('#title').text(article.article_data.title);
