@@ -123,9 +123,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 updateTabUrls(sender.tab.id, request.message.article_data.url);
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            current_articles[request.message.article_data.url] = current_articles[request.message.article_data.url].then(function () {
-                return request.message;
-            });
+            if(current_articles[request.message.article_data.url]){
+                current_articles[request.message.article_data.url] = current_articles[request.message.article_data.url].then(function () {
+                    return request.message;
+                });
+            } else {
+                current_articles[request.message.article_data.url] = Promise.resolve(request.message);
+            }
+
             current_user.then(function (user) {
                 return writeArticleData(request.message, user);
             }).then(function () {
@@ -209,7 +214,7 @@ function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
     var article_id;
-    return Promise.resolve(current_articles[url]).then(function (article) {
+    return resolveArticleForUrl(url).then(function (article) {
         article_id = article.article_data.url.hashCode();
         return getArticle(article_id);
     }).catch(function (e) {
@@ -257,7 +262,7 @@ function calculateAverageLeanForArticle(url) {
     "use strict";
     url = reduceUrl(url);
     var article_id;
-    return current_articles[url].then(function (article) {
+    return resolveArticleForUrl(url).then(function (article) {
         article_id = article.article_data.url.hashCode();
         return getArticle(article_id);
     }).catch(function (e) {
