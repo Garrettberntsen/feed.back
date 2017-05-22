@@ -63,7 +63,6 @@
   font-size: 1.6rem;
 }
 
-
 .dashboard-row {
   width: 100%;
   max-width: 1024px;
@@ -80,14 +79,15 @@
 }
 
 .card--dashboard {
-  display: flex;
-  justify-content: space-around;
-
   width: 100%;
   max-width: 100%;
 }
 
-.donut-chart{
+.card__title {
+  margin-bottom: 1rem;
+}
+
+.donut-chart {
   align-items: center;
 }
 
@@ -107,6 +107,8 @@
 
 /* ------------ ------------Facts Styling ------------ ------------ */
 .facts {
+  display: flex;
+  justify-content: space-around;
   flex-wrap: wrap;
   align-items: center;
 }

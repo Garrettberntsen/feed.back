@@ -19,8 +19,8 @@
     <nav class="sidebar">
         <img class="sidebar__image" src=logo.svg>
         <section class="sidebar__items">
-          <p class="user-info">Days Back:</p>
-          <p class="user-info days-back"></p>
+          <p class="user-info">Days Back:<span class="days-back"></span></p>
+          
         	<a class="sidebar__link sidebar__link--active  " href=#>Dashboard</a>
         	<a class="sidebar__link sidebar__link--disabled" href=#>Goals</a>
           <a class="sidebar__link sidebar__link--disabled" href=#>Notes</a>
@@ -29,11 +29,18 @@
     </nav>
     <main class="container container--dashboard">
       <section class="dashboard-row">
-        <div class="card card--dashboard bar-chart"></div>
+        <div class="card card--dashboard bar-chart">
+          <p class="card__title">Daily Article Consumption<p>
+        </div>
       </section>  
       <section class="dashboard-row">
-        <div class="card card--dashboard donut-chart"></div>
-        <div class="card card--dashboard facts"></div>
+        <div class="card card--dashboard donut-chart">
+          <p class="card__title">Cumulative Consumption</p>
+        </div>
+        <div class="card card--dashboard">
+          <p class="card__title">Snapshot</p>
+          <div class="facts"></div>
+        </div>
       </section>
       <section class="dashboard-row">
         <table id="table">

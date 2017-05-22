@@ -300,8 +300,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return bubbleElem;
                     }
 
-
-
                     function findFavoriteSource(data, findingMaxArticles) {
                         var returnValue;
                         var arr = Object.keys( data ).map(function ( key ) { return data[key]; });
@@ -406,7 +404,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
 
                     var margin = {
-                        top: 10,
+                        top: 0,
                         right: 0,
                         bottom: 25,
                         left: 30
@@ -527,8 +525,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 }
 
                 function returnSource(label, articlesRead) {
-                    var tooltipText = "Source: " + label + "\n" + "Articles: " + articlesRead;
-                    console.log(tooltipText);
+                    var tooltipText = label + " - " + articlesRead;
                     return tooltipText;
                 }
 
