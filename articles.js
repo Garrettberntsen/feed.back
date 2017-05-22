@@ -41,7 +41,7 @@ var last_visited_url;
  * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
  */
 function resolveArticleForUrl(url) {
-    if(!url){
+    if (!url) {
         return Promise.resolve(null);
     }
     "use strict";
@@ -425,6 +425,13 @@ function writeArticleData(article, chrome_user) {
             var existing_article = resolved[0];
             var user = resolved[1];
             if (!existing_article || !article_data.partialRecord) {
+                triggerGoogleAnalyticsEvent(
+                    {
+                        hitType: "event",
+                        eventCategory: "Scraping",
+                        eventAction: "New page scraped"
+                    }
+                )
                 setArticle(article_key, article_data);
                 if (article.user_metadata) {
                     user.articles[article_key] = article.user_metadata;
