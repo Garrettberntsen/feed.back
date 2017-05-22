@@ -10,15 +10,30 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 article_ids.push(key);
             }
             Promise.all(article_definitions).then(function (articleSnapshots) {
-                var daysBack = 10;
+                var daysBack = 14;
+
+                var todaysDate = Date.now();
+                var millisecondsPerDay = 86400000;
+                var millisecondsBack = daysBack * millisecondsPerDay;
+                var articlesFromThisDate = todaysDate - millisecondsBack;
+
                 var userData = userSnapshot.val();
                 var email = user.email;
+
                 var articlesRead = userData.articles;
+
                 var articleObj = createArticleObject(articlesRead);
                 var sourceCount = countSources(articlesRead, articleObj);
 
+                appendData("days-back", daysBack);
+
                 createPieChart(sourceCount, articleObj, daysBack);
                 createBarChart(sourceCount, articleObj, daysBack);
+
+                var total = calculateTotalArticleCounts(articlesRead);
+                appendFacts(total);
+
+
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
 
                 var myTable = document.querySelector("#table");
@@ -28,6 +43,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     perPageSelect: [25, 50, 100]
                 }); 
 
+                document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard card--table";
+
+                function appendData(elem, name) {
+                    var elem = document.getElementsByClassName(elem)[0];
+                    var elemText = elem.innerHTML += " " + name;
+                }
+                
                 /* Creates an empty object filled with a 0 count for every source the user has read
                 *
                 *  @articles -> List of articles that user has read, obtained from JSON file
@@ -181,6 +203,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var svg = d3.select("div.donut-chart")
                         .append("svg")
                         .attr("class", "chart")
+                        .attr("class","chart--font")
                         .attr("width", width)
                         .attr("height", height)
                         .append("g")
@@ -206,7 +229,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("transform", function (d, i) {
                             var height = legendRectSize + legendSpacing;
                             var offset = height * color.domain().length / 2;
-                            var horz = 12 * legendRectSize;
+                            var horz = 9     * legendRectSize;
                             var vert = i * height - offset;
                             return "translate( " + horz + "," + vert + ")";
                         });
@@ -223,6 +246,84 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .text(function (d) {
                             return d;
                         });
+                }
+
+                function calculateTotalArticleCounts(articles) {
+                    var totalCount = {};
+                    for (let key in articles) {
+                        var tempSource = articles[key].source;
+
+                        if( totalCount.hasOwnProperty(tempSource) ){
+                            totalCount[tempSource]++;
+                        }else {
+                            totalCount[tempSource] = 1;
+                        }
+
+                    }
+                    return totalCount;
+                }
+
+                function appendFacts(articlesRead) {
+                    var factContainer = document.getElementsByClassName("facts")[0]
+                    console.log(articlesRead);
+                    var count = countArticles(articlesRead);
+                    var faveSource = findFavoriteSource(articlesRead, false);
+                    var faveSourceRead = findFavoriteSource(articlesRead, true);
+
+                    factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
+                    factContainer.appendChild( createBubbleFact(count, "articles", "green") );
+                    factContainer.appendChild( createBubbleFact(faveSource, "fav. source", "orange") );
+                    factContainer.appendChild( createBubbleFact(faveSourceRead, "fav. source # read", "purple") );
+                    
+                    function createBubbleFact(data, description, color){
+                        var bubbleElem = document.createElement("div");
+                        bubbleElem.className = "bubble";
+
+                        var bubbleElemStyle = "border: solid 5px " + color
+                        bubbleElem.setAttribute("style", bubbleElemStyle );
+
+                        var factElem = document.createElement("p");
+                        factElem.className = "bubble__data";
+                        factElem.appendChild( document.createTextNode(data) );
+                        if(data.length > 10) {
+                            factElem.setAttribute("style", "font-size: 1.6rem");
+                        }
+
+                        var descriptionElem = document.createElement("p");
+                        descriptionElem.className = "bubble__description";
+                        descriptionElem.appendChild( document.createTextNode(description) );
+                        var descriptionElemStyle = "background-color: " + color
+                        descriptionElem.setAttribute("style", descriptionElemStyle);
+
+                        bubbleElem.appendChild(factElem);
+                        bubbleElem.appendChild(descriptionElem);
+                        return bubbleElem;
+                    }
+
+                    function findFavoriteSource(data, findingMaxArticles) {
+                        var returnValue;
+                        var arr = Object.keys( data ).map(function ( key ) { return data[key]; });
+                        var max = Math.max.apply(null, arr);
+
+                        if(findingMaxArticles === true){
+                            return max;
+                        }else{
+                            for(let key in data) {
+                                if(data[key] === max) {
+                                    return key;
+                                } 
+                            }
+                        }
+                    }
+
+                    function countArticles(data) {
+                        var count = 0;
+                        for (let key in data) {
+                            count += data[key];
+                        }
+                        return count;
+                    }
+
                 }
 
                 function createBarChart(data, obj, timeBack) {
@@ -303,18 +404,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
 
                     var margin = {
-                        top: 10,
+                        top: 0,
                         right: 0,
                         bottom: 25,
                         left: 30
                     };
 
-                    var width = 640 - margin.left - margin.right,
+                    var width = 960 - margin.left - margin.right,
                         height = 288 - margin.top - margin.bottom;
 
                     var svg = d3.select("div.bar-chart")
                         .append("svg")
                         .attr("class", "chart")
+                        .attr("class","chart--font")
                         .attr("width", width + margin.left + margin.right)
                         .attr("height", height + margin.top + margin.bottom)
                         .append("g")
@@ -324,17 +426,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     categoryKeys.sort();
                     
-                    var dataset = d3.layout.stack()(categoryKeys.map(function (objective) {
+                    var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
                         return finalFinalData.map(function (d) {
-                            console.log( +d[objective] );
                             return {
                                 x: Date.parse(d.date).toString('MMM d'),
-                                y: +d[objective]
+                                y: +d[source],
+                                label: source
                             };
                         });
                     }));
-
-                    console.log(dataset);
 
                     var x = d3.scale.ordinal()
                         .domain(dataset[0].map(function (d) {
@@ -345,7 +445,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var y = d3.scale.linear()
                         .domain([0, d3.max(dataset, function (d) {
                             return d3.max(d, function (d) {
-                                return d.y + d.y;
+                                return d.y * 3;
                             });
                         })])
                         .range([height, 0]);
@@ -409,41 +509,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var xPosition = d3.mouse(this)[0] - 15;
                             var yPosition = d3.mouse(this)[1] - 25;
                             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                            tooltip.select("text").text(d.y);
+                            tooltip.select("text").text(returnSource(d.label, d.y) ) ;
                         });
-
-                    // //Draw the Legend
-                    // var legend = svg.selectAll(".legend")
-                    //   .data(color.domain())
-                    //   .enter().append("g")
-                    //   .attr("class", "legend")
-                    //   .attr("transform", function(d,i) {
-                    //     return "translate(30, " + i * 20 + ")";
-                    //   });
-
-                    // legend.append("rect")
-                    //   .attr("x", width - 10)
-                    //   .attr("width", 10)
-                    //   .attr("height", 10)
-                    //   .style("fill", color)
-                    //   .style("stroke", color);
-
-                    // legend.append("text")
-                    //   .attr("x", width + 5)
-                    //   .attr("y", 5)
-                    //   .attr("dy", ".35em")
-                    //   .style("text-anchor", "start")
-                    //   .text(function(d) {return categoryKeys[d] ; });
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
                         .style("display", "none");
-
-                    tooltip.append("rect")
-                        .attr("width", 30)
-                        .attr("height", 20)
-                        .attr("fill", "white")
-                        .style("opacity", 0.5);
 
                     tooltip.append("text")
                         .attr("x", 15)
@@ -451,6 +522,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .style("text-anchor", "middle")
                         .attr("font-size", "12px")
                         .attr("font-weight", "bold");
+                }
+
+                function returnSource(label, articlesRead) {
+                    var tooltipText = label + " - " + articlesRead;
+                    return tooltipText;
                 }
 
                 function createTable(userArticleInformation, articleInformation) {
@@ -475,7 +551,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 sourceUrl: ''
                             };
                             
-
                             var userEvaluation = currentArticleUserInfo.stars; //to add
                             articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
                             articleInfo.dateUnix = currentArticleUserInfo.dateRead;
@@ -490,17 +565,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             articleInfo.url = currentArticle.url;
                             articleInfo.sourceUrl = currentArticle.url.split(".");
 
-                            console.log(articleInfo.sourceUrl);
-
-
                             var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
-                            console.log(articleData);
                             articlesRead.push(articleData);
                         }
                     }
 
                     articlesRead.sort(function (a, b) {
-                        console.log(a[1].dateUnix);
                         var articleA = a[1].dateUnix;
                         var articleB = b[1].dateUnix;
                         if (articleA > articleB) {
