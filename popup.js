@@ -178,7 +178,6 @@ function refreshDisplayedArticle(article) {
         });
         //addCircleGraph();
     } else {
-        console.log("Article found.");
         displayed_article = article;
         $('#title').text(article.article_data.title);
         if (article.article_data.author) {
