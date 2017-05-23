@@ -528,10 +528,24 @@ function addTrackThisQuestion() {
     var trackElem = document.getElementById("track-this");
     var question = document.createElement("P");
     var questionText = document.createTextNode("We don't track this yet. Should we?");
+    
+
     question.appendChild(questionText);
 
     var btn = document.createElement("BUTTON");
     var btnText = document.createTextNode("Yes - this is news!");
+    btn.addEventListener("click", function(){
+        btn.className += " is-loading";
+        setTimeout(function(){
+            btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
+            var btnTextSent = "Got it! Thanks! &#128077";
+            btn.innerHTML = btnTextSent;
+            console.log("sent!")
+        }, 1500)
+
+
+
+    })
     btn.appendChild(btnText);
 
     btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
