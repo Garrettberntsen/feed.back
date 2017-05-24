@@ -740,9 +740,9 @@ var sources = {
         'title-selector': 'h1.article__heading',
         'title-selector-property': ''
     }),
-    'Tutorial': new SourceDefinition({
+    'tutorial': new SourceDefinition({
         'urls': [{
-            urlRoot: 'chrome-extension://',
+            urlRoot: 'tutorial/tutorial-page.html',
             'article-url-matcher': {
                 pattern: "",
                 groups: [""]

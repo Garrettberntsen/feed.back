@@ -41,6 +41,9 @@ var last_visited_url;
  * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
  */
 function resolveArticleForUrl(url) {
+    if (!url) {
+        return Promise.resolve(null);
+    }
     "use strict";
     return Promise.resolve(current_articles[url]).then(function (current_article) {
         if (Object.keys(sources).find(function (source_name) {
@@ -123,7 +126,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 updateTabUrls(sender.tab.id, request.message.article_data.url);
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            if(current_articles[request.message.article_data.url]){
+            if (current_articles[request.message.article_data.url]) {
                 current_articles[request.message.article_data.url] = current_articles[request.message.article_data.url].then(function () {
                     return request.message;
                 });
@@ -151,11 +154,21 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "getCurrentArticle":
         {
             var request_start_time = new Date().getTime();
-            if (!scraping_in_progress[last_visited_url] || !(request.message && request.message.waitForScrape)) {
+            var sourceName = Object.keys(sources).find(function (sourceName) {
+                return sources[sourceName].urls.find(function (def) {
+                    "use strict";
+                    return last_visited_url && last_visited_url.indexOf(def.urlRoot) !== -1;
+                })
+            });
+            var last_url;
+            if(sourceName){
+                last_url = last_visited_url;
+            }
+            if (!scraping_in_progress[last_url] || !(request.message && request.message.waitForScrape)) {
                 if (!sender.tab) {
                     console.log("Request from a non-tab origin.");
                     console.log("Requesting previous visit url.");
-                    var resolution = resolveArticleForUrl(reduceUrl(last_visited_url)).then(function (article) {
+                    var resolution = resolveArticleForUrl(reduceUrl(last_url)).then(function (article) {
                         "use strict";
                         console.log("Sending article response");
                         console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
@@ -213,19 +226,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 function calculateAverageRatingForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    var article_id;
-    return resolveArticleForUrl(url).then(function (article) {
-        article_id = article.article_data.url.hashCode();
-        return getArticle(article_id);
-    }).catch(function (e) {
-        triggerGoogleAnalyticsEvent({
-            exDescription: JSON.stringify(e),
-            exFatal: true
-        })
-    })
+    var article_id = url.hashCode();
+    return resolveArticleForUrl(url)
         .then(function (article) {
-            if (article.readers) {
-                return Promise.all(Object.keys(article.readers).map(function (reader_id) {
+            if (article.article_data.readers) {
+                return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
                     return getUser(reader_id);
                 })).then(function (readers) {
                     return readers.map(function (reader) {
@@ -261,19 +266,11 @@ function calculateAverageRatingForArticle(url) {
 function calculateAverageLeanForArticle(url) {
     "use strict";
     url = reduceUrl(url);
-    var article_id;
-    return resolveArticleForUrl(url).then(function (article) {
-        article_id = article.article_data.url.hashCode();
-        return getArticle(article_id);
-    }).catch(function (e) {
-        triggerGoogleAnalyticsEvent({
-            exDescription: JSON.stringify(e),
-            exFatal: true
-        })
-    })
+    var article_id = url.hashCode();
+    return resolveArticleForUrl(url)
         .then(function (article) {
-            if (article.readers) {
-                return Promise.all(Object.keys(article.readers).map(function (reader_id) {
+            if (article.article_data.readers) {
+                return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
                     return getUser(reader_id);
                 })).then(function (readers) {
                     return readers.map(function (reader) {
@@ -304,7 +301,7 @@ function calculateAverageLeanForArticle(url) {
                 exFatal: true
             })
         });
-};
+}
 
 /**
  * Discard all article definitions associated with the given tab.
@@ -327,17 +324,7 @@ function disposeArticles(tabId) {
 function updateLastVisited(tabId, changeInfo) {
     "use strict";
     chrome.tabs.get(tabId, function (tab) {
-        var sourceName = Object.keys(sources).find(function (sourceName) {
-            return sources[sourceName].urls.find(function (def) {
-                "use strict";
-                return tab.url.indexOf(def.urlRoot) !== -1;
-            })
-        });
-        if (sourceName) {
-            last_visited_url = reduceUrl(tab.url);
-        } else {
-            last_visited_url = null;
-        }
+        last_visited_url = reduceUrl(tab.url);
     });
 }
 
@@ -438,6 +425,13 @@ function writeArticleData(article, chrome_user) {
             var existing_article = resolved[0];
             var user = resolved[1];
             if (!existing_article || !article_data.partialRecord) {
+                triggerGoogleAnalyticsEvent(
+                    {
+                        hitType: "event",
+                        eventCategory: "Scraping",
+                        eventAction: "New page scraped"
+                    }
+                )
                 setArticle(article_key, article_data);
                 if (article.user_metadata) {
                     user.articles[article_key] = article.user_metadata;

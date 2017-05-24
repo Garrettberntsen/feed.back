@@ -72,7 +72,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 switch (request.message.hitType) {
                     case "event":
                     case "exception":
-                        response = triggerGoogleAnalyticsEvent(request.message);
+                        switch (request.message.eventCategory){
+                            case "Tracking":
+                                request.message.eventLabel = last_visited_url;
+                            default:
+                                response = triggerGoogleAnalyticsEvent(request.message);
+                        }
+
                         break;
                     default:
                         response = Promise.reject("hitType must be 'event' or 'exception', was " + request.message.hitType);
