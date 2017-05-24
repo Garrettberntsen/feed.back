@@ -46,65 +46,77 @@ function resolveArticleForUrl(url) {
     }
     "use strict";
     return Promise.resolve(current_articles[url]).then(function (current_article) {
-        if (Object.keys(sources).find(function (source_name) {
-                return sources[source_name].testForArticleUrlMatch(url);
-            }) == "tutorial") {
-            current_article = new Article(
-                new ArticleData(url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
-                new UserMetadata(new Date().getTime(), "tutorial")
-            );
-        }
-        else if (!current_article) {
-            current_articles[url] = new Promise(function (resolve, reject) {
-                current_user.then(function (user) {
-                    Promise.all([
-                        getArticle(url.hashCode()),
-                        getUser(user.id)]).then(function (resolved) {
-                        if (resolved[0]) {
-                            var article_data = resolved[0];
-                            var hashCode = url.hashCode();
-                            var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
-                            resolve(new Article(article_data, user_metadata));
-                        } else {
-                            resolve(null);
-                        }
-                    }, function (error) {
-                        console.log(error);
-                        reject("There was an error resolving the article and user from firebase");
+            if (Object.keys(sources).find(function (source_name) {
+                    return sources[source_name].testForArticleUrlMatch(url);
+                }) == "tutorial") {
+                current_article = new Article(
+                    new ArticleData(url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
+                    new UserMetadata(new Date().getTime(), "tutorial")
+                );
+            }
+            else if (!current_article) {
+                current_articles[url] = new Promise(function (resolve, reject) {
+                    current_user.then(function (user) {
+                        Promise.all([
+                            getArticle(url.hashCode()),
+                            getUser(user.id)]).then(function (resolved) {
+                            if (resolved[0]) {
+                                var article_data = resolved[0];
+                                var hashCode = url.hashCode();
+                                var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
+                                resolve(new Article(article_data, user_metadata));
+                            } else {
+                                resolve(null);
+                            }
+                        }, function (error) {
+                            console.log(error);
+                            reject("There was an error resolving the article and user from firebase");
+                        });
                     });
                 });
+                current_article = current_articles[url];
+            }
+            return current_article;
+        },
+        function (reason) {
+            console.error("There was an error resolving an article for url " + url + ": " + reason);
+            triggerGoogleAnalyticsEvent({
+                hitType: "exception",
+                exDescription: reason
             });
-            current_article = current_articles[url];
-        }
-        return current_article;
-    })
+        })
 }
 
 chrome.runtime.onConnect.addListener(function (port) {
-        switch (port.name) {
-            case "scraper":
-                port.onMessage.addListener(function (message) {
-                    switch (message.type) {
-                        case "begun_scraping":
-                            scraping_in_progress[reduceUrl(message.message)] = true;
-                            current_articles[reduceUrl(message.message)] = new Promise(function (resolve, reject) {
-                                var scrapingCompletionHandler = function (message) {
-                                    "use strict";
-                                    var url = reduceUrl(message.message.url);
-                                    if (message.type === "finished_scraping") {
-                                        delete scraping_in_progress[url]
-                                        resolve(message.message.article);
-                                        port.onMessage.removeListener(scrapingCompletionHandler);
-                                    }
+    switch (port.name) {
+        case "scraper":
+            port.onMessage.addListener(function (message) {
+                switch (message.type) {
+                    case "begun_scraping":
+                        scraping_in_progress[reduceUrl(message.message)] = true;
+                        current_articles[reduceUrl(message.message)] = new Promise(function (resolve, reject) {
+                            var timeout = setTimeout(function () {
+                                "use strict";
+                                reject("It took too long to receive the response from the scraper");
+                            }, 5000);
+                            var scrapingCompletionHandler = function (message) {
+                                "use strict";
+                                var url = reduceUrl(message.message.url);
+                                if (message.type === "finished_scraping") {
+                                    clearTimeout(timeout);
+                                    delete scraping_in_progress[url]
+                                    resolve(message.message.article);
+                                    port.onMessage.removeListener(scrapingCompletionHandler);
                                 }
-                                port.onMessage.addListener(scrapingCompletionHandler);
-                            });
-                    }
-                });
-                break;
-        }
+                            }
+
+                            port.onMessage.addListener(scrapingCompletionHandler);
+                        });
+                }
+            });
+            break;
     }
-)
+})
 
 function updateTabUrls(tabId, url) {
     "use strict";
@@ -136,10 +148,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
             current_user.then(function (user) {
                 return writeArticleData(request.message, user);
-            }).then(function () {
-                sendResponse();
             }, function (err) {
-                console.log(err);
+                console.error(err);
+                triggerGoogleAnalyticsEvent({
+                    hitType: "exception",
+                    exDescription: err
+                })
                 if (sender.tab) {
                     tab_urls[sender.tab.id] = tab_urls[sender.tab.id].splice(tab_urls[sender.tab.id].indexOf(request.message.article_data.url));
                     if (!tab_urls[sender.tab.id].length) {
@@ -148,6 +162,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 }
                 delete current_articles[request.message.article_data.url];
                 sendResponse("An error occurred while attempting to save the article.");
+            }).then(function () {
+                sendResponse();
             });
             return true;
         }
@@ -161,7 +177,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 })
             });
             var last_url;
-            if(sourceName){
+            if (sourceName) {
                 last_url = last_visited_url;
             }
             if (!scraping_in_progress[last_url] || !(request.message && request.message.waitForScrape)) {
@@ -178,7 +194,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     var resolution = resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
                         sendResponse(current_article);
                     }, function (err) {
-                        console.log(err);
+                        console.error(err);
+                        triggerGoogleAnalyticsEvent({
+                            hitType: "exception",
+                            exDescription: err
+                        });
                         sendResponse("There was an error resolving the article");
                     });
                 }
@@ -187,18 +207,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             return true;
         }
-        case
-        "updateScrollMetric"
-        :
+        case "updateScrollMetric":
         {
             current_articles[reduceUrl(sender.tab.url)].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
         }
-        case
-        "getAverageRating"
-        :
+        case "getAverageRating":
         {
             Promise.resolve(current_articles[request.message]).then(function (article) {
                 calculateAverageRatingForArticle(request.message).then(function (rating) {
@@ -206,12 +222,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     sendResponse(rating);
                 })
             })
-
             return true;
         }
         case
-        "getAverageLean"
-        :
+        "getAverageLean":
         {
             calculateAverageLeanForArticle(request.message).then(function (rating) {
                 "use strict";
@@ -256,6 +270,7 @@ function calculateAverageRatingForArticle(url) {
                 return Promise.resolve(0);
             }
         }).catch(function (e) {
+            console.error("There was an extepion while calculating article rating: " + e);
             triggerGoogleAnalyticsEvent({
                 exDescription: JSON.stringify(e),
                 exFatal: true
@@ -296,6 +311,7 @@ function calculateAverageLeanForArticle(url) {
                 return Promise.resolve(0);
             }
         }).catch(function (e) {
+            console.error("There was an extepion while calculating article lean: " + e);
             triggerGoogleAnalyticsEvent({
                 exDescription: JSON.stringify(e),
                 exFatal: true
@@ -392,6 +408,8 @@ function persistArticle(url) {
         if (resolved[0]) {
             writeArticleData(resolved[0], resolved[1]);
         }
+    }, function (reason) {
+        console.error(reason);
     });
 }
 
@@ -439,6 +457,13 @@ function writeArticleData(article, chrome_user) {
                 }
                 console.log("feed.back data written to firebase!");
             }
+        }).catch(function (reason) {
+            "use strict";
+            console.error(reason);
+            triggerGoogleAnalyticsEvent({
+                hitType: "exception",
+                exDescription: reason
+            })
         });
 }
 

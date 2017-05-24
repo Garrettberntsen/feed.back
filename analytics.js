@@ -86,12 +86,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 response.then(function () {
                     "use strict";
                     "use strict";
-                    console.log("Sending resolved response")
                     sendResponse(response);
-                }, function (response) {
+                }, function (reason) {
                     "use strict";
-                    console.log("Sending rejection response")
-                    sendResponse(response);
+                    console.error("The analytics message was incorrect: " + reason);
+                    sendResponse(reason);
                 })
             } catch (err) {
                 sendResponse(err);
@@ -108,10 +107,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  */
 function triggerGoogleAnalyticsEvent(event) {
     "use strict";
-    return analytics.then(function () {
+    try {
         ga("send", event);
-        return true;
-    }).catch(function (err) {
-        throw err;
-    });
-}
+    } catch (err){
+        console.error("There was a problem dispatching a analytics event: " + err);
+    }
+
+};

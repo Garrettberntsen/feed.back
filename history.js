@@ -6,7 +6,7 @@
 
 var only_scrape_new_user_history = false;
 
-function extractHistory(firebase){
+function extractHistory(firebase) {
     "use strict";
     return current_user.then(function (user) {
         return Promise.all([
@@ -45,12 +45,20 @@ function extractHistory(firebase){
                         });
                     })
                 } catch (e) {
-                    console.log(e);
+                    triggerGoogleAnalyticsEvent({
+                        hitType: "exception",
+                        exDescription: e
+                    });
+                    console.error(e);
                 }
             });
         }
     }).catch(function (e) {
-        console.log(e);
+        triggerGoogleAnalyticsEvent({
+            hitType: "exception",
+            exDescription: e
+        });
+        console.error(e);
     });
 }
 
@@ -81,7 +89,7 @@ function extractHistoryItemData(historyItem) {
     }
 }
 
-chrome.runtime.onInstalled.addListener(function(){
+chrome.runtime.onInstalled.addListener(function () {
     "use strict";
     return _firebase.then(extractHistory);
 })

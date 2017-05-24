@@ -34,6 +34,12 @@ function initializeFirebase() {
                 }
                 resolve(firebase);
             }, function (error) {
+                triggerGoogleAnalyticsEvent({
+                    hitType: "exception",
+                    exDescription: reason,
+                    exFatal: true
+                });
+                console.error(error);
                 reject(error);
             });
         });
@@ -70,7 +76,13 @@ function getUser(user_id) {
         }
     }, function (reason) {
         "use strict";
+        triggerGoogleAnalyticsEvent({
+            hitType: "exception",
+            exDescription: reason,
+            exFatal: true
+        });
         console.error(reason);
+        return null;
     });
 }
 
@@ -84,6 +96,11 @@ function setUser(user_id, user) {
         firebase.database().ref("users/" + user_id).set(user);
     }, function (reason) {
         "use strict";
+        triggerGoogleAnalyticsEvent({
+            hitType: "exception",
+            exDescription: reason,
+            exFatal: true
+        });
         console.error(reason);
     }).then(function () {
         return true;
@@ -102,6 +119,12 @@ function getArticle(article_id) {
     }, function (reason) {
         "use strict";
         console.error(reason);
+        triggerGoogleAnalyticsEvent({
+            hitType: "exception",
+            exDescription: reason,
+            exFatal: true
+        });
+        return null;
     }).then(function (snapshot) {
         //For some reason, calling val on a non-existent object is slower than checking exists.
         if (snapshot.exists()) {
