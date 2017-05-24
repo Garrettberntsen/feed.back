@@ -528,7 +528,6 @@ function addTrackThisQuestion() {
     var trackElem = document.getElementById("track-this");
     var question = document.createElement("P");
     var questionText = document.createTextNode("We don't track this yet. Should we?");
-    
 
     question.appendChild(questionText);
 
