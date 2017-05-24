@@ -20,18 +20,25 @@
 var current_user = new Promise(function(resolve, reject){
     "use strict";
     chrome.identity.getProfileUserInfo(function(userInfo){
-        resolve(userInfo);
+        resolve(updateCurrentAuthenticatedUser(userInfo));
     });
-}).then(updateCurrentAuthenticatedUser);
+});
 
+chrome.identity.onSignInChanged.addListener(function(userInfo){
+    current_user = updateCurrentAuthenticatedUser(userInfo);
+});
 function updateCurrentAuthenticatedUser(userInfo) {
     "use strict";
     return new Promise(function (resolve, reject) {
+        if(!userInfo.email || !userInfo.id){
+            reject("No user is signed in.");
+        }
         chrome.identity.getAuthToken({
             interactive: true
         }, function (token) {
             if (chrome.runtime.lastError) {
                 alert(chrome.runtime.lastError.message);
+                reject()
             }
             userInfo.auth_token = token;
             resolve(userInfo);
@@ -42,7 +49,6 @@ function updateCurrentAuthenticatedUser(userInfo) {
 /**
  * Updates current_user when the authentication changes.
  */
-chrome.identity.onSignInChanged.addListener(updateCurrentAuthenticatedUser);
 
 chrome.runtime.onMessage.addListener(function (request, requester, sendResponse) {
     switch (request.type) {
