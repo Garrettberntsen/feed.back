@@ -13,28 +13,34 @@
 //We guarantee that firebase is initialized before trying to access.
 function initializeFirebase() {
     "use strict";
-    return Promise.all([firebase, current_user]).then(function (resolved) {
-        var firebase = resolved[0];
-        var user = resolved[1];
-        var config = {
-            apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
-            authDomain: "feedback-f33cf.firebaseapp.com",
-            databaseURL: "https://feedback-f33cf.firebaseio.com",
-            storageBucket: "feedback-f33cf.appspot.com",
-            messagingSenderId: "17295082044"
-        };
-        firebase.initializeApp(config);
-        firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
-        firebase.database().ref("users/" + user.id).once("value").then(function (snapshot) {
-            if (!snapshot.exists()) {
-                firebase.database().ref("users/" + user.id).set(user);
+    return new Promise(function (resolve, reject) {
+        Promise.all([firebase, current_user]).then(function (resolved) {
+            var firebase = resolved[0];
+            var user = resolved[1];
+            if (firebase.apps.length == 0) {
+                var config = {
+                    apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
+                    authDomain: "feedback-f33cf.firebaseapp.com",
+                    databaseURL: "https://feedback-f33cf.firebaseio.com",
+                    storageBucket: "feedback-f33cf.appspot.com",
+                    messagingSenderId: "17295082044"
+                };
+                firebase.initializeApp(config);
             }
+            firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
+            return firebase.database().ref("users/" + user.id).once("value").then(function (snapshot) {
+                if (!snapshot.exists()) {
+                    firebase.database().ref("users/" + user.id).set(user);
+                }
+                resolve(firebase);
+            }, function (error) {
+                reject(error);
+            });
         });
-        return firebase;
-    })
+    });
 }
 var _firebase = initializeFirebase();
-//When signin changes, reauthenticate firebase.
+
 chrome.identity.onSignInChanged.addListener(function () {
     _firebase = initializeFirebase();
 });
@@ -45,7 +51,7 @@ chrome.runtime.onMessage(function (request, sender, sendResponse) {
             getUser(request.message).then(function (user) {
                 sendResponse(user);
             });
-        return true;
+            return true;
     }
 });
 
@@ -57,11 +63,14 @@ function getUser(user_id) {
     return _firebase.then(function (firebase) {
         return firebase.database().ref("users/" + user_id).once("value");
     }).then(function (snapshot) {
-        if(snapshot.exists()) {
+        if (snapshot.exists()) {
             return snapshot.val();
         } else {
             return null;
         }
+    }, function (reason) {
+        "use strict";
+        console.error(reason);
     });
 }
 
@@ -73,6 +82,9 @@ function getUser(user_id) {
 function setUser(user_id, user) {
     return _firebase.then(function (firebase) {
         firebase.database().ref("users/" + user_id).set(user);
+    }, function (reason) {
+        "use strict";
+        console.error(reason);
     }).then(function () {
         return true;
     });
@@ -87,11 +99,12 @@ function getArticle(article_id) {
     var request_time = new Date().getTime();
     return _firebase.then(function (firebase) {
         return firebase.database().ref("articles/" + article_id).once("value");
+    }, function (reason) {
+        "use strict";
+        console.error(reason);
     }).then(function (snapshot) {
-        console.log("Article resolved from firebase");
-
         //For some reason, calling val on a non-existent object is slower than checking exists.
-        if(snapshot.exists()) {
+        if (snapshot.exists()) {
             console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
             return snapshot.val();
         } else {
@@ -110,6 +123,9 @@ function getArticle(article_id) {
 function setArticle(article_id, article_data) {
     return _firebase.then(function (firebase) {
         firebase.database().ref("articles/" + article_id).set(article_data);
+    }, function (reason) {
+        "use strict";
+        console.error(reason);
     }).then(function () {
         return true;
     });
