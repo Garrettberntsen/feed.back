@@ -756,6 +756,23 @@ var sources = {
         'text-selector-property': '',
         'title-selector': '',
         'title-selector-property': ''
+    }),
+    'lawfare': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'lawfareblog.com',
+            'article-url-matcher': {
+                pattern: "{title}",
+                groups: ["title"]
+            }
+        }],
+        'author-selector': 'div.article-top__contributors > a.author__link',
+        'author-selector-property': '',
+        'date-selector': 'div.article-top__meta > datetime',
+        'date-selector-property': '',
+        'text-selector': 'div.field-item > p',
+        'text-selector-property': '',
+        'title-selector': 'header.article-top > h1.title',
+        'title-selector-property': ''
     })
 };
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
