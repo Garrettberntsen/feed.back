@@ -122,7 +122,7 @@ var sources = {
         'date-selector-property': 'content',
         'text-selector': 'article#story',
         'text-selector-property': '',
-        'title-selector': 'h1[itemprop="headline"]',
+        'title-selector': 'h1#headline',
         'title-selector-property': ''
     }),
     'politico': new SourceDefinition({
