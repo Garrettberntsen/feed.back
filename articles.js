@@ -109,16 +109,18 @@ chrome.runtime.onConnect.addListener(function (port) {
                                 if (message.type === "finished_scraping") {
                                     clearTimeout(timeout);
                                     delete scraping_in_progress[url];
+                                    if (message.message.error) {
+                                        reject(message.message.error);
+                                    }
                                     if (message.message) {
                                         resolve(message.message.article);
+                                        Promise.all([current_articles[reduceUrl(message.message.url)], current_user])
+                                            .then(function (resolved) {
+                                                "use strict";
+                                                writeArticleData(resolved[0], resolved[1]);
+                                            })
                                     }
                                     port.onMessage.removeListener(scrapingCompletionHandler);
-                                    Promise.all([current_articles[reduceUrl(message.message.url)], current_user])
-                                        .then(function (resolved) {
-                                            "use strict";
-                                            writeArticleData(resolved[0], resolved[1]);
-                                        })
-
                                 }
                             }
 
@@ -159,6 +161,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
 
             current_user.then(function (user) {
+                if(Object.keys(request.message.article_data.readers).indexOf(user.id) === -1){
+                    request.message.article_data.readers[user.id] = true;
+                }
                 return writeArticleData(request.message, user);
             }, function (err) {
                 console.error(err);
