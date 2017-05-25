@@ -108,7 +108,14 @@ var sources = {
                 pattern: "{year}/{month}/{day}/{location}/{category}/{title}.html",
                 groups: ["year", "month", "day", "location", "category", "title"]
             }
-        }],
+        },
+            {
+                urlRoot: 'nytimes.com',
+                'article-url-matcher': {
+                    pattern: "{year}/{month}/{day}/{category}/{title}.html",
+                    groups: ["year", "month", "day", "category", "title"]
+                }
+            }],
         'author-selector': 'meta[name="byl"]',
         'author-selector-property': 'content',
         'date-selector': 'time',
