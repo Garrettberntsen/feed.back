@@ -538,12 +538,13 @@ function addTrackThisQuestion() {
     var trackElem = document.getElementById("track-this");
     var question = document.createElement("P");
     var questionText = document.createTextNode("We don't track this yet. Should we?");
+
     question.appendChild(questionText);
 
     var btn = document.createElement("BUTTON");
     var btnText = document.createTextNode("Yes - this is news!");
+    btn.addEventListener("click", acknowledgeSent)
     btn.appendChild(btnText);
-
     btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
 
     var button = $(btn);
@@ -559,12 +560,19 @@ function addTrackThisQuestion() {
             }
         });
     })
-
-    console.log("trackElem");
-    console.log(trackElem);
-    console.log(question);
-    console.log(btn);
-
+  
     trackElem.appendChild(question);
     trackElem.appendChild(btn);
+
+    function acknowledgeSent(){
+        //A little silly - but this creates a random number between one and two seconds long 
+        //to fake doing something in the background.
+        var randomWaitTime = Math.floor(Math.random() * (2000 - 500)) + 500;
+        btn.className += " is-loading";
+        setTimeout(function(){
+            btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
+            var btnTextSent = "Got it! Thanks! &#128077";
+            btn.innerHTML = btnTextSent;
+        }, randomWaitTime);
+    }
 }
