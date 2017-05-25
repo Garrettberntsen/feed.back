@@ -23,14 +23,22 @@ function initializeFirebase() {
             storageBucket: "feedback-f33cf.appspot.com",
             messagingSenderId: "17295082044"
         };
-        firebase.initializeApp(config);
-        firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
+        if (firebase.apps.length == 0) {
+            firebase.initializeApp(config);
+        }
+        try {
+            firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
+        } catch (ex) {
+            console.error(ex);
+        }
         firebase.database().ref("users/" + user.id).once("value").then(function (snapshot) {
             if (!snapshot.exists()) {
                 firebase.database().ref("users/" + user.id).set(user);
             }
         });
         return firebase;
+    }, function (reason) {
+        console.error("Failed to initialize firebase: " + reason);
     })
 }
 var _firebase = initializeFirebase();
@@ -45,7 +53,7 @@ chrome.runtime.onMessage(function (request, sender, sendResponse) {
             getUser(request.message).then(function (user) {
                 sendResponse(user);
             });
-        return true;
+            return true;
     }
 });
 
@@ -57,7 +65,7 @@ function getUser(user_id) {
     return _firebase.then(function (firebase) {
         return firebase.database().ref("users/" + user_id).once("value");
     }).then(function (snapshot) {
-        if(snapshot.exists()) {
+        if (snapshot.exists()) {
             return snapshot.val();
         } else {
             return null;
@@ -91,7 +99,7 @@ function getArticle(article_id) {
         console.log("Article resolved from firebase");
 
         //For some reason, calling val on a non-existent object is slower than checking exists.
-        if(snapshot.exists()) {
+        if (snapshot.exists()) {
             console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
             return snapshot.val();
         } else {
