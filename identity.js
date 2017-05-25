@@ -33,6 +33,9 @@ function updateCurrentAuthenticatedUser(userInfo) {
             if (chrome.runtime.lastError) {
                 alert(chrome.runtime.lastError.message);
             }
+            if(!token){
+                reject("Couldn't get OAuth token.");
+            }
             userInfo.auth_token = token;
             resolve(userInfo);
         });
