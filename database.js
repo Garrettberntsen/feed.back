@@ -18,7 +18,8 @@ function initializeFirebase() {
         var user = resolved[1];
         var config = {
             apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
-            authDomain: "feedback-f33cf.firebaseapp.com",
+            authDomain: "chrome-extension://fjmjfjkiigcdeiaeofkappkccmcedeeb",
+            //authDomain: "feedback-f33cf.firebaseapp.com",
             databaseURL: "https://feedback-f33cf.firebaseio.com",
             storageBucket: "feedback-f33cf.appspot.com",
             messagingSenderId: "17295082044"
@@ -49,7 +50,7 @@ chrome.identity.onSignInChanged.addListener(function () {
     _firebase = initializeFirebase();
 });
 
-chrome.runtime.onMessage(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "getUser":
             getUser(request.message).then(function (user) {
