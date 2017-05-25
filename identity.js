@@ -32,7 +32,21 @@ var current_user = new Promise(function (resolve, reject) {
 /**
  * Updates current_user when the authentication changes.
  */
-chrome.identity.onSignInChanged.addListener(updateCurrentAuthenticatedUser);
+chrome.identity.onSignInChanged.addListener(function(){
+    "use strict";
+    current_user = new Promise(function (resolve, reject) {
+        "use strict";
+        chrome.identity.getProfileUserInfo(function (userInfo) {
+            if(!userInfo.id){
+                var message = "It looks like you aren't logged in to Google.";
+                console.error(message);
+                alert(message);
+                reject(message);
+            }
+            resolve(userInfo);
+        });
+    })
+});
 
 chrome.runtime.onMessage.addListener(function (request, requester, sendResponse) {
     switch (request.type) {
