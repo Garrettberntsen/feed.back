@@ -231,7 +231,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     function returnSource(data, type) {
                         var total = d3.sum(dataset.map(function(d) { return d.count; }));
                         var percent = Math.round(1000 * data.count / total) / 10;
-                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%";
+                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%"   ;
                         return tooltipText;
                     }
 
