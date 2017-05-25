@@ -213,7 +213,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .data(pie(dataset))
                         .enter()
                         .append("path")
-                        .attr("class", "shadow")
+                        .attr("class", "donut-chart-arc")
                         .attr("d", arc)
                         .attr("fill", function (d, i) {
                             return color(d.data.label);
@@ -224,15 +224,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .on("mouseout", function () {
                             tooltip.style("display", "none");
                         })
-                        .on("mousemove", function (d) {
-                            var xPosition = d3.mouse(this)[0] - 15;
-                            var yPosition = d3.mouse(this)[1] - 25;
-                            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                        .on("mousemove", function (d) { 
                             tooltip.select("text").text( returnSource(d.data) ) ;
                         });
 
-                    function returnSource(data) {
-                        var tooltipText = data.label + " - " + data.count;
+                    function returnSource(data, type) {
+                        var total = d3.sum(dataset.map(function(d) { return d.count; }));
+                        var percent = Math.round(1000 * data.count / total) / 10;
+                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%";
                         return tooltipText;
                     }
 
@@ -245,17 +244,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             }
                         });
 
-
-
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
-
+                            
                     tooltip.append("text")
-                        .attr("x", 15)
-                        .attr("dy", "1.2em")
                         .style("text-anchor", "middle")
-                        .attr("font-size", "12px")
-                        .attr("font-weight", "bold");
+                        .attr("font-size", "14px")
+                        .attr("font-weight", "bold")
 
                     var legendRectSize = 18;
                     var legendSpacing = 4;
@@ -291,7 +286,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var totalCount = {};
                     for (let key in articles) {
                         var tempSource = articles[key].source;
-
                         if( totalCount.hasOwnProperty(tempSource) ){
                             totalCount[tempSource]++;
                         }else {
