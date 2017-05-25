@@ -27,7 +27,9 @@ function initializeFirebase() {
             firebase.initializeApp(config);
         }
         try {
-            firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, user.auth_token));
+            chrome.identity.getAuthToken({interactive: true}, function (token) {
+                firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token));
+            })
         } catch (ex) {
             console.error(ex);
         }
@@ -37,9 +39,9 @@ function initializeFirebase() {
             }
         });
         return firebase;
-    }, function (reason) {
+    }).catch(function (reason) {
         console.error("Failed to initialize firebase: " + reason);
-    })
+    });
 }
 var _firebase = initializeFirebase();
 //When signin changes, reauthenticate firebase.
