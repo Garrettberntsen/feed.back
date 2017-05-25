@@ -181,7 +181,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return 0;
                     });
 
-                    var donutWidth = 75;
+                    var donutWidth = 50;
 
                     var width = 480,
                         height = 288;
@@ -196,7 +196,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var arc = d3.svg.arc()
                         .innerRadius(radius - donutWidth)
                         .outerRadius(radius)
-                        .padAngle(0.03);
+                        .padAngle(0.02);
 
                     var color = d3.scale.category20();
 
@@ -213,10 +213,20 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .data(pie(dataset))
                         .enter()
                         .append("path")
+                        .attr("class", "shadow")
                         .attr("d", arc)
                         .attr("fill", function (d, i) {
                             return color(d.data.label);
                         });
+
+                    path.transition()
+                        .duration(1000)
+                        .attrTween('d', function(d) {
+                            var interpolate = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+                            return function(t) {
+                                return arc(interpolate(t));
+                            }
+                        })
 
                     var legendRectSize = 18;
                     var legendSpacing = 4;
