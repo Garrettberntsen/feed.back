@@ -217,7 +217,24 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("d", arc)
                         .attr("fill", function (d, i) {
                             return color(d.data.label);
+                        })
+                        .on("mouseover", function () {
+                            tooltip.style("display", null);
+                        })
+                        .on("mouseout", function () {
+                            tooltip.style("display", "none");
+                        })
+                        .on("mousemove", function (d) {
+                            var xPosition = d3.mouse(this)[0] - 15;
+                            var yPosition = d3.mouse(this)[1] - 25;
+                            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                            tooltip.select("text").text( returnSource(d.data) ) ;
                         });
+
+                    function returnSource(data) {
+                        var tooltipText = data.label + " - " + data.count;
+                        return tooltipText;
+                    }
 
                     path.transition()
                         .duration(1000)
@@ -226,7 +243,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             return function(t) {
                                 return arc(interpolate(t));
                             }
-                        })
+                        });
+
+
+
+                    var tooltip = svg.append("g")
+                        .attr("class", "tooltip")
+
+                    tooltip.append("text")
+                        .attr("x", 15)
+                        .attr("dy", "1.2em")
+                        .style("text-anchor", "middle")
+                        .attr("font-size", "12px")
+                        .attr("font-weight", "bold");
 
                     var legendRectSize = 18;
                     var legendSpacing = 4;
