@@ -123,9 +123,6 @@ function scrapePage(existing_article, url) {
                         data.text = data.text.replace(/<([^<>]+)>/g, "");
                     }
 
-                    data.readers = existing_article.article_data && existing_article.article_data.readers ? existing_article.article_data.readers : {};
-                    data.readers[user.id] = true;
-
                     existing_article.article_data = data;
 
                     console.log(JSON.stringify(data));
@@ -228,6 +225,15 @@ function pageUrlChange(new_url) {
                         }
                     });
                 }
+            }).catch(function (error) {
+                "use strict";
+                console.error(error);
+                port.postMessage({
+                    type: "finished_scraping",
+                    message: {
+                        error: error
+                    }
+                });
             });
         }
     })
