@@ -17,31 +17,18 @@
  * A promise which resolves to the currently Authenticated Google User.
  * @type {Promise}
  */
-var current_user = new Promise(function(resolve, reject){
+var current_user = new Promise(function (resolve, reject) {
     "use strict";
-    chrome.identity.getProfileUserInfo(function(userInfo){
+    chrome.identity.getProfileUserInfo(function (userInfo) {
+        if(!userInfo.id){
+            var message = "It looks like you aren't logged in to Google.";
+            console.error(message);
+            alert(message);
+            reject(message);
+        }
         resolve(userInfo);
     });
-}).then(updateCurrentAuthenticatedUser);
-
-function updateCurrentAuthenticatedUser(userInfo) {
-    "use strict";
-    return new Promise(function (resolve, reject) {
-        chrome.identity.getAuthToken({
-            interactive: true
-        }, function (token) {
-            if (chrome.runtime.lastError) {
-                alert(chrome.runtime.lastError.message);
-            }
-            if(!token){
-                reject("Couldn't get OAuth token.");
-            }
-            userInfo.auth_token = token;
-            resolve(userInfo);
-        });
-    });
-}
-
+});
 /**
  * Updates current_user when the authentication changes.
  */
