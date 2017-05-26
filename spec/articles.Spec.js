@@ -29,6 +29,7 @@ beforeEach(function () {
     context = vm.createContext({
         console: console,
         triggerGoogleAnalyticsEvent: sinon.stub(),
+        clearTimeout: sinon.stub(),
         chrome: {
             runtime: {
                 onMessage: {
@@ -71,32 +72,79 @@ beforeEach(function () {
                     return this.url == url;
                 }
             }
+        },
+        port: {
+            name: "scraper",
+            onMessage: {
+                listeners: [],
+                addListener: sinon.stub().withArgs(sinon.match()).callsFake(function (listener) {
+                    console.log("Added port listener")
+                    this.listeners.push(listener);
+                }),
+                removeListener: sinon.stub().callsFake(function (listener) {
+                    this.listeners.slice(this.listeners.indexOf(listener))
+                })
+            }
         }
-    });
+    })
 })
 
 describe("The articles module", function () {
-    it("will keep an article updated from a content script", function (done) {
+    it("will save an article updated from a content script", function (done) {
         "use strict";
         fs.readFile(script, function (err, out) {
             try {
+                var existing_article = {
+                    article_data: {url: "abc.com", source: "test"},
+                    user_metadata: {dateRead: new Date().getTime(), source: "test"}
+                };
                 var message_handler;
                 context.chrome.runtime.onMessage.addListener.callsFake(function (callback) {
                     message_handler = callback;
                 });
+                context.getArticle.resolves(existing_article);
+                context.writeArticleData.callsFake(function () {
+                    return new Promise(function (resolve) {
+                        setTimeout(resolve, 10000);
+                    })
+                });
+
+                var user = {
+                    id: 1,
+                    articles: {}
+                }
+                context.getUser.withArgs(1).resolves(user);
+                var connect_listener;
+                context.chrome.runtime.onConnect.addListener.callsFake(function (listener) {
+                    console.log("Connection listener registered");
+                    connect_listener = listener;
+                });
                 vm.runInContext(out, context);
+                context.last_visited_url = "abc.com";
                 expect(Object.keys(context.current_articles).length).toBe(0);
                 expect(Object.keys(context.tab_urls).length).toBe(0);
-                context.writeArticleData.resolves({});
-                message_handler({
-                    type: "update_article",
-                    message: new context.Article({url: "abcdef.com"}, {dateRead: new Date().getTime()})
-                }, {tab: {id: 1, url: "abcdef.com"}}, function () {
-                    expect(context.writeArticleData.called).toBeTruthy();
-                    expect(Object.keys(context.current_articles).length).toBe(1);
-                    expect(Object.keys(context.tab_urls).length).toBe(1);
-                    done();
+
+                connect_listener(context.port);
+                context.port.onMessage.listeners.forEach(function (listener) {
+                    listener({
+                        type: "begun_scraping",
+                        message: "abc.com"
+                    });
                 });
+                context.port.onMessage.listeners.forEach(function (listener) {
+                    listener({
+                        type: "finished_scraping",
+                        message: {
+                            url: "abc.com",
+                            article: existing_article
+                        }
+                    });
+                });
+                console.log(context.current_articles);
+                context.current_articles["abc.com"].then(function (article) {
+                    expect(article).toEqual(existing_article);
+                    done();
+                })
             } catch (err) {
                 console.log(err);
             }
@@ -208,7 +256,7 @@ describe("The articles module", function () {
                 }, {tab: {id: 1, url: "abcdef.com"}}, function (response) {
                     expect(context.getArticle.calledWith("abcdef.com".hashCode())).toBeTruthy();
                     expect(context.getUser.calledWith(1)).toBeTruthy();
-                    expect(response).toEqual(existing_article);
+                    expect(JSON.stringify(response)).toEqual(JSON.stringify(existing_article));
                     done();
                 });
             } catch (err) {
@@ -300,7 +348,55 @@ describe("The articles module", function () {
                 }
                 context.getUser.withArgs(1).resolves(user);
                 var connect_listener;
-                var port_message_listener;
+                context.chrome.runtime.onConnect.addListener.callsFake(function (listener) {
+                    connect_listener = listener;
+                });
+                vm.runInContext(out, context);
+                context.last_visited_url = "abc.com";
+                expect(Object.keys(context.current_articles).length).toBe(0);
+                expect(Object.keys(context.tab_urls).length).toBe(0);
+
+                connect_listener(context.port);
+                context.port.onMessage.listeners.forEach(function (listener) {
+                    listener({
+                        type: "begun_scraping",
+                        message: "abc.com"
+                    });
+                });
+
+                expect(context.scraping_in_progress["abc.com"]).toBeTruthy();
+                done();
+            } catch (err) {
+                console.log(err);
+            }
+        })
+    });
+    it("will update the readers for an article the first time it is scraped", function (done) {
+        "use strict";
+        fs.readFile(script, function (err, out) {
+            try {
+                var existing_article = {
+                    article_data: {url: "abc.com", source: "test"},
+                    user_metadata: {dateRead: new Date().getTime(), source: "test"}
+                };
+                var message_handler;
+                context.chrome.runtime.onMessage.addListener.callsFake(function (callback) {
+                    message_handler = callback;
+                });
+                context.getArticle.resolves(existing_article);
+                context.writeArticleData.callsFake(function () {
+                    return new Promise(function (resolve) {
+                        setTimeout(resolve, 10000);
+                    })
+                });
+
+                var user = {
+                    id: 1,
+                    articles: {}
+                }
+                context.getUser.withArgs(1).resolves(user);
+                var connect_listener;
+                var port_message_listeners = [];
                 context.chrome.runtime.onConnect.addListener.callsFake(function (listener) {
                     console.log("Connection listener registered");
                     connect_listener = listener;
@@ -314,18 +410,108 @@ describe("The articles module", function () {
                     name: "scraper",
                     onMessage: {
                         addListener: sinon.stub().withArgs(sinon.match()).callsFake(function (listener) {
-                            port_message_listener = listener;
+                            console.log("Added port listener")
+                            port_message_listeners.push(listener);
+                        }),
+                        removeListener: sinon.stub().callsFake(function (listener) {
+                            port_message_listeners.slice(port_message_listeners.indexOf(listener))
                         })
                     }
                 };
                 connect_listener(context.port);
-                port_message_listener({
-                    type: "begun_scraping",
-                    message: "abc.com"
+                port_message_listeners.forEach(function (listener) {
+                    listener({
+                        type: "begun_scraping",
+                        message: "abc.com"
+                    });
                 });
-                
-                expect(context.scraping_in_progress["abc.com"]).toBeTruthy();
-                done();
+                port_message_listeners.forEach(function (listener) {
+                    listener({
+                        type: "finished_scraping",
+                        message: {
+                            url: "abc.com",
+                            article: existing_article
+                        }
+                    });
+                });
+                console.log(context.current_articles);
+                context.current_articles["abc.com"].then(function (article) {
+                    expect(article).toEqual(existing_article);
+                    done();
+                })
+            } catch (err) {
+                console.log(err);
+            }
+        })
+    });
+    it("will update the readers for an article after the first time it is scraped", function (done) {
+        "use strict";
+        fs.readFile(script, function (err, out) {
+            try {
+                var existing_article = {
+                    article_data: {url: "abc.com", source: "test"},
+                    user_metadata: {dateRead: new Date().getTime(), source: "test"}
+                };
+                var message_handler;
+                context.chrome.runtime.onMessage.addListener.callsFake(function (callback) {
+                    message_handler = callback;
+                });
+                context.getArticle.resolves(existing_article);
+                context.writeArticleData.callsFake(function () {
+                    return new Promise(function (resolve) {
+                        setTimeout(resolve, 10000);
+                    })
+                });
+
+                var user = {
+                    id: 1,
+                    articles: {}
+                }
+                context.getUser.withArgs(1).resolves(user);
+                var connect_listener;
+                var port_message_listeners = [];
+                context.chrome.runtime.onConnect.addListener.callsFake(function (listener) {
+                    console.log("Connection listener registered");
+                    connect_listener = listener;
+                });
+                vm.runInContext(out, context);
+                context.current_articles["abc.com"] = Promise.resolve(existing_article);
+                context.last_visited_url = "abc.com";
+                expect(Object.keys(context.current_articles).length).toBe(1);
+                expect(Object.keys(context.tab_urls).length).toBe(0);
+
+                context.port = {
+                    name: "scraper",
+                    onMessage: {
+                        addListener: sinon.stub().withArgs(sinon.match()).callsFake(function (listener) {
+                            console.log("Added port listener")
+                            port_message_listeners.push(listener);
+                        }),
+                        removeListener: sinon.stub().callsFake(function (listener) {
+                            port_message_listeners.slice(port_message_listeners.indexOf(listener))
+                        })
+                    }
+                };
+                connect_listener(context.port);
+                port_message_listeners.forEach(function (listener) {
+                    listener({
+                        type: "begun_scraping",
+                        message: "abc.com"
+                    });
+                });
+                port_message_listeners.forEach(function (listener) {
+                    listener({
+                        type: "finished_scraping",
+                        message: {
+                            url: "abc.com"
+                        }
+                    });
+                });
+                console.log(context.current_articles);
+                context.current_articles["abc.com"].then(function (article) {
+                    expect(article).toEqual(existing_article);
+                    done();
+                })
             } catch (err) {
                 console.log(err);
             }

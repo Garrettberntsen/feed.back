@@ -101,6 +101,7 @@ function addCurrentuserToArticleReaders(article) {
             article.article_data.readers = {};
         }
         article.article_data.readers[user.id] = true;
+        console.log("Added article reader");
         return article;
     }, function (reason) {
         "use strict";
@@ -114,8 +115,9 @@ chrome.runtime.onConnect.addListener(function (port) {
             port.onMessage.addListener(function (message) {
                 switch (message.type) {
                     case "begun_scraping":
+                        console.log("Begun scraping");
                         scraping_in_progress[reduceUrl(message.message)] = true;
-                        current_articles[reduceUrl(message.message)] = new Promise(function (resolve, reject) {
+                        var scrapeResult = new Promise(function (resolve, reject) {
                             if (!debug) {
                                 var timeout = setTimeout(function () {
                                     "use strict";
@@ -125,28 +127,55 @@ chrome.runtime.onConnect.addListener(function (port) {
                             var scrapingCompletionHandler = function (message) {
                                 "use strict";
                                 var url = reduceUrl(message.message.url);
+                                console.log("Scraping completion handler called");
                                 if (message.type === "finished_scraping") {
                                     clearTimeout(timeout);
-                                    addCurrentuserToArticleReaders(message.message.article).then(function (article) {
-                                        delete scraping_in_progress[url];
-                                        if (message.message.error) {
-                                            reject(message.message.error);
-                                        }
-                                        if (article) {
-                                            resolve(article);
-                                            Promise.all([current_articles[reduceUrl(article.article_data.url)], current_user])
-                                                .then(function (resolved) {
-                                                    "use strict";
-                                                    writeArticleData(resolved[0], resolved[1]);
-                                                })
-                                        }
-                                    });
+                                    if (message.message.article) {
+                                        addCurrentuserToArticleReaders(message.message.article).then(function (article) {
+                                                delete scraping_in_progress[url];
+                                                if (message.message.error) {
+                                                    reject(message.message.error);
+                                                }
+                                                if (article) {
+                                                    console.log("Resolving with scraped article for " + reduceUrl(message.message.url));
+                                                    resolve(article);
+                                                    Promise.all([current_articles[reduceUrl(article.article_data.url)], current_user])
+                                                        .then(function (resolved) {
+                                                            "use strict";
+                                                            writeArticleData(resolved[0], resolved[1]);
+                                                        })
+                                                } else {
+                                                    console.log("Scraping finished without an article definition");
+                                                    reject();
+                                                }
+                                            },
+                                            function (reason) {
+                                                reject(reason);
+                                            });
+                                    } else {
+                                        console.log("Article already scraped.");
+                                        Promise.all([current_articles[url].then(function (article) {
+                                            console.log("Added user to article")
+                                            return addCurrentuserToArticleReaders(article);
+                                        }), current_user]).then(function (resolved) {
+                                            resolve(resolved[0]);
+                                            writeArticleData(resolved[0], resolved[1]);
+                                        });
+                                    }
                                     port.onMessage.removeListener(scrapingCompletionHandler);
                                 }
                             }
 
                             port.onMessage.addListener(scrapingCompletionHandler);
                         });
+                        if(current_articles[message.message]){
+                            current_articles[message.message].then(function(){
+                                "use strict";
+                                return scrapeResult;
+                            });
+                        } else {
+                            current_articles[message.message] = scrapeResult;
+                        }
                 }
             });
             break;
