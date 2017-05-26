@@ -112,6 +112,7 @@ function triggerGoogleAnalyticsEvent(event) {
         ga("send", event);
         return true;
     }).catch(function (err) {
+        console.error(err);
         throw err;
     });
 }

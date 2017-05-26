@@ -131,6 +131,7 @@ describe("The analytics", function () {
                     eventCategory: "category",
                     eventAction: "action"
                 }).then(function (response) {
+                }, function (reason) {
                     expect(context.ga.threw).toBeTruthy();
                     done();
                 });
@@ -148,6 +149,7 @@ describe("The analytics", function () {
                     hitType: "event",
                     eventAction: "action"
                 }).then(function (response) {
+                }, function (reason) {
                     expect(context.ga.threw).toBeTruthy();
                     done();
                 });
@@ -164,7 +166,8 @@ describe("The analytics", function () {
                 context.triggerGoogleAnalyticsEvent({
                     eventCategory: "category",
                     hitType: "event"
-                }).then(function (response) {
+                }).then(function () {
+                }, function (response) {
                     expect(context.ga.threw).toBeTruthy();
                     done();
                 });
