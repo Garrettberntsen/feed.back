@@ -28,6 +28,7 @@ beforeEach(function () {
     "use strict";
     context = vm.createContext({
         console: console,
+        triggerGoogleAnalyticsEvent: sinon.stub(),
         chrome: {
             runtime: {
                 onMessage: {
@@ -53,7 +54,6 @@ beforeEach(function () {
             }
         },
         reduceUrl: sinon.stub().callsFake(function (url) {
-            console.log("Reducing " + url);
             return url;
         }),
         current_user: Promise.resolve({
@@ -65,9 +65,9 @@ beforeEach(function () {
         setUser: sinon.spy(),
         writeArticleData: sinon.stub(),
         sources: {
-            "test" : {
-                url : "abcdef.com",
-                testForArticleUrlMatch: function(url){
+            "test": {
+                urls: [{urlRoot: "abcdef.com"}],
+                testForArticleUrlMatch: function (url) {
                     return this.url == url;
                 }
             }
@@ -87,6 +87,7 @@ describe("The articles module", function () {
                 vm.runInContext(out, context);
                 expect(Object.keys(context.current_articles).length).toBe(0);
                 expect(Object.keys(context.tab_urls).length).toBe(0);
+                context.writeArticleData.resolves({});
                 message_handler({
                     type: "update_article",
                     message: new context.Article({url: "abcdef.com"}, {dateRead: new Date().getTime()})
@@ -143,10 +144,9 @@ describe("The articles module", function () {
                     type: "update_article",
                     message: new context.Article({url: "abcdef.com"}, {dateRead: new Date().getTime()})
                 }, {}, function (response) {
-                    console.log("Response received: " + response);
                     expect(Object.keys(context.current_articles).length).toBe(0);
                     expect(Object.keys(context.tab_urls).length).toBe(0);
-                    expect(response).toBe("An error occurred while attempting to save the article.");
+                    expect(response).toBe("An error occurred while attempting to save the article: something");
                     done();
                 });
             } catch (err) {
@@ -216,7 +216,7 @@ describe("The articles module", function () {
             }
         })
     });
-    it("will respond with an empty response to a request from a content script for a url that is not an article", function (done) {
+    it("will respond with an efmpty response to a request from a content script for a url that is not an article", function (done) {
         "use strict";
         fs.readFile(script, function (err, out) {
             try {
@@ -229,8 +229,7 @@ describe("The articles module", function () {
                     id: 1,
                     articles: {}
                 }
-                context.getUser.withArgs(1).callsFake(function(id){
-                    console.log("getUser was called");
+                context.getUser.withArgs(1).callsFake(function (id) {
                     return Promise.resolve(user);
                 });
                 vm.runInContext(out, context);
@@ -268,8 +267,6 @@ describe("The articles module", function () {
                 message_handler({
                     type: "getCurrentArticle"
                 }, {}, function (response) {
-                    expect(context.getArticle.calledWith("abc.com".hashCode())).toBeTruthy();
-                    expect(context.getUser.calledWith(1)).toBeTruthy();
                     expect(response).toBeFalsy();
                     done();
                 });
@@ -291,34 +288,44 @@ describe("The articles module", function () {
                     message_handler = callback;
                 });
                 context.getArticle.resolves(existing_article);
-                context.writeArticleData.callsFake(function(){
-                    return new Promise(function(resolve){
+                context.writeArticleData.callsFake(function () {
+                    return new Promise(function (resolve) {
                         setTimeout(resolve, 10000);
                     })
                 });
 
                 var user = {
-                    id:1,
+                    id: 1,
                     articles: {}
                 }
                 context.getUser.withArgs(1).resolves(user);
+                var connect_listener;
+                var port_message_listener;
+                context.chrome.runtime.onConnect.addListener.callsFake(function (listener) {
+                    console.log("Connection listener registered");
+                    connect_listener = listener;
+                });
                 vm.runInContext(out, context);
                 context.last_visited_url = "abc.com";
                 expect(Object.keys(context.current_articles).length).toBe(0);
                 expect(Object.keys(context.tab_urls).length).toBe(0);
-                message_handler({
-                    type: "update_article",
-                    message: existing_article
-                }, {tab: {id: 1, url: "abc.com"}}, function (response) {
-                    expect(context.writeArticleData.called).toBeTruthy();
-                    expect(response).toBeFalsy();
+
+                context.port = {
+                    name: "scraper",
+                    onMessage: {
+                        addListener: sinon.stub().withArgs(sinon.match()).callsFake(function (listener) {
+                            port_message_listener = listener;
+                        })
+                    }
+                };
+                connect_listener(context.port);
+                port_message_listener({
+                    type: "begun_scraping",
+                    message: "abc.com"
                 });
-                message_handler({
-                    type: "getCurrentArticle"
-                }, {}, function(response){
-                    expect(context.writeArticleData.called).toBeTruthy();
-                    done();
-                });
+                
+                expect(context.scraping_in_progress["abc.com"]).toBeTruthy();
+                done();
             } catch (err) {
                 console.log(err);
             }
