@@ -40,7 +40,6 @@ chrome.identity.onSignInChanged.addListener(function(){
             if(!userInfo.id){
                 var message = "It looks like you aren't logged in to Google.";
                 console.error(message);
-                alert(message);
                 reject(message);
             }
             resolve(userInfo);
