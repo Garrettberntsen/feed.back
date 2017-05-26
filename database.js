@@ -46,8 +46,12 @@ function initializeFirebase() {
 }
 var _firebase = initializeFirebase();
 //When signin changes, reauthenticate firebase.
-chrome.identity.onSignInChanged.addListener(function () {
-    _firebase = initializeFirebase();
+chrome.identity.onSignInChanged.addListener(function (accountInfo, signedIn) {
+    if(signedIn) {
+        _firebase = initializeFirebase();
+    } else {
+        _firebase = Promise.reject("User is not authenticated.");
+    }
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
