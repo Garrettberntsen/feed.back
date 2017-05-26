@@ -46,37 +46,41 @@ function resolveArticleForUrl(url) {
     }
     "use strict";
     return Promise.resolve(current_articles[url]).then(function (current_article) {
-            if (Object.keys(sources).find(function (source_name) {
-                    return sources[source_name].testForArticleUrlMatch(url);
-                }) == "tutorial") {
-                current_article = new Article(
-                    new ArticleData(url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
-                    new UserMetadata(new Date().getTime(), "tutorial")
-                );
-            }
-            else if (!current_article) {
-                current_articles[url] = new Promise(function (resolve, reject) {
-                    current_user.then(function (user) {
-                        Promise.all([
-                            getArticle(url.hashCode()),
-                            getUser(user.id)]).then(function (resolved) {
-                            if (resolved[0]) {
-                                var article_data = resolved[0];
-                                var hashCode = url.hashCode();
-                                var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
-                                resolve(new Article(article_data, user_metadata));
-                            } else {
-                                resolve(null);
-                            }
-                        }, function (error) {
-                            console.log(error);
-                            reject("There was an error resolving the article and user from firebase");
+            try {
+                if (Object.keys(sources).find(function (source_name) {
+                        return sources[source_name].testForArticleUrlMatch(url);
+                    }) == "tutorial") {
+                    current_article = new Article(
+                        new ArticleData(url, "tutorial", "Feedback - How To", null, ["The Feedback Team"]),
+                        new UserMetadata(new Date().getTime(), "tutorial")
+                    );
+                }
+                else if (!current_article) {
+                    current_articles[url] = new Promise(function (resolve, reject) {
+                        current_user.then(function (user) {
+                            Promise.all([
+                                getArticle(url.hashCode()),
+                                getUser(user.id)]).then(function (resolved) {
+                                if (resolved[0]) {
+                                    var article_data = resolved[0];
+                                    var hashCode = url.hashCode();
+                                    var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
+                                    resolve(new Article(article_data, user_metadata));
+                                } else {
+                                    resolve(null);
+                                }
+                            }, function (error) {
+                                console.log(error);
+                                reject("There was an error resolving the article and user from firebase");
+                            });
                         });
                     });
-                });
-                current_article = current_articles[url];
+                    current_article = current_articles[url];
+                }
+                return current_article;
+            } catch (err) {
+                console.error(err);
             }
-            return current_article;
         },
         function (reason) {
             console.error("There was an error resolving an article for url " + url + ": " + reason);
@@ -84,10 +88,25 @@ function resolveArticleForUrl(url) {
                 hitType: "exception",
                 exDescription: reason
             });
-        })
+        }
+    )
 }
 
 debug = true
+
+function addCurrentuserToArticleReaders(article) {
+    return current_user.then(function (user) {
+        "use strict";
+        if (!article.article_data.readers) {
+            article.article_data.readers = {};
+        }
+        article.article_data.readers[user.id] = true;
+        return article;
+    }, function (reason) {
+        "use strict";
+        console.error("Failed to resolve current user while trying to update article readers: " + reason);
+    });
+}
 
 chrome.runtime.onConnect.addListener(function (port) {
     switch (port.name) {
@@ -108,18 +127,20 @@ chrome.runtime.onConnect.addListener(function (port) {
                                 var url = reduceUrl(message.message.url);
                                 if (message.type === "finished_scraping") {
                                     clearTimeout(timeout);
-                                    delete scraping_in_progress[url];
-                                    if (message.message.error) {
-                                        reject(message.message.error);
-                                    }
-                                    if (message.message) {
-                                        resolve(message.message.article);
-                                        Promise.all([current_articles[reduceUrl(message.message.url)], current_user])
-                                            .then(function (resolved) {
-                                                "use strict";
-                                                writeArticleData(resolved[0], resolved[1]);
-                                            })
-                                    }
+                                    addCurrentuserToArticleReaders(message.message.article).then(function (article) {
+                                        delete scraping_in_progress[url];
+                                        if (message.message.error) {
+                                            reject(message.message.error);
+                                        }
+                                        if (article) {
+                                            resolve(article);
+                                            Promise.all([current_articles[reduceUrl(article.article_data.url)], current_user])
+                                                .then(function (resolved) {
+                                                    "use strict";
+                                                    writeArticleData(resolved[0], resolved[1]);
+                                                })
+                                        }
+                                    });
                                     port.onMessage.removeListener(scrapingCompletionHandler);
                                 }
                             }
@@ -153,20 +174,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
             if (current_articles[request.message.article_data.url]) {
+                console.log("Promise already exists for " + request.message.article_data.url);
                 current_articles[request.message.article_data.url] = current_articles[request.message.article_data.url].then(function () {
                     return request.message;
+                }, function (reason) {
+                    console.error("Failed to resolve article for " + request.message.article_data.url + ": " + reason);
                 });
             } else {
+                console.log("Creating new promise for " + request.message.article_data.url);
                 current_articles[request.message.article_data.url] = Promise.resolve(request.message);
             }
-
-            current_user.then(function (user) {
-                if(Object.keys(request.message.article_data.readers).indexOf(user.id) === -1){
-                    request.message.article_data.readers[user.id] = true;
-                }
+            return addCurrentuserToArticleReaders(request.message).then(function (user) {
                 return writeArticleData(request.message, user);
-            }, function (err) {
-                console.error(err);
+            }, function (reason) {
                 triggerGoogleAnalyticsEvent({
                     hitType: "exception",
                     exDescription: err
@@ -178,13 +198,27 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     }
                 }
                 delete current_articles[request.message.article_data.url];
-                sendResponse("An error occurred while attempting to save the article.");
+                sendResponse("An error occurred while attempting to save the article: " + reason);
             }).then(function () {
                 sendResponse();
+            }, function (err) {
+                console.error("An error occured while writing article data: " + err);
+                triggerGoogleAnalyticsEvent({
+                    hitType: "exception",
+                    exDescription: err
+                });
+                if (sender.tab) {
+                    tab_urls[sender.tab.id] = tab_urls[sender.tab.id].splice(tab_urls[sender.tab.id].indexOf(request.message.article_data.url));
+                    if (!tab_urls[sender.tab.id].length) {
+                        delete tab_urls[sender.tab.id];
+                    }
+                }
+                delete current_articles[request.message.article_data.url];
+                sendResponse("An error occurred while attempting to save the article: " + err);
             });
             return true;
         }
-        case "getCurrentArticle":
+        case "getCurrentArticle" :
         {
             var request_start_time = new Date().getTime();
             var sourceName = Object.keys(sources).find(function (sourceName) {
@@ -206,6 +240,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                         console.log("Sending article response");
                         console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
                         sendResponse(article);
+                    }, function (err) {
+                        console.error(err);
+                        triggerGoogleAnalyticsEvent({
+                            hitType: "exception",
+                            exDescription: err
+                        });
+                        sendResponse("There was an error resolving the article");
                     });
                 } else {
                     var resolution = resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
@@ -224,14 +265,18 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             return true;
         }
-        case "updateScrollMetric":
+        case
+        "updateScrollMetric"
+        :
         {
             current_articles[reduceUrl(sender.tab.url)].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
         }
-        case "getAverageRating":
+        case
+        "getAverageRating"
+        :
         {
             Promise.resolve(current_articles[request.message]).then(function (article) {
                 calculateAverageRatingForArticle(request.message).then(function (rating) {
@@ -242,7 +287,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             return true;
         }
         case
-        "getAverageLean":
+        "getAverageLean"
+        :
         {
             calculateAverageLeanForArticle(request.message).then(function (rating) {
                 "use strict";
@@ -263,7 +309,9 @@ function calculateAverageRatingForArticle(url) {
             if (article.article_data.readers) {
                 return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
                     return getUser(reader_id);
-                })).then(function (readers) {
+                })).catch(function (reason) {
+                    console.error("There was an error resolving the article readers.");
+                }).then(function (readers) {
                     return readers.map(function (reader) {
                         return reader.articles[article_id].stars;
                     })
@@ -304,7 +352,9 @@ function calculateAverageLeanForArticle(url) {
             if (article.article_data.readers) {
                 return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
                     return getUser(reader_id);
-                })).then(function (readers) {
+                })).catch(function (reason) {
+                    console.error(reason);
+                }).then(function (readers) {
                     return readers.map(function (reader) {
                         return reader.articles[article_id].lean;
                     })
@@ -423,10 +473,12 @@ function persistArticle(url) {
     //Persist the current article as we navigate away
     Promise.all([current_articles[reduceUrl(url)], current_user]).then(function (resolved) {
         if (resolved[0]) {
-            writeArticleData(resolved[0], resolved[1]);
+            return writeArticleData(resolved[0], resolved[1]);
         }
     }, function (reason) {
         console.error(reason);
+    }).catch(function (reason) {
+        console.error("There was an error persisting the articles: " + reason);
     });
 }
 
@@ -472,6 +524,9 @@ function writeArticleData(article, chrome_user) {
                 }
                 console.log("feed.back data written to firebase!");
             }
+        }, function (reason) {
+            "use strict";
+            console.error("Failed to resolve an article or user: " + reason);
         }).catch(function (reason) {
             "use strict";
             console.error(reason);
