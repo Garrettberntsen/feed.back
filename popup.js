@@ -274,15 +274,17 @@ function refreshDisplayedArticle(article) {
 
         //Keep track of any notes that user adds. When pressed, update the userData object.
         $("#notes-area").keyup(function () {
-            chrome.runtime.sendMessage({
-                type: "analytics",
-                message: {
-                    hitType: "event",
-                    command: "send",
-                    eventCategory: "User Action",
-                    eventAction: "Article Notes Set"
-                }
-            });
+            if ($("#notes-area").val().trim()) {
+                chrome.runtime.sendMessage({
+                    type: "analytics",
+                    message: {
+                        hitType: "event",
+                        command: "send",
+                        eventCategory: "User Action",
+                        eventAction: "Article Notes Set"
+                    }
+                });
+            }
             article.user_metadata.notes = $("#notes-area").val();
             console.log(article.user_metadata);
             chrome.runtime.sendMessage({
@@ -296,15 +298,17 @@ function refreshDisplayedArticle(article) {
             //Update userData.tags when a tag is removed
             onTagRemove: function (event, tag) {
                 article.user_metadata.tags = articleTags.getTagValues()
-                chrome.runtime.sendMessage({
-                    type: "analytics",
-                    message: {
-                        hitType: "event",
-                        command: "send",
-                        eventCategory: "User Action",
-                        eventAction: "Article Tags Set"
-                    }
-                });
+                if (article.user_metadata.tags.length) {
+                    chrome.runtime.sendMessage({
+                        type: "analytics",
+                        message: {
+                            hitType: "event",
+                            command: "send",
+                            eventCategory: "User Action",
+                            eventAction: "Article Tags Set"
+                        }
+                    });
+                }
                 chrome.runtime.sendMessage({
                     type: "update_article",
                     message: article
@@ -560,16 +564,16 @@ function addTrackThisQuestion() {
             }
         });
     })
-  
+
     trackElem.appendChild(question);
     trackElem.appendChild(btn);
 
-    function acknowledgeSent(){
+    function acknowledgeSent() {
         //A little silly - but this creates a random number between one and two seconds long 
         //to fake doing something in the background.
         var randomWaitTime = Math.floor(Math.random() * (2000 - 500)) + 500;
         btn.className += " is-loading";
-        setTimeout(function(){
+        setTimeout(function () {
             btn.className = "dashboard-button button is-primary is-large is-news has-text-centered";
             var btnTextSent = "Got it! Thanks! &#128077";
             btn.innerHTML = btnTextSent;
