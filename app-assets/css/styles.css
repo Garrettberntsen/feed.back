@@ -44,8 +44,14 @@ h1   { font-size: 5.0rem; } /* =50px */
 }
 
 .card__image {
-  max-height: 450px;
+  height: 100%;
+  width: 100%;
+
   margin: 1rem;
+}
+
+.card__image--tall {
+  max-width: 400px;
 }
 
 .card__image-container {
@@ -63,4 +69,8 @@ h1   { font-size: 5.0rem; } /* =50px */
   background: -webkit-linear-gradient(45deg, #c21500, #ffc500);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.user-info--hidden {
+  visibility: hidden;
 }
