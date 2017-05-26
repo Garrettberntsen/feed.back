@@ -1,0 +1,9 @@
+{
+  "spec_dir":"spec",
+  "spec_files" : [
+    "analytics.Spec.js",
+    "articles.Spec.js",
+    "database.Spec.js",
+    "history.Spec.js"
+  ]
+}
