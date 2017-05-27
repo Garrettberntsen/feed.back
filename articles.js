@@ -609,3 +609,41 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
         updateLastVisited(tabId, changeInfo);
     }
 });
+
+function writeArticleData(article, user) {
+    if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
+        if (!article) {
+            console.log("writeArticleData null article passed.");
+        } else {
+            if (!article.article_data) {
+                console.log("writeArticleData was called with no data.");
+            } else {
+                if (!article_data.url) {
+                    console.log("writeArticleData called without defined url");
+                }
+
+                if (!article.user_metadata.dateRead) {
+                    console.log("writeArticleData date read not set");
+                }
+            }
+        }
+
+        return;
+    }
+    var article_data = article.article_data;
+
+    var article_key = article_data.url.hashCode();
+
+    //Check if the article has already been scraped or the new record is not a partial record.
+    getArticle(article_key).then(function (article) {
+        if (!article || !article.article_data.partialRecord) {
+            setArticle(article_key, article_data)
+        }
+    });
+    getUser(user.id).then(function (firebase_user) {
+        "use strict";
+        firebase_user.email = user.email;
+        setUser(user.id, firebase_user);
+    })
+    console.log("feed.back data written to firebase!");
+}
