@@ -30,7 +30,8 @@ beforeEach(function () {
     firebase = {
         database: sinon.stub().returns(firebase_database),
         initializeApp: sinon.stub(),
-        auth: sinon.stub()
+        auth: sinon.stub(),
+        apps: []
     };
 
     firebase.auth.GoogleAuthProvider = {
@@ -47,8 +48,15 @@ beforeEach(function () {
         current_user: Promise.resolve({}),
         chrome: {
             runtime: {
-                onMessage: function () {
+                onMessage: {
+                    addListener: sinon.stub()
                 }
+            },
+            identity: {
+                onSignInChanged: {
+                    addListener: sinon.stub()
+                },
+                getAuthToken: sinon.stub()
             }
         }
     });
