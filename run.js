@@ -168,52 +168,49 @@ function updateScrollRatio(url) {
 var port;
 
 function pageUrlChange(new_url) {
+    port = chrome.runtime.connect({
+        name:"scraper"
+    });
     chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (existing_article) {
-        if (!existing_article || (existing_article.article_data && existing_article.article_data.partialRecord)) {
-            scraping = true;
-            port = chrome.runtime.connect(chrome.runtime.id, {name: "scraper"});
-            port.postMessage({
-                type: "begun_scraping",
-                message: window.location.href
+        encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
+            return new_url == e.url;
+        });
+        if (encountered_urls.current_index == -1) {
+            var scroll_ratio = existing_article && existing_article.user_metadata && existing_article.user_metadata.scrolled_content_ratio ? existing_article.user_metadata.scrolled_content_ratio : 0;
+            encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
+            encountered_urls.current_index = encountered_urls.length - 1;
+        }
+        sources.then(function (sources) {
+            var source_name = Object.keys(sources).find(function (source_name) {
+                if (sources[source_name].urls.find(function (source_url_definition) {
+                        return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
+                    })) {
+                    return source_name;
+                }
             });
-            encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
-                return new_url == e.url;
-            });
-            if (encountered_urls.current_index == -1) {
-                var scroll_ratio = existing_article && existing_article.user_metadata && existing_article.user_metadata.scrolled_content_ratio ? existing_article.user_metadata.scrolled_content_ratio : 0;
-                encountered_urls.push({url: new_url, scroll_ratio: scroll_ratio});
-                encountered_urls.current_index = encountered_urls.length - 1;
-            }
-            sources.then(function (sources) {
-                var source_name = Object.keys(sources).find(function (source_name) {
-                    if (sources[source_name].urls.find(function (source_url_definition) {
-                            return window.location.href.indexOf(source_url_definition.urlRoot) !== -1;
-                        })) {
-                        return source_name;
+            if (source_name) {
+                chrome.runtime.sendMessage({type: "incrementReadCount"});
+                chrome.runtime.sendMessage({
+                    type: "getSourceUrlMatches",
+                    message: {
+                        location: window.location.href,
+                        source_name: source_name
                     }
-                });
-                if (source_name) {
-                    chrome.runtime.sendMessage({type: "incrementReadCount"});
-                    chrome.runtime.sendMessage({
-                        type: "getSourceUrlMatches",
-                        message: {
-                            location: window.location.href,
-                            source_name: source_name
-                        }
-                    }, function (response) {
-                        if (response) {
-                            encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
-                            encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
-                            //If content_element_selector contains multiple elements, get the last
-                            if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
-                                $(document).scroll(updateScrollRatio);
+                }, function (response) {
+                    if (response) {
+                        encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
+                        encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
+                        //If content_element_selector contains multiple elements, get the last
+                        if ($(encountered_urls[encountered_urls.current_index].content_element_selector).length) {
+                            $(document).scroll(updateScrollRatio);
+                        } else {
+                            if (!source_name) {
+                                console.log("No source description was found for this url");
                             } else {
-                                if (!source_name) {
-                                    console.log("No source description was found for this url");
-                                } else {
-                                    console.log("No content element could be found with selector " + sources[source_name].content_element_selector)
-                                }
+                                console.log("No content element could be found with selector " + sources[source_name].content_element_selector)
                             }
+                        }
+                        if (!existing_article || (existing_article.article_data && existing_article.article_data.partialRecord)) {
                             scrapePage(existing_article, new_url).then(function (article) {
                                 "use strict";
                                 updateScrollRatio(new_url);
@@ -223,20 +220,20 @@ function pageUrlChange(new_url) {
                                 })
                             });
                         }
-                    });
-                }
-            }).catch(function (error) {
-                "use strict";
-                console.error(error);
-                port.postMessage({
-                    type: "finished_scraping",
-                    message: {
-                        error: error
                     }
-                });
+                })
+            }
+        }).catch(function (error) {
+            "use strict";
+            console.error(error);
+            port.postMessage({
+                type: "finished_scraping",
+                message: {
+                    error: error
+                }
             });
-        }
-    })
+        });
+    });
 }
 
 chrome.runtime.onMessage.addListener(function (message) {
