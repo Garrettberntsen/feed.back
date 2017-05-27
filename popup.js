@@ -218,7 +218,7 @@ function refreshDisplayedArticle(article) {
                     $("#avg-lean").text(value);
                     setLeanColor(value);
                 } else {
-                    article.user_metadata.lean = $('#leanRating').val();
+                    article.user_metadata.lean = value;
                     chrome.runtime.sendMessage({
                         type: "update_article",
                         message: article
@@ -251,7 +251,7 @@ function refreshDisplayedArticle(article) {
                 if ($("#title").text() === "Feedback - How To") {
                     $("#avg-rating").text(value);
                 } else {
-                    article.user_metadata.stars = $('#starRating').val();
+                    article.user_metadata.stars = value;
                     chrome.runtime.sendMessage({
                         type: "update_article",
                         message: article

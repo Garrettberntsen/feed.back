@@ -208,13 +208,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     return request.message;
                 }, function (reason) {
                     console.error("Failed to resolve article for " + request.message.article_data.url + ": " + reason);
+                }).then(function (article) {
+                    sendResponse(true);
                 });
             } else {
                 console.log("Creating new promise for " + request.message.article_data.url);
                 current_articles[request.message.article_data.url] = Promise.resolve(request.message);
             }
-            return addCurrentuserToArticleReaders(request.message).then(function (user) {
-                return writeArticleData(request.message, user);
+            Promise.all([addCurrentuserToArticleReaders(request.message), current_user]).then(function (resolved) {
+                return writeArticleData(request.message, resolved[1]);
             }, function (reason) {
                 triggerGoogleAnalyticsEvent({
                     hitType: "exception",
@@ -298,6 +300,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         "updateScrollMetric":
         {
             current_articles[reduceUrl(sender.tab.url)].then(function (article) {
+                if (!article.user_metadata) {
+                    var message = "The article definition for " + sender.tab.url + " had no user metadata somehow.";
+                    console.warning(message);
+                    article.user_metadata = {};
+                    analytics.then(function () {
+                        triggerGoogleAnalyticsEvent({
+                            hitType: "exception",
+                            exDescription: message
+                        });
+                    })
+                }
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
@@ -526,61 +539,6 @@ function persistArticle(url) {
     });
 }
 
-function writeArticleData(article, chrome_user) {
-    if (!article) {
-        console.log("writeArticleData null article passed.");
-    } else {
-        if (!article.article_data) {
-            console.log("writeArticleData was called with no data.");
-        } else {
-            if (!article.article_data.url) {
-                console.log("writeArticleData called without defined url");
-            }
-
-            if (!article.user_metadata || !article.user_metadata.dateRead) {
-                console.log("writeArticleData date read not set");
-            }
-        }
-
-        return;
-    }
-    var article_data = article.article_data;
-
-    var article_key = article_data.url.hashCode();
-
-//Check if the article has already been scraped or the new record is not a partial record.
-    return Promise.all([getArticle(article_key), getUser(chrome_user.id)])
-        .then(function (resolved) {
-            var existing_article = resolved[0];
-            var user = resolved[1];
-            if (!existing_article || !article_data.partialRecord) {
-                triggerGoogleAnalyticsEvent(
-                    {
-                        hitType: "event",
-                        eventCategory: "Scraping",
-                        eventAction: "New page scraped"
-                    }
-                )
-                setArticle(article_key, article_data);
-                if (article.user_metadata) {
-                    user.articles[article_key] = article.user_metadata;
-                    setUser(chrome_user.id, user);
-                }
-                console.log("feed.back data written to firebase!");
-            }
-        }, function (reason) {
-            "use strict";
-            console.error("Failed to resolve an article or user: " + reason);
-        }).catch(function (reason) {
-            "use strict";
-            console.error(reason);
-            triggerGoogleAnalyticsEvent({
-                hitType: "exception",
-                exDescription: reason
-            })
-        });
-}
-
 chrome.tabs.onRemoved.addListener(function (tabId, changeInfo) {
     "use strict";
     if (tab_urls[tabId]) {
@@ -635,15 +593,21 @@ function writeArticleData(article, user) {
     var article_key = article_data.url.hashCode();
 
     //Check if the article has already been scraped or the new record is not a partial record.
-    getArticle(article_key).then(function (article) {
-        if (!article || !article.article_data.partialRecord) {
-            setArticle(article_key, article_data)
+    return Promise.all([getArticle(article_key).then(function (article) {
+        if (!article || !article_data.partialRecord) {
+            return setArticle(article_key, article_data)
         }
-    });
-    getUser(user.id).then(function (firebase_user) {
+    }), getUser(user.id).then(function (firebase_user) {
         "use strict";
         firebase_user.email = user.email;
-        setUser(user.id, firebase_user);
+        if (!firebase_user.articles) {
+            firebase_user.articles = {};
+        }
+        firebase_user.articles[article_key] = article.user_metadata;
+        return setUser(user.id, firebase_user);
+    })]).then(function () {
+        "use strict";
+        console.log("feed.back data written to firebase!");
     })
-    console.log("feed.back data written to firebase!");
+
 }
