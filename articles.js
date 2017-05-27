@@ -168,8 +168,8 @@ chrome.runtime.onConnect.addListener(function (port) {
 
                             port.onMessage.addListener(scrapingCompletionHandler);
                         });
-                        if(current_articles[message.message]){
-                            current_articles[message.message].then(function(){
+                        if (current_articles[message.message]) {
+                            current_articles[message.message].then(function () {
                                 "use strict";
                                 return scrapeResult;
                             });
@@ -295,17 +295,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             return true;
         }
         case
-        "updateScrollMetric"
-        :
+        "updateScrollMetric":
         {
             current_articles[reduceUrl(sender.tab.url)].then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
         }
-        case
-        "getAverageRating"
-        :
+        case"getAverageRating":
         {
             Promise.resolve(current_articles[request.message]).then(function (article) {
                 calculateAverageRatingForArticle(request.message).then(function (rating) {
@@ -315,15 +312,22 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             })
             return true;
         }
-        case
-        "getAverageLean"
-        :
+        case "getAverageLean":
         {
             calculateAverageLeanForArticle(request.message).then(function (rating) {
                 "use strict";
                 sendResponse(rating);
             })
             return true;
+        }
+        case "forcePersist":
+        {
+            for (var tabId of Object.keys(tab_urls)) {
+                for (var url of tab_urls[tabId]) {
+                    persistArticle(url);
+                }
+            }
+            break;
         }
     }
 })
@@ -437,6 +441,15 @@ function updateLastVisited(tabId, changeInfo) {
     "use strict";
     chrome.tabs.get(tabId, function (tab) {
         last_visited_url = reduceUrl(tab.url);
+        if (tab_urls[tabId]) {
+            if (!tab_urls[tabId].find(function (url) {
+                    return url === tab.url;
+                })) {
+                tab_urls[tabId].push(tab.url);
+            }
+        } else {
+            tab_urls[tabId] = [tab.url];
+        }
     });
 }
 
@@ -445,7 +458,9 @@ function tabUpdateHandler(tabId, changeInfo) {
         //If the tab is loading, clear it
         if (changeInfo.status == "loading") {
             disposeArticles(tabId);
-            persistArticle(reduceUrl(changeInfo.url));
+            for (var url in tab_urls[tabId]) {
+                persistArticle(reduceUrl(url));
+            }
         }
         if (changeInfo.url) {
             //Try to find an existing entry for a new url
@@ -500,7 +515,7 @@ function UserMetadata(dateRead, source, lean, stars, tags, notes) {
 function persistArticle(url) {
     "use strict";
     //Persist the current article as we navigate away
-    Promise.all([current_articles[reduceUrl(url)], current_user]).then(function (resolved) {
+    return Promise.all([current_articles[reduceUrl(url)], current_user]).then(function (resolved) {
         if (resolved[0]) {
             return writeArticleData(resolved[0], resolved[1]);
         }

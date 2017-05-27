@@ -1,4 +1,8 @@
 /*jshint esversion: 6 */
+chrome.runtime.sendMessage({type: "forcePersist"}, function(){
+    "use strict";
+    console.log("Force pesist.");
+});
 chrome.runtime.sendMessage({type: "getUser"}, function (user) {
     chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
         firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
@@ -672,3 +676,4 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
         });
     });
 });
+
