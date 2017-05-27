@@ -299,18 +299,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case
         "updateScrollMetric":
         {
-            current_articles[reduceUrl(sender.tab.url)].then(function (article) {
-                if (!article.user_metadata) {
-                    var message = "The article definition for " + sender.tab.url + " had no user metadata somehow.";
-                    console.warning(message);
-                    article.user_metadata = {};
-                    analytics.then(function () {
-                        triggerGoogleAnalyticsEvent({
-                            hitType: "exception",
-                            exDescription: message
-                        });
-                    })
-                }
+            Promise.resolve(current_articles[reduceUrl(sender.tab.url)]).then(function (article) {
                 article.user_metadata.scrolled_content_ratio = request.message;
             });
             break;
@@ -458,10 +447,10 @@ function updateLastVisited(tabId, changeInfo) {
             if (!tab_urls[tabId].find(function (url) {
                     return url === tab.url;
                 })) {
-                tab_urls[tabId].push(tab.url);
+                tab_urls[tabId].push(reduceUrl(tab.url));
             }
         } else {
-            tab_urls[tabId] = [tab.url];
+            tab_urls[tabId] = [reduceUrl(tab.url)];
         }
     });
 }
