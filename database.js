@@ -57,7 +57,11 @@ chrome.identity.onSignInChanged.addListener(function (accountInfo, signedIn) {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "getUser":
-            getUser(request.message).then(function (user) {
+            current_user.then(function(user){
+                "use strict";
+                return getUser(user.id);
+            }).then(function(user){
+                "use strict";
                 sendResponse(user);
             });
             return true;
@@ -69,6 +73,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * @param   user_id the id of the user to get
  */
 function getUser(user_id) {
+    if(!user_id){
+        throw new Error("getUser called with no id set");
+    }
     return _firebase.then(function (firebase) {
         return firebase.database().ref("users/" + user_id).once("value");
     }).then(function (snapshot) {
@@ -86,6 +93,9 @@ function getUser(user_id) {
  * @param user
  */
 function setUser(user_id, user) {
+    if(!user_id){
+        throw new Error("setUser called with no id set");
+    }
     return _firebase.then(function (firebase) {
         firebase.database().ref("users/" + user_id).set(user);
     }).then(function () {
@@ -98,19 +108,18 @@ function setUser(user_id, user) {
  * @param article_id
  */
 function getArticle(article_id) {
+
     console.log("Getting article from firebase");
     var request_time = new Date().getTime();
     return _firebase.then(function (firebase) {
         return firebase.database().ref("articles/" + article_id).once("value");
     }).then(function (snapshot) {
         console.log("Article resolved from firebase");
-
+        console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
         //For some reason, calling val on a non-existent object is slower than checking exists.
         if (snapshot.exists()) {
-            console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
             return snapshot.val();
         } else {
-            console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
             return null;
         }
     });
@@ -128,4 +137,9 @@ function setArticle(article_id, article_data) {
     }).then(function () {
         return true;
     });
+}
+
+function setArticleMetaData(article_id, user_id, user_metadata){
+    "use strict";
+    return
 }
