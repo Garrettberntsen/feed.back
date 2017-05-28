@@ -95,7 +95,8 @@ function updateLeanAverage(article) {
         } else {
             $("#avg-lean").text("-");
         }
-        $('#avg-lean-message').show();
+        $("#avg-lean-message").show();
+        $("#avg-lean > .loading").fadeOut(500);
     });
 }
 
@@ -111,7 +112,8 @@ function updateRatingAverage(article) {
         } else {
             $("#avg-rating").text("-");
         }
-        $('#avg-rating-message').show();
+        $("#avg-rating-message").show();
+        $("#avg-rating > .loading").fadeOut(500);
     });
 }
 
@@ -266,6 +268,9 @@ function refreshDisplayedArticle(article) {
 
         if (article.user_metadata.stars) {
             $('#avg-rating-message').show();
+        }
+        if (article.user_metadata.lean) {
+            $('#avg-lean-message').show();
         }
 
         if (article.user_metadata.notes) {
