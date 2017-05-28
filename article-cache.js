@@ -13,8 +13,9 @@ function resolveArticleForUrl(url) {
     if (!url) {
         return Promise.resolve(null);
     }
+    url = reduceUrl(url);
     "use strict";
-    if (articles[reduceUrl(url)]) {
+    if (articles[url]) {
         return articles[url];
     } else {
         if (Object.keys(sources).find(function (source_name) {
