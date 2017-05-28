@@ -69,7 +69,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                             new Error("A begun_scraping message was received with no url specified");
                         }
                         scraping_in_progress[reduceUrl(message.url)] = true;
-                        var scrapingResult = new Promise(function (resolve, reject) {
+                        scraping_in_progress[reduceUrl(message.url)] = new Promise(function (resolve, reject) {
                             "use strict";
                             var scrapingCompletionHandler = function (message) {
                                 "use strict";
@@ -87,25 +87,27 @@ chrome.runtime.onConnect.addListener(function (port) {
                                                 reject(reason);
                                             })
                                     } else {
-                                        reject("No article data was scraped.");
+                                        resolve();
                                     }
                                     port.onMessage.removeListener(scrapingCompletionHandler);
                                 }
                             }
                             port.onMessage.addListener(scrapingCompletionHandler);
                         });
-                        scrapingResult.then(function (result) {
+                        scraping_in_progress[reduceUrl(message.url)].then(function (result) {
                             "use strict";
                             delete scraping_in_progress[reduceUrl(message.url)];
-                            insertArticleForUrlIntoCache(result, reduceUrl(message.url));
-                            Promise.all([result, current_user])
-                                .then(function (resolved) {
-                                    "use strict";
-                                    writeArticleData(resolved[0], resolved[1]);
-                                })
+                            if (result) {
+                                insertArticleForUrlIntoCache(result, reduceUrl(message.url));
+                                Promise.all([result, current_user])
+                                    .then(function (resolved) {
+                                        "use strict";
+                                        writeArticleData(resolved[0], resolved[1]);
+                                    })
+                            }
                         }, function (reason) {
                             "use strict";
-                            delete scraping_in_progress[reduceUrl(message.url)];
+                            delete scraping_in_progress[reduceUrl(message.url)]
                             console.log("Did not save scraped article to cache: " + reason);
                         });
 
@@ -179,9 +181,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             });
             var last_url;
             if (sourceName) {
-                last_url = last_visited_url;
+                last_url = reduceUrl(last_visited_url);
             }
-            if (!scraping_in_progress[last_url] || (request.message && request.message.waitForScrape)) {
+            if(scraping_in_progress[last_url] && request.message.waitForScrape){
+                scraping_in_progress[last_url].then(function(article){
+                    if(article) {
+                        sendResponse(article);
+                    } else {
+                        resolveArticleForUrl(last_url).then(function(article){
+                            sendResponse(article);
+                        })
+                    }
+                });
+            } else {
                 if (!sender.tab) {
                     console.log("Request from a non-tab origin.");
                     console.log("Requesting previous visit url.");
@@ -210,8 +222,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                         sendResponse("There was an error resolving the article");
                     });
                 }
-            } else {
-                sendResponse()
             }
             return true;
         }
