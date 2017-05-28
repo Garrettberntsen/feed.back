@@ -125,7 +125,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
             Promise.all([addCurrentuserToArticleReaders(request.message), current_user]).then(function (resolved) {
-                insertArticleForUrlIntoCache(resolved[0]);
+                insertArticleForUrlIntoCache(resolved[0], reduceUrl(resolved[0].article_data.url));
                 return writeArticleData(resolved[0], resolved[1]);
             }, function (reason) {
                 triggerGoogleAnalyticsEvent({
@@ -250,15 +250,17 @@ function calculateAverageRatingForArticle(url) {
     return resolveArticleForUrl(url)
         .then(function (article) {
             if (article.article_data.readers) {
-                return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
-                    return getUser(reader_id);
-                })).catch(function (reason) {
-                    console.error("There was an error resolving the article readers.");
-                }).then(function (readers) {
-                    return readers.map(function (reader) {
-                        return reader.articles[article_id].stars;
-                    })
-                }).then(function (ratings) {
+                var readers = Promise.all(Object.keys(article.article_data.readers).map(function (id) {
+                    return getUser(id);
+                }));
+                var ratings = readers.then(function (users) {
+                    return users.filter(function (user) {
+                        return user.articles[article_id].stars;
+                    }).map(function (user) {
+                        return user.articles[article_id].stars;
+                    });
+                });
+                return ratings.then(function (ratings) {
                     var rating_count = 0;
                     var rating_sum = ratings.reduce(function (total, next) {
                         var next_rating = Number.parseInt(next);
@@ -269,9 +271,9 @@ function calculateAverageRatingForArticle(url) {
                         return total;
                     }, 0);
                     if (rating_count) {
-                        return Promise.resolve(rating_sum / rating_count);
+                        return rating_sum / rating_count;
                     } else {
-                        return Promise.resolve(0);
+                        return 0;
                     }
                 });
             } else {
@@ -293,15 +295,17 @@ function calculateAverageLeanForArticle(url) {
     return resolveArticleForUrl(url)
         .then(function (article) {
             if (article.article_data.readers) {
-                return Promise.all(Object.keys(article.article_data.readers).map(function (reader_id) {
-                    return getUser(reader_id);
-                })).catch(function (reason) {
-                    console.error(reason);
-                }).then(function (readers) {
-                    return readers.map(function (reader) {
-                        return reader.articles[article_id].lean;
-                    })
-                }).then(function (ratings) {
+                var readers = Promise.all(Object.keys(article.article_data.readers).map(function (id) {
+                    return getUser(id);
+                }));
+                var ratings = readers.then(function (users) {
+                    return users.filter(function (user) {
+                        return user.articles[article_id].lean;
+                    }).map(function (user) {
+                        return user.articles[article_id].lean;
+                    });
+                });
+                return ratings.then(function (ratings) {
                     var rating_count = 0;
                     var rating_sum = ratings.reduce(function (total, next) {
                         var next_rating = Number.parseInt(next);
@@ -312,9 +316,9 @@ function calculateAverageLeanForArticle(url) {
                         return total;
                     }, 0);
                     if (rating_count) {
-                        return Promise.resolve(rating_sum / rating_count);
+                        return rating_sum / rating_count;
                     } else {
-                        return Promise.resolve(0);
+                        return 0;
                     }
                 });
             } else {
