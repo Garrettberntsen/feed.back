@@ -13,6 +13,7 @@
       "firebase.js",
       "identity.js",
       "articles.js",
+      "article-cache.js",
       "database.js",
       "analytics.js",
       "background.js",
