@@ -142,7 +142,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                                                     if (article) {
                                                         console.log("Resolving with scraped article for " + reduceUrl(message.message.url));
                                                         resolve(article);
-                                                        Promise.all([current_articles[reduceUrl(article.article_data.url)], current_user])
+                                                        Promise.all([article, current_user])
                                                             .then(function (resolved) {
                                                                 "use strict";
                                                                 writeArticleData(resolved[0], resolved[1]);
