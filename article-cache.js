@@ -28,7 +28,7 @@ function resolveArticleForUrl(url) {
         }
         else {
             articles[url] = current_user.then(function (user) {
-                Promise.all([
+                return Promise.all([
                     getArticle(url.hashCode()),
                     getUser(user.id)]).then(function (resolved) {
                     if (resolved[0]) {
@@ -42,6 +42,7 @@ function resolveArticleForUrl(url) {
                     reject("There was an error resolving the article and user from firebase");
                 });
             });
+            return articles[url];
         }
     }
 }
