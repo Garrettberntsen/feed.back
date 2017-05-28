@@ -69,7 +69,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                             new Error("A begun_scraping message was received with no url specified");
                         }
                         scraping_in_progress[reduceUrl(message.url)] = true;
-                        insertArticleForUrlIntoCache(new Promise(function (resolve, reject) {
+                        var scrapingResult = new Promise(function (resolve, reject) {
                             "use strict";
                             var scrapingCompletionHandler = function (message) {
                                 "use strict";
@@ -77,27 +77,37 @@ chrome.runtime.onConnect.addListener(function (port) {
                                     if (message.message.error) {
                                         console.error(message.message.error);
                                         reject(message.message.error);
-                                    } else if (message.message.url) {
+                                    } else if (message.message.article) {
                                         var url = reduceUrl(message.message.url);
                                         addCurrentuserToArticleReaders(message.message.article).then(function (article) {
-                                            article.article_data.url = reduceUrl(article.article_data.url);
-                                                delete scraping_in_progress[url];
-                                                Promise.all([article, current_user])
-                                                    .then(function (resolved) {
-                                                        "use strict";
-                                                        writeArticleData(resolved[0], resolved[1]);
-                                                    })
+                                                article.article_data.url = reduceUrl(article.article_data.url);
                                                 resolve(article);
                                             },
                                             function (reason) {
                                                 reject(reason);
                                             })
+                                    } else {
+                                        reject("No article data was scraped.");
                                     }
                                     port.onMessage.removeListener(scrapingCompletionHandler);
                                 }
                             }
                             port.onMessage.addListener(scrapingCompletionHandler);
-                        }), message.url);
+                        });
+                        scrapingResult.then(function (result) {
+                            "use strict";
+                            delete scraping_in_progress[reduceUrl(message.url)];
+                            insertArticleForUrlIntoCache(result, reduceUrl(message.url));
+                            Promise.all([result, current_user])
+                                .then(function (resolved) {
+                                    "use strict";
+                                    writeArticleData(resolved[0], resolved[1]);
+                                })
+                        }, function (reason) {
+                            "use strict";
+                            delete scraping_in_progress[reduceUrl(message.url)];
+                            console.log("Did not save scraped article to cache: " + reason);
+                        });
 
                 }
             });
@@ -236,7 +246,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             for (var tabId of Object.keys(tab_urls)) {
                 for (var url of tab_urls[tabId]) {
                     persistArticle(url);
-                }fupda
+                }
             }
             break;
         }
