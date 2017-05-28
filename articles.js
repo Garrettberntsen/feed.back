@@ -64,7 +64,7 @@ function resolveArticleForUrl(url) {
                                 if (resolved[0]) {
                                     var article_data = resolved[0];
                                     var hashCode = url.hashCode();
-                                    var user_metadata = resolved[1].articles ? resolved[1].articles[url.hashCode()] : {};
+                                    var user_metadata = resolved[1].articles && resolved[1].articles[url.hashCode()] ? resolved[1].articles[url.hashCode()] : {};
                                     resolve(new Article(article_data, user_metadata));
                                 } else {
                                     resolve(null);
