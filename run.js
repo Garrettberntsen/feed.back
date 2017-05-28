@@ -169,11 +169,7 @@ var port;
 
 function pageUrlChange(new_url) {
     port = chrome.runtime.connect({
-        name:"scraper"
-    });
-    port.postMessage({
-        type: "begun_scraping",
-        url: new_url
+        name: "scraper"
     });
     chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (existing_article) {
         encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
@@ -202,6 +198,10 @@ function pageUrlChange(new_url) {
                     }
                 }, function (response) {
                     if (response) {
+                        port.postMessage({
+                            type: "begun_scraping",
+                            url: new_url
+                        });
                         encountered_urls[encountered_urls.current_index].article_root_element_selector = sources[source_name]["article-root-element-selector"];
                         encountered_urls[encountered_urls.current_index].content_element_selector = sources[source_name]["text-selector"];
                         //If content_element_selector contains multiple elements, get the last
