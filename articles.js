@@ -80,6 +80,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                                     } else if (message.message.url) {
                                         var url = reduceUrl(message.message.url);
                                         addCurrentuserToArticleReaders(message.message.article).then(function (article) {
+                                            article.article_data.url = reduceUrl(article.article_data.url);
                                                 delete scraping_in_progress[url];
                                                 Promise.all([article, current_user])
                                                     .then(function (resolved) {
@@ -235,7 +236,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             for (var tabId of Object.keys(tab_urls)) {
                 for (var url of tab_urls[tabId]) {
                     persistArticle(url);
-                }
+                }fupda
             }
             break;
         }
