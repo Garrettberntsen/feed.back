@@ -171,6 +171,9 @@ function pageUrlChange(new_url) {
     port = chrome.runtime.connect({
         name:"scraper"
     });
+    port.postMessage({
+        type: "begun_scraping"
+    });
     chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (existing_article) {
         encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
             return new_url == e.url;
@@ -219,6 +222,11 @@ function pageUrlChange(new_url) {
                                     message: {url: new_url, article: article}
                                 })
                             });
+                        } else {
+                            port.postMessage({
+                                type: "finished_scraping",
+                                message: {url: new_url}
+                            })
                         }
                     }
                 })
