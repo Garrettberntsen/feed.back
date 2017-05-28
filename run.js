@@ -172,7 +172,8 @@ function pageUrlChange(new_url) {
         name:"scraper"
     });
     port.postMessage({
-        type: "begun_scraping"
+        type: "begun_scraping",
+        url: new_url
     });
     chrome.runtime.sendMessage({type: "getCurrentArticle"}, function (existing_article) {
         encountered_urls.current_index = encountered_urls.findIndex(function (e, index) {
