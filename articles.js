@@ -183,12 +183,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             if (sourceName) {
                 last_url = reduceUrl(last_visited_url);
             }
-            if(scraping_in_progress[last_url] && request.message.waitForScrape){
-                scraping_in_progress[last_url].then(function(article){
-                    if(article) {
+            if (scraping_in_progress[last_url] && request.message.waitForScrape) {
+                scraping_in_progress[last_url].then(function (article) {
+                    if (article) {
                         sendResponse(article);
                     } else {
-                        resolveArticleForUrl(last_url).then(function(article){
+                        resolveArticleForUrl(last_url).then(function (article) {
                             sendResponse(article);
                         })
                     }
@@ -276,7 +276,7 @@ function calculateAverageRatingForArticle(url) {
                 }));
                 var ratings = readers.then(function (users) {
                     return users.filter(function (user) {
-                        return user.articles[article_id].stars;
+                        return user.articles[article_id] && user.articles[article_id].stars;
                     }).map(function (user) {
                         return user.articles[article_id].stars;
                     });
@@ -321,7 +321,7 @@ function calculateAverageLeanForArticle(url) {
                 }));
                 var ratings = readers.then(function (users) {
                     return users.filter(function (user) {
-                        return user.articles[article_id].lean;
+                        return user.articles[article_id] && user.articles[article_id].lean;
                     }).map(function (user) {
                         return user.articles[article_id].lean;
                     });
@@ -498,7 +498,7 @@ function writeArticleData(article, user) {
             if (!article.article_data) {
                 console.log("writeArticleData was called with no data.");
             } else {
-                if (!article_data.url) {
+                if (!article.article_data.url) {
                     console.log("writeArticleData called without defined url");
                 }
 
