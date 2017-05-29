@@ -180,8 +180,8 @@ function refreshDisplayedArticle(article) {
     "use strict";
     if (!article || !article.article_data) {
         console.log("Not article")
-        $(".loading").fadeOut(500, function () {
-            $(".loading").remove();
+        $("#form-loading").fadeOut(500, function () {
+            //$("#form > .loading").hide();
             addTrackThisQuestion();
         });
         //addCircleGraph();
