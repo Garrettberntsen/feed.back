@@ -521,12 +521,14 @@ function writeArticleData(article, user) {
         }
     }), getUser(user.id).then(function (firebase_user) {
         "use strict";
-        firebase_user.email = user.email;
-        if (!firebase_user.articles) {
-            firebase_user.articles = {};
+        if(!article_data.partialRecord) {
+            firebase_user.email = user.email;
+            if (!firebase_user.articles) {
+                firebase_user.articles = {};
+            }
+            firebase_user.articles[article_key] = article.user_metadata;
+            return setUser(user.id, firebase_user);
         }
-        firebase_user.articles[article_key] = article.user_metadata;
-        return setUser(user.id, firebase_user);
     })]).then(function () {
         "use strict";
         console.log("feed.back data written to firebase!");
