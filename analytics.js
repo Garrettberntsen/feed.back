@@ -4,12 +4,15 @@
  * To use analytics elsewhere in the background, call the relevant code inside of a resolve handler for analytics.
  *
  * Non-background scripts can interact with this module via the following messages:
- * - type: "analytics"
- * - message: array
- *      - command: string, type of command
- *          allowed: "send", "error"
- *      - category: string, event category, e.g. "Lifecycle"
- *      - action: string, the action that occured, e.g. "Extension Started"
+ * - type: analytics
+ * - message: object
+ *      - hitType: "event"
+ *      - eventCategory: string
+ *      - eventAction: string
+ *      - eventLabel: string
+ *      or
+ *      - hitType: "exception"
+ *      - exDescription: string
  */
 (function (i, s, o, g, r, a, m) {
     i['GoogleAnalyticsObject'] = r;
@@ -85,12 +88,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 }
                 response.then(function () {
                     "use strict";
-                    "use strict";
-                    console.log("Sending resolved response")
                     sendResponse(response);
                 }, function (response) {
                     "use strict";
-                    console.log("Sending rejection response")
                     sendResponse(response);
                 })
             } catch (err) {
