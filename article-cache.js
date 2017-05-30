@@ -1,17 +1,21 @@
 /**
  * This module is responsible for keeping an active cache of recently viewed articles.
- * Created by Damie on 5/27/2017.
  */
 var articles = {}
 
 /**
  * Returns a promise wrapping an article definition.
- * @param url
- * @returns {*}
+ *
+ * If no definition exists in the in-memory cache, an attempt is made to retrieve the definition from Firebase.
+ *
+ * If none is found in firebase, the Promise resolves to null.
+ *
+ * @param url   the url to retrieve the article definition for.
+ * @returns Promise a promise which resolves to the article definition
  */
 function resolveArticleForUrl(url) {
     if (!url) {
-        return Promise.resolve(null);
+        throw new Error("Attempted to resolve an article for an empty url.");
     }
     url = reduceUrl(url);
     "use strict";
@@ -47,6 +51,13 @@ function resolveArticleForUrl(url) {
     }
 }
 
+/**
+ * Inserts the article definition for the given url into the cache.
+ *
+ * This will overwrite the existing definition, if there is one.
+ * @param article   the article definition or a promise wrapping the definition
+ * @param url       the article url
+ */
 function insertArticleForUrlIntoCache(article, url) {
     var value;
     "use strict";
