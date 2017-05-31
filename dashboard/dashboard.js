@@ -631,18 +631,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
                                 linkElem.target = "_blank";
-                                linkElem.href = hasSubdomains(articlesRead[i][1].sourceUrl);
+                                linkElem.href = prependHTTPSIfNeeded(hasSubdomains(articlesRead[i][1].sourceUrl));
                                 td.appendChild(linkElem);                                
                             }
                             else if(j === 3) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
                                 linkElem.target = "_blank";
-                                if(articlesRead[i][1].url.includes('https://')) {
-                                    linkElem.href = articlesRead[i][1].url; 
-                                }else {
-                                    linkElem.href = "https://" + articlesRead[i][1].url;
-                                }
+                                linkElem.href = prependHTTPSIfNeeded(articlesRead[i][1].url);
                                 td.appendChild(linkElem);
                             }
                             else if (j === 5) {
@@ -658,11 +654,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
                 }
 
+                function prependHTTPSIfNeeded(string) {
+                    if(string.includes('https://')){
+                        return string;
+                    }else {
+                        return 'https://' + string;
+                    }
+                }
+
                 function hasSubdomains(articleSource, isArticle) {
                     if(articleSource.length > 2) {
-                        return "https://" + articleSource[0] + "." + articleSource[1] + ".com";
+                        return articleSource[0] + "." + articleSource[1] + ".com";
                     }
-                    return "https://" + articleSource[0] + ".com"; 
+                    return articleSource[0] + ".com"; 
                 }
 
                 function getLastDays(days) {
