@@ -593,7 +593,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             articleInfo.dateUnix = currentArticleUserInfo.dateRead;
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
-                            var type = ""; //to add
+                            // var type = ""; //to add
                             var author = currentArticle.author;
                             var slant = currentArticle.lean;
                             var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
@@ -602,7 +602,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             articleInfo.url = currentArticle.url;
                             articleInfo.sourceUrl = currentArticle.url.split(".");
 
-                            var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
+                            var articleData = new Array(userEvaluation, articleInfo, publisher, title, author, read_percentage);
                             articlesRead.push(articleData);
                         }
                     }
@@ -638,10 +638,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
                                 linkElem.target = "_blank";
-                                linkElem.href = "https://" + articlesRead[i][1].url;
+                                if(articlesRead[i][1].url.includes('https://')) {
+                                    linkElem.href = articlesRead[i][1].url; 
+                                }else {
+                                    linkElem.href = "https://" + articlesRead[i][1].url;
+                                }
                                 td.appendChild(linkElem);
                             }
-                            else if (j === 6) {
+                            else if (j === 5) {
                                 content = Math.floor(Number(content) * 100);
                             }
 
