@@ -20,7 +20,7 @@ h1   { font-size: 5.0rem; } /* =50px */
   align-items: center;
   flex-direction: column;
 
-  background: #ffa400;
+  background: linear-gradient(to bottom, #FFB347 0%, #F0A438 100%);
 
   padding: 2rem;
 }
