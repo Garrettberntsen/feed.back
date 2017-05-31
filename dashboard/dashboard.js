@@ -211,7 +211,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("width", width)
                         .attr("height", height)
                         .append("g")
-                        .attr("transform", "translate(" + 150 + "," + (height / 2) + ")");
+                        .attr("transform", "translate(" + 240 + "," + (height / 2) + ")");
 
                     var path = svg.selectAll("path")
                         .data(pie(dataset))
@@ -256,34 +256,34 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         .attr("font-size", "14px")
                         .attr("font-weight", "bold")
 
-                    var legendRectSize = 18;
-                    var legendSpacing = 4;
+                    // var legendRectSize = 18;
+                    // var legendSpacing = 4;
 
-                    var legend = svg.selectAll(".legend")
-                        .data(color.domain())
-                        .enter()
-                        .append("g")
-                        .attr("class", "legend")
-                        .attr("transform", function (d, i) {
-                            var height = legendRectSize + legendSpacing;
-                            var offset = height * color.domain().length / 2;
-                            var horz = 9     * legendRectSize;
-                            var vert = i * height - offset;
-                            return "translate( " + horz + "," + vert + ")";
-                        });
+                    // var legend = svg.selectAll(".legend")
+                    //     .data(color.domain())
+                    //     .enter()
+                    //     .append("g")
+                    //     .attr("class", "legend")
+                    //     .attr("transform", function (d, i) {
+                    //         var height = legendRectSize + legendSpacing;
+                    //         var offset = height * color.domain().length / 2;
+                    //         var horz = 9     * legendRectSize;
+                    //         var vert = i * height - offset;
+                    //         return "translate( " + horz + "," + vert + ")";
+                    //     });
 
-                    legend.append("rect")
-                        .attr("width", legendRectSize)
-                        .attr("height", legendRectSize)
-                        .style("fill", color)
-                        .style("stroke", color);
+                    // legend.append("rect")
+                    //     .attr("width", legendRectSize)
+                    //     .attr("height", legendRectSize)
+                    //     .style("fill", color)
+                    //     .style("stroke", color);
 
-                    legend.append("text")
-                        .attr("x", legendRectSize + legendSpacing)
-                        .attr("y", legendRectSize - legendSpacing)
-                        .text(function (d) {
-                            return d;
-                        });
+                    // legend.append("text")
+                    //     .attr("x", legendRectSize + legendSpacing)
+                    //     .attr("y", legendRectSize - legendSpacing)
+                    //     .text(function (d) {
+                    //         return d;
+                    //     });
                 }
 
                 function calculateTotalArticleCounts(articles) {
