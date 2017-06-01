@@ -42,7 +42,7 @@ var last_visited_url;
  */
 
 
-debug = true
+debug = true;
 
 function addCurrentuserToArticleReaders(article) {
     return current_user.then(function (user) {
@@ -50,6 +50,7 @@ function addCurrentuserToArticleReaders(article) {
         if (!article.article_data.readers) {
             article.article_data.readers = {};
         }
+        article.user_metadata.dateRead = new Date().getTime();
         article.article_data.readers[user.id] = true;
         console.log("Added article reader");
         return article;
@@ -87,7 +88,11 @@ chrome.runtime.onConnect.addListener(function (port) {
                                                 reject(reason);
                                             })
                                     } else {
-                                        resolve();
+                                        resolveArticleForUrl(reduceUrl(message.message.url)).then(function(article){
+                                            return addCurrentuserToArticleReaders(article);
+                                        }).then(function(article){
+                                            resolve(article);
+                                        });
                                     }
                                     port.onMessage.removeListener(scrapingCompletionHandler);
                                 }
@@ -493,17 +498,17 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
 function writeArticleData(article, user) {
     if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
         if (!article) {
-            console.log("writeArticleData null article passed.");
+            console.error("writeArticleData null article passed.");
         } else {
             if (!article.article_data) {
-                console.log("writeArticleData was called with no data.");
+                console.error("writeArticleData was called with no data.");
             } else {
                 if (!article.article_data.url) {
-                    console.log("writeArticleData called without defined url");
+                    console.error("writeArticleData called without defined url");
                 }
 
                 if (!article.user_metadata.dateRead) {
-                    console.log("writeArticleData date read not set");
+                    console.error("writeArticleData date read not set");
                 }
             }
         }
