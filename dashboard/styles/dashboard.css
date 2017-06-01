@@ -94,9 +94,25 @@
 /* ------------ ------------Table Styling ------------ ------------ */
 #table {
   font-size: 1.6rem;
+  display: table;
+  border-collapse: separate;
+  border-spacing: 2px;
+  border-color: grey;
 }
 
-.dataTable-top, .dataTable-bottom{
+tbody tr {
+  transition: all 0.3s ease;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ffe0b2;
+}
+
+tbody tr:hover {
+  background-color: #ffc166;
+}
+
+.dataTable-top, .dataTable-bottom {
   padding: 0;
   font-size: 1.6rem;
 }
