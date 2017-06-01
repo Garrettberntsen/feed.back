@@ -20,7 +20,7 @@ h1   { font-size: 5.0rem; } /* =50px */
   align-items: center;
   flex-direction: column;
 
-  background: #ffa400;
+  background-color: #e8eef1;
 
   padding: 2rem;
 }
@@ -32,7 +32,8 @@ h1   { font-size: 5.0rem; } /* =50px */
   width: 90%;
   max-width: 880px;
 
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.23), 0 10px 40px rgba(0, 0, 0, 0.19);
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  border-radius: 1.0rem;
 }
 
 .card--half {

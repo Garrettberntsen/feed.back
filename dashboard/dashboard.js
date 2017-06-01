@@ -232,13 +232,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             tooltip.select("text").text( returnSource(d.data) ) ;
                         });
 
-                    function returnSource(data, type) {
-                        var total = d3.sum(dataset.map(function(d) { return d.count; }));
-                        var percent = Math.round(1000 * data.count / total) / 10;
-                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%"   ;
-                        return tooltipText;
-                    }
-
                     path.transition()
                         .duration(1000)
                         .attrTween('d', function(d) {
@@ -247,6 +240,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 return arc(interpolate(t));
                             }
                         });
+
+                    function returnSource(data, type) {
+                        var total = d3.sum(dataset.map(function(d) { return d.count; }));
+                        var percent = Math.round(1000 * data.count / total) / 10;
+                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%"   ;
+                        return tooltipText;
+                    }
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
@@ -521,22 +521,26 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         });
 
                     var rect = groups.selectAll("rect")
-                        .data(function (d) {
-                            return d;
-                        })
-                        .enter()
-                        .append("rect")
+                        .data(function (d) { return d; })
+                        .enter().append("rect")
                         .attr("x", function (d) {
                             return x(d.x);
                         })
-                        .attr("y", function (d) {
-                            return y(d.y0 + d.y);
-                        })
-                        .attr("height", function (d) {
-                            return y(d.y0) - y(d.y0 + d.y);
-                        })
+                        .attr("y", height)
                         .attr("width", x.rangeBand())
-                        .on("mouseover", function () {
+                        .attr("height", 0);
+
+
+                    rect.transition()
+                    .delay(function(d, i) { return i * 74; })
+                    .attr("y", function (d) {
+                        return y(d.y0 + d.y);
+                    })
+                    .attr("height", function (d) {
+                        return y(d.y0) - y(d.y0 + d.y);
+                    })
+
+                    rect.on("mouseover", function () {
                             tooltip.style("display", null);
                         })
                         .on("mouseout", function () {
@@ -547,7 +551,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             var yPosition = d3.mouse(this)[1] - 25;
                             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                             tooltip.select("text").text(returnSource(d.label, d.y) ) ;
-                        });
+                        })
+
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
@@ -593,7 +598,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             articleInfo.dateUnix = currentArticleUserInfo.dateRead;
                             var publisher = currentArticle.source;
                             var title = currentArticle.title;
-                            var type = ""; //to add
+                            // var type = ""; //to add
                             var author = currentArticle.author;
                             var slant = currentArticle.lean;
                             var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
@@ -602,7 +607,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             articleInfo.url = currentArticle.url;
                             articleInfo.sourceUrl = currentArticle.url.split(".");
 
-                            var articleData = new Array(userEvaluation, articleInfo, publisher, title, type, author, read_percentage);
+                            var articleData = new Array(userEvaluation, articleInfo, publisher, title, author, read_percentage);
                             articlesRead.push(articleData);
                         }
                     }
@@ -631,17 +636,17 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
                                 linkElem.target = "_blank";
-                                linkElem.href = hasSubdomains(articlesRead[i][1].sourceUrl);
+                                linkElem.href = prependHTTPSIfNeeded(hasSubdomains(articlesRead[i][1].sourceUrl));
                                 td.appendChild(linkElem);                                
                             }
                             else if(j === 3) {
                                 var linkElem = document.createElement("a");
                                 linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
                                 linkElem.target = "_blank";
-                                linkElem.href = "https://" + articlesRead[i][1].url;
+                                linkElem.href = prependHTTPSIfNeeded(articlesRead[i][1].url);
                                 td.appendChild(linkElem);
                             }
-                            else if (j === 6) {
+                            else if (j === 5) {
                                 content = Math.floor(Number(content) * 100);
                             }
 
@@ -654,11 +659,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
                 }
 
+                function prependHTTPSIfNeeded(string) {
+                    if(string.includes('https://')){
+                        return string;
+                    }else {
+                        return 'https://' + string;
+                    }
+                }
+
                 function hasSubdomains(articleSource, isArticle) {
                     if(articleSource.length > 2) {
-                        return "https://" + articleSource[0] + "." + articleSource[1] + ".com";
+                        return articleSource[0] + "." + articleSource[1] + ".com";
                     }
-                    return "https://" + articleSource[0] + ".com"; 
+                    return articleSource[0] + ".com"; 
                 }
 
                 function getLastDays(days) {
