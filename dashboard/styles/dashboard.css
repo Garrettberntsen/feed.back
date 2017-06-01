@@ -112,6 +112,10 @@ tbody tr:hover {
   background-color: #ffc166;
 }
 
+tbody td {
+  border-radius: 0.4rem; 
+}
+
 .dataTable-top, .dataTable-bottom {
   padding: 0;
   font-size: 1.6rem;
