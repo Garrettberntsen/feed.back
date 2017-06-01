@@ -232,13 +232,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             tooltip.select("text").text( returnSource(d.data) ) ;
                         });
 
-                    function returnSource(data, type) {
-                        var total = d3.sum(dataset.map(function(d) { return d.count; }));
-                        var percent = Math.round(1000 * data.count / total) / 10;
-                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%"   ;
-                        return tooltipText;
-                    }
-
                     path.transition()
                         .duration(1000)
                         .attrTween('d', function(d) {
@@ -247,6 +240,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                                 return arc(interpolate(t));
                             }
                         });
+
+                    function returnSource(data, type) {
+                        var total = d3.sum(dataset.map(function(d) { return d.count; }));
+                        var percent = Math.round(1000 * data.count / total) / 10;
+                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%"   ;
+                        return tooltipText;
+                    }
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
@@ -521,33 +521,38 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         });
 
                     var rect = groups.selectAll("rect")
-                        .data(function (d) {
-                            return d;
-                        })
-                        .enter()
-                        .append("rect")
+                        .data(function (d) { return d; })
+                        .enter().append("rect")
                         .attr("x", function (d) {
                             return x(d.x);
                         })
+                        .attr("y", height)
+                        .attr("width", x.rangeBand())
+                        .attr("height", 0);
+
+
+                        rect.transition()
+                        .delay(function(d, i) { return i * 74; })
                         .attr("y", function (d) {
                             return y(d.y0 + d.y);
                         })
                         .attr("height", function (d) {
                             return y(d.y0) - y(d.y0 + d.y);
                         })
-                        .attr("width", x.rangeBand())
-                        .on("mouseover", function () {
-                            tooltip.style("display", null);
-                        })
-                        .on("mouseout", function () {
-                            tooltip.style("display", "none");
-                        })
-                        .on("mousemove", function (d) {
-                            var xPosition = d3.mouse(this)[0] - 15;
-                            var yPosition = d3.mouse(this)[1] - 25;
-                            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                            tooltip.select("text").text(returnSource(d.label, d.y) ) ;
-                        });
+
+                    // rect.on("mouseover", function () {
+                    //         tooltip.style("display", null);
+                    //     })
+                    //     .on("mouseout", function () {
+                    //         tooltip.style("display", "none");
+                    //     })
+                    //     .on("mousemove", function (d) {
+                    //         var xPosition = d3.mouse(this)[0] - 15;
+                    //         var yPosition = d3.mouse(this)[1] - 25;
+                    //         tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                    //         tooltip.select("text").text(returnSource(d.label, d.y) ) ;
+                    //     })
+
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
