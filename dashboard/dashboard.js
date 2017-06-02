@@ -33,7 +33,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var donutDataset = createDonutChartDataset(articleCountInTimespan);
                     var barchartDataset = createBarChartDataset(articlesInTimespan);
 
-                    updateBarChart();
+                    console.log(barchartDataset);
+
+                    updateBarChart(barchartDataset);
                     updateDonutChart(donutDataset);
 
                     function getArticlesInTimespan(end, start) {
@@ -100,18 +102,147 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     function createBarChartDataset(articlesToParse) {
                         var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
-                        for(let i = 0; i < daysBack; i++) {
-                            var timeToAdd = i * millisecondsPerDay;
-                            var currentDay = new Date(timeStart + timeToAdd).toString("M/d/yyyy");
-                            if( !articles.hasOwnProperty(currentDay) ) {
+                        for (let i = 0; i < daysBack; i++) {
+                            let timeToAdd = i * millisecondsPerDay;
+                            let currentDay = new Date(timeStart + timeToAdd).toString("M/d/yyyy");
+                            if (!articles.hasOwnProperty(currentDay)) {
                                 articles[currentDay] = articleTimespanTemplate;
                             }
                         }
+
+                        for(var x = 0; x < daysBack; x++){
+
+                        }
+
                         return articles;
+
                     }
 
                     function updateBarChart(dataset) {
-                        console.log("update bar chart here");
+                        // var margin = {
+                        //     top: 0,
+                        //     right: 0,
+                        //     bottom: 25,
+                        //     left: 30
+                        // };
+
+                        // var width = 960 - margin.left - margin.right,
+                        //     height = 288 - margin.top - margin.bottom;
+
+                        // var svg = d3.select("div.bar-chart")
+                        //     .append("svg")
+                        //     .attr("class", "chart")
+                        //     .attr("class","chart--font")
+                        //     .attr("width", width + margin.left + margin.right)
+                        //     .attr("height", height + margin.top + margin.bottom)
+                        //     .append("g")
+                        //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                        // var categoryKeys = Object.getOwnPropertyNames(dataset);
+                        // console.log(categoryKeys);
+
+                        // categoryKeys.sort();
+                        
+                        // var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
+                        //     return finalFinalData.map(function (d) {
+                        //         return {
+                        //             x: Date.parse(d.date).toString('MMM d'),
+                        //             y: +d[source],
+                        //             label: source
+                        //         };
+                        //     });
+                        // }));
+
+                        // var x = d3.scale.ordinal()
+                        //     .domain(dataset[0].map(function (d) {
+                        //         return d.x;
+                        //     }))
+                        //     .rangeRoundBands([10, width - 10], 0.2);
+
+                        // var y = d3.scale.linear()
+                        //     .domain([0, d3.max(dataset, function (d) {
+                        //         return d3.max(d, function (d) {
+                        //             return d.y * 3;
+                        //         });
+                        //     })])
+                        //     .range([height, 0]);
+
+                        // var color = d3.scale.category20();
+
+                        // var yAxis = d3.svg.axis()
+                        //     .scale(y)
+                        //     .orient("left")
+                        //     .ticks(5)
+                        //     .tickSize(-width, 0, 0)
+                        //     .tickFormat(function (d) {
+                        //         return d;
+                        //     });
+
+                        // var xAxis = d3.svg.axis()
+                        //     .scale(x)
+                        //     .orient(margin.bottom)
+                        //     .ticks(5);
+
+                        // svg.append("g")
+                        //     .attr("class", "y axis")
+                        //     .call(yAxis);
+
+                        // svg.append("g")
+                        //     .attr("class", "x axis")
+                        //     .attr("transform", "translate(0," + height + ")")
+                        //     .call(xAxis);
+
+                        // var groups = svg.selectAll("g.time")
+                        //     .data(dataset) 
+                        //     .enter().append("g")
+                        //     .attr("class", "time")
+                        //     .attr("fill", function (d, i) {
+                        //         return color(i);
+                        //     });
+
+                        // var rect = groups.selectAll("rect")
+                        //     .data(function (d) { return d; })
+                        //     .enter().append("rect")
+                        //     .attr("x", function (d) {
+                        //         return x(d.x);
+                        //     })
+                        //     .attr("y", height)
+                        //     .attr("width", x.rangeBand())
+                        //     .attr("height", 0);
+
+
+                        // rect.transition()
+                        // .delay(function(d, i) { return i * 74; })
+                        // .attr("y", function (d) {
+                        //     return y(d.y0 + d.y);
+                        // })
+                        // .attr("height", function (d) {
+                        //     return y(d.y0) - y(d.y0 + d.y);
+                        // })
+
+                        // rect.on("mouseover", function () {
+                        //     tooltip.style("display", null);
+                        // })
+                        // .on("mouseout", function () {
+                        //     tooltip.style("display", "none");
+                        // })
+                        // .on("mousemove", function (d) {
+                        //     var xPosition = d3.mouse(this)[0] - 15;
+                        //     var yPosition = d3.mouse(this)[1] - 25;
+                        //     tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                        //     tooltip.select("text").text(returnSource(d.label, d.y) ) ;
+                        // })
+
+                        // var tooltip = svg.append("g")
+                        //     .attr("class", "tooltip")
+                        //     .style("display", "none");
+
+                        // tooltip.append("text")
+                        //     .attr("x", 15)
+                        //     .attr("dy", "1.2em")
+                        //     .style("text-anchor", "middle")
+                        //     .attr("font-size", "12px")
+                        //     .attr("font-weight", "bold");
                     }
                     
                     /* Creates array that is better suited for D3 parsing
@@ -177,7 +308,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             .attr("class", "donut-chart-arc")
                             .attr("d", arc)
                             .attr("fill", function (d, i) {
-                                console.log(d.data.source);
                                 return color(d.data.source);
                             })
                             .on("mouseover", function () {
@@ -405,7 +535,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         return count;
                     }
-
                 }
 
                 function createBarChart(data, obj, timeBack) {
@@ -448,7 +577,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
 
-                    console.log(finalData);
                     var template = createTemplate(finalData);
                     var templateCategories = JSON.parse(JSON.stringify(template));
                     delete templateCategories.date;
@@ -508,9 +636,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var categoryKeys = Object.getOwnPropertyNames(templateCategories);
 
                     categoryKeys.sort();
-
-                    console.log(categoryKeys);
-                    console.log(finalFinalData);
                     
                     var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
                         return finalFinalData.map(function (d) {
