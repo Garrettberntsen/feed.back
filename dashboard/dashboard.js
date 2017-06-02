@@ -35,6 +35,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     updateBarChart(barchartDataset);
                     updateDonutChart(donutDataset);
+                    appendFacts(articleCountInTimespan);
 
                     function getArticlesInTimespan(end, start) {
                         var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
@@ -253,6 +254,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             .style("text-anchor", "middle")
                             .attr("font-size", "12px")
                             .attr("font-weight", "bold");
+
+		                function returnSource(label, articlesRead) {
+		                    var tooltipText = label + " - " + articlesRead;
+		                    return tooltipText;
+		                }
                     }
                     
                     /* Creates array that is better suited for D3 parsing
@@ -354,20 +360,74 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             .attr("font-size", "14px")
                             .attr("font-weight", "bold");
                     }
+
+	                function appendFacts(articlesRead) {
+	                    var factContainer = document.getElementsByClassName("facts")[0]
+	                    var count = countArticles(articlesRead);
+	                    var faveSource = findFavoriteSource(articlesRead, false);
+	                    var faveSourceRead = findFavoriteSource(articlesRead, true);
+
+	                    factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
+	                    factContainer.appendChild( createBubbleFact(count, "articles", "green") );
+	                    factContainer.appendChild( createBubbleFact(faveSource, "fav. source", "orange") );
+	                    factContainer.appendChild( createBubbleFact(faveSourceRead, "fav. source # read", "purple") );
+	                    
+	                    function createBubbleFact(data, description, color){
+	                        var bubbleElem = document.createElement("div");
+	                        bubbleElem.className = "bubble";
+
+	                        var bubbleElemStyle = "border: solid 5px " + color
+	                        bubbleElem.setAttribute("style", bubbleElemStyle );
+
+	                        var factElem = document.createElement("p");
+	                        factElem.className = "bubble__data";
+	                        factElem.appendChild( document.createTextNode(data) );
+	                        if(data.length > 10) {
+	                            factElem.setAttribute("style", "font-size: 1.6rem");
+	                        }
+
+	                        var descriptionElem = document.createElement("p");
+	                        descriptionElem.className = "bubble__description";
+	                        descriptionElem.appendChild( document.createTextNode(description) );
+	                        var descriptionElemStyle = "background-color: " + color
+	                        descriptionElem.setAttribute("style", descriptionElemStyle);
+
+	                        bubbleElem.appendChild(factElem);
+	                        bubbleElem.appendChild(descriptionElem);
+	                        return bubbleElem;
+	                    }
+
+	                    function findFavoriteSource(data, findingMaxArticles) {
+	                        var returnValue;
+	                        var arr = Object.keys( data ).map(function ( key ) { return data[key]; });
+	                        var max = Math.max.apply(null, arr);
+
+	                        if(findingMaxArticles === true){
+	                            return max;
+	                        }else{
+	                            for(let key in data) {
+	                                if(data[key] === max) {
+	                                    return key;
+	                                } 
+	                            }
+	                        }
+	                    }
+
+	                    function countArticles(data) {
+	                        var count = 0;
+	                        for (let key in data) {
+	                            count += data[key];
+	                        }
+	                        return count;
+	                    }
+	                }
                 }
 
                 var userData = userSnapshot.val();
-                var email = user.email;
 
                 var articlesRead = userData.articles;
 
-                var articleObj = createArticleObject(articlesRead);
-
                 appendData("days-back", daysBack);
-
-                var total = calculateTotalArticleCounts(articlesRead);
-                appendFacts(total);
-
 
                 createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
 
@@ -376,8 +436,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     searchable: true,
                     perPage: 25,
                     perPageSelect: [25, 50, 100]
-                }); 
+                });
 
+                //Need to find a more logical place to put this
                 document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard card--table";
 
                 function appendData(elem, name) {
@@ -385,108 +446,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var elemText = elem.innerHTML += " " + name;
                 }
                 
-                /* Creates an empty object filled with a 0 count for every source the user has read
-                *
-                *  @articles -> List of articles that user has read, obtained from JSON file
-                *
-                *  Returns -> empty template object containing all the articles that the user has ever read
-                */ 
-                function createArticleObject(articles) {
-                    var articleCount = {};
-
-                    for (let key in articles) {
-                        if (articles.hasOwnProperty(key)) {
-                            var article = articles[key];
-                            var source = article.source;
-                            if (!articleCount.hasOwnProperty(source)) {
-                                articleCount[source] = 0;
-                            }
-                        }
-                    }
-                    return articleCount;
-                }
-
-                function calculateTotalArticleCounts(articles) {
-                    var totalCount = {};
-                    for (let key in articles) {
-                        var tempSource = articles[key].source;
-                        if( totalCount.hasOwnProperty(tempSource) ){
-                            totalCount[tempSource]++;
-                        }else {
-                            totalCount[tempSource] = 1;
-                        }
-
-                    }
-                    return totalCount;
-                }
-
-                function appendFacts(articlesRead) {
-                    var factContainer = document.getElementsByClassName("facts")[0]
-                    console.log(articlesRead);
-                    var count = countArticles(articlesRead);
-                    var faveSource = findFavoriteSource(articlesRead, false);
-                    var faveSourceRead = findFavoriteSource(articlesRead, true);
-
-                    factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
-                    factContainer.appendChild( createBubbleFact(count, "articles", "green") );
-                    factContainer.appendChild( createBubbleFact(faveSource, "fav. source", "orange") );
-                    factContainer.appendChild( createBubbleFact(faveSourceRead, "fav. source # read", "purple") );
-                    
-                    function createBubbleFact(data, description, color){
-                        var bubbleElem = document.createElement("div");
-                        bubbleElem.className = "bubble";
-
-                        var bubbleElemStyle = "border: solid 5px " + color
-                        bubbleElem.setAttribute("style", bubbleElemStyle );
-
-                        var factElem = document.createElement("p");
-                        factElem.className = "bubble__data";
-                        factElem.appendChild( document.createTextNode(data) );
-                        if(data.length > 10) {
-                            factElem.setAttribute("style", "font-size: 1.6rem");
-                        }
-
-                        var descriptionElem = document.createElement("p");
-                        descriptionElem.className = "bubble__description";
-                        descriptionElem.appendChild( document.createTextNode(description) );
-                        var descriptionElemStyle = "background-color: " + color
-                        descriptionElem.setAttribute("style", descriptionElemStyle);
-
-                        bubbleElem.appendChild(factElem);
-                        bubbleElem.appendChild(descriptionElem);
-                        return bubbleElem;
-                    }
-
-                    function findFavoriteSource(data, findingMaxArticles) {
-                        var returnValue;
-                        var arr = Object.keys( data ).map(function ( key ) { return data[key]; });
-                        var max = Math.max.apply(null, arr);
-
-                        if(findingMaxArticles === true){
-                            return max;
-                        }else{
-                            for(let key in data) {
-                                if(data[key] === max) {
-                                    return key;
-                                } 
-                            }
-                        }
-                    }
-
-                    function countArticles(data) {
-                        var count = 0;
-                        for (let key in data) {
-                            count += data[key];
-                        }
-                        return count;
-                    }
-                }
-
-                function returnSource(label, articlesRead) {
-                    var tooltipText = label + " - " + articlesRead;
-                    return tooltipText;
-                }
-
                 function createTable(userArticleInformation, articleInformation) {
                     var articlesRead = [];
                     var tableElem = document.getElementById("table-body");
@@ -573,7 +532,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         tableElem.appendChild(tr);
                     }
-                
+
                     function prependHTTPSIfNeeded(string) {
                         if(string.includes('https://')){
                             return string;
@@ -588,7 +547,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         return articleSource[0] + ".com"; 
                     }
-	            }
+                }
             });
         }).catch(function (error) {
             console.log(error);
