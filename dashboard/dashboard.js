@@ -19,18 +19,24 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var todaysDate = Date.now();
                 var millisecondsPerDay = 86400000;
 
-                updateDashboard(daysBack * millisecondsPerDay);
+                updateDashboard((daysBack - 1) * millisecondsPerDay);
 
                 function updateDashboard(timeSpan) {
                     var timeEnd = Date.now();
                     var timeStart = timeEnd - timeSpan;    
 
                     var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
+                    var articleTimespanTemplate = 
+
+
 
                     console.log(articlesInTimespan);
                     console.log(timeEnd);
                     console.log(timeStart);
 
+                    console.log( getArticleCount(articlesInTimespan) );
+                    console.log( getTemplate(articlesInTimespan) );
+                    console.log( organizeArticlesByDate(articlesInTimespan) );
 
 
                     function getArticlesInTimespan(end, start) {
@@ -43,6 +49,62 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             }
                         }   
                         return articles;
+                    }
+
+                    function getArticleCount(articles) {
+                        var totalCount = {};
+                        for (let key in articles) {
+                            var tempSource = articles[key].source;
+                            if( totalCount.hasOwnProperty(tempSource) ){
+                                totalCount[tempSource]++;
+                            }else {
+                                totalCount[tempSource] = 1;
+                            }
+                        }
+                        return totalCount;
+                    }
+
+                    function getTemplate(articles) {
+                        var articleCount = {};
+
+                        for(let key in articles) {
+                            console.log(articles[key])
+                        }
+                        return articleCount;
+                    }
+
+                    function organizeArticlesByDate(articles) {
+                        var articleCount = {};
+                        console.log(articles);
+
+                        for (let key in articles) {
+                            var article = articles[key];
+                            var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                            articleCount[articleDate] = 
+                            
+                            console.log( articleDate );
+                        }
+
+                        // for (let key in articles) {
+                        //     var article = articles[key];
+                        //     var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                        //     articleCount[articleDate] = JSON.parse(JSON.stringify(template));
+                        // }
+
+                        // for (let key in articles) {
+                        //     let article = articles[key];
+                        //     let articleSource = articles[key].source;
+                        //     let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                        //     articleCount[articleDate][articleSource]++;
+                        // }
+
+                        // for (let key in articleCount) {
+                        //     let article = articleCount[key];
+                        //     article.date = key;
+                        // }
+
+                        console.log(articleCount);
+                        return articleCount;
                     }
                 }
 
@@ -157,6 +219,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         article.date = key;
                     }
 
+                    console.log(articleCount);
                     return articleCount;
                 }
 
