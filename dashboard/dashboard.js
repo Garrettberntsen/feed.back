@@ -33,8 +33,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var donutDataset = createDonutChartDataset(articleCountInTimespan);
                     var barchartDataset = createBarChartDataset(articlesInTimespan);
 
-                    console.log(barchartDataset);
-
                     updateBarChart(barchartDataset);
                     updateDonutChart(donutDataset);
 
@@ -100,6 +98,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return articleCount;
                     }
 
+                    /* Creates a very specific array of object that is better suited for D3 parsing
+                     * for creating a stacked bar chart.
+                     *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+                     *  Returns -> Ordered array useful only for the stacked bar chart.
+                     */
                     function createBarChartDataset(articlesToParse) {
                         var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
                         for (let i = 0; i < daysBack; i++) {
@@ -112,6 +115,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
 
                         var articlesArray = Object.values(articles);
+                        var articleSourcesArray = createArrayOfSources();
 
                         articlesArray.sort(function (a, b) {
                             var dateA = Date.parse(a.date);
@@ -122,12 +126,24 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             return 0;
                         });
 
-                        return articlesArray;
+                        var parsedData = d3.layout.stack()(articleSourcesArray.map(function (source) {
+                            return articlesArray.map(function (d) {
+                                return {
+                                    x: Date.parse(d.date).toString('MMM d'),
+                                    y: +d[source],
+                                    label: source
+                                };
+                            });
+                        }));
+
+                        return parsedData;
+
+                        function createArrayOfSources() {
+                            return Object.keys( articleTimespanTemplate ).sort();
+                        }
                     }
 
                     function updateBarChart(dataset) {
-
-                        console.log(dataset);
                         var margin = {
                             top: 0,
                             right: 0,
@@ -146,21 +162,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             .attr("height", height + margin.top + margin.bottom)
                             .append("g")
                             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                        var categoryKeys = Object.getOwnPropertyNames(dataset);
-                        console.log(categoryKeys);
-
-                        categoryKeys.sort();
-                        
-                        var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
-                            return finalFinalData.map(function (d) {
-                                return {
-                                    x: Date.parse(d.date).toString('MMM d'),
-                                    y: +d[source],
-                                    label: source
-                                };
-                            });
-                        }));
 
                         var x = d3.scale.ordinal()
                             .domain(dataset[0].map(function (d) {
@@ -351,37 +352,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         tooltip.append("text")
                             .style("text-anchor", "middle")
                             .attr("font-size", "14px")
-                            .attr("font-weight", "bold")
-                        };
+                            .attr("font-weight", "bold");
                     }
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                var millisecondsBack = daysBack * millisecondsPerDay;
-                var articlesFromThisDate = todaysDate - millisecondsBack;
+                }
 
                 var userData = userSnapshot.val();
                 var email = user.email;
@@ -389,10 +362,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var articlesRead = userData.articles;
 
                 var articleObj = createArticleObject(articlesRead);
-                var sourceCount = countSources(articlesRead, articleObj);
 
                 appendData("days-back", daysBack);
-                // createBarChart(sourceCount, articleObj, daysBack);
 
                 var total = calculateTotalArticleCounts(articlesRead);
                 appendFacts(total);
@@ -432,41 +403,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             }
                         }
                     }
-                    return articleCount;
-                }
-
-                /* Creates an empty object filled with every date that the
-                *  user has read an article.
-                *
-                *  @articles -> List of articles that user has read, obtained from JSON file
-                *  @template -> Empty object every news site the user has visited. Will be copied 
-                *               into each date.
-                *
-                *  Returns -> object containing a template obj with a property for each date that
-                *             the user has read an article
-                */ 
-                function countSources(articles, template) {
-                    var articleCount = {};
-
-                    for (let key in articles) {
-                        var article = articles[key];
-                        var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                        articleCount[articleDate] = JSON.parse(JSON.stringify(template));
-                    }
-
-                    for (let key in articles) {
-                        let article = articles[key];
-                        let articleSource = articles[key].source;
-                        let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                        articleCount[articleDate][articleSource]++;
-                    }
-
-                    for (let key in articleCount) {
-                        let article = articleCount[key];
-                        article.date = key;
-                    }
-
-                    console.log(articleCount);
                     return articleCount;
                 }
 
@@ -544,208 +480,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         return count;
                     }
-                }
-
-                function createBarChart(data, obj, timeBack) {
-                    var daysBack = timeBack;
-                    var daysBackArr = getLastDays(daysBack);
-
-                    var dataArray = [];
-
-                    for (let key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            dataArray.push(data[key]);
-                        }
-                    }
-
-                    //adds missing dates to arr
-                    for (let i = 0; i < daysBackArr.length; i++) {
-                        if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
-                            var tempObj = {};
-                            tempObj = JSON.parse(JSON.stringify(obj));
-                            tempObj.date = daysBackArr[i];
-                            dataArray.push(tempObj);
-                        }
-                    }
-
-                    function arrayObjectIndexOf(myArray, searchTerm, property) {
-                        for (let i = 0, len = myArray.length; i < len; i++) {
-                            if (myArray[i].date === searchTerm) return i;
-                        }
-                        return -1;
-                    }
-
-                    dataArray.sort(function (a, b) {
-                        var dateA = Date.parse(a.date);
-                        var dateB = Date.parse(b.date);
-
-                        if (dateA < dateB) return -1;
-                        if (dateA > dateB) return 1;
-                        return 0;
-                    });
-
-                    var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
-
-                    var template = createTemplate(finalData);
-                    var templateCategories = JSON.parse(JSON.stringify(template));
-                    delete templateCategories.date;
-
-                    var finalFinalData = trimObjects(finalData, template);
-
-                    function trimObjects(array, template) {
-                        var trimmed = [];
-                        var tempTemplate = template;
-                        for(var i = 0; i < array.length; i++) {
-                            var todaysObj = {};
-                            for(var key in array[i]) {
-                                for(var templateKey in template) {
-                                    if(key === templateKey) {
-                                        todaysObj[templateKey] = array[i][templateKey];
-                                        tempTemplate[templateKey] = array[i][templateKey];
-                                    }
-                                }                                
-                            }
-                            trimmed.push(todaysObj);
-                        }
-                        return trimmed;
-                    }
-
-                    //Create object of only articles read in that time period
-                    function createTemplate(array) {
-                        var objectsRead = {};
-                        for(var i = 0; i < array.length; i++) {
-                            for (let key in array[i]) {
-                                if(array[i][key] !== 0) {
-                                    objectsRead[key] = "Checked";
-                                }
-                            }
-                        }
-                        return objectsRead;
-                    }
-
-                    var margin = {
-                        top: 0,
-                        right: 0,
-                        bottom: 25,
-                        left: 30
-                    };
-
-                    var width = 960 - margin.left - margin.right,
-                        height = 288 - margin.top - margin.bottom;
-
-                    var svg = d3.select("div.bar-chart")
-                        .append("svg")
-                        .attr("class", "chart")
-                        .attr("class","chart--font")
-                        .attr("width", width + margin.left + margin.right)
-                        .attr("height", height + margin.top + margin.bottom)
-                        .append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                    var categoryKeys = Object.getOwnPropertyNames(templateCategories);
-
-                    categoryKeys.sort();
-                    
-                    var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
-                        return finalFinalData.map(function (d) {
-                            return {
-                                x: Date.parse(d.date).toString('MMM d'),
-                                y: +d[source],
-                                label: source
-                            };
-                        });
-                    }));
-
-                    var x = d3.scale.ordinal()
-                        .domain(dataset[0].map(function (d) {
-                            return d.x;
-                        }))
-                        .rangeRoundBands([10, width - 10], 0.2);
-
-                    var y = d3.scale.linear()
-                        .domain([0, d3.max(dataset, function (d) {
-                            return d3.max(d, function (d) {
-                                return d.y * 3;
-                            });
-                        })])
-                        .range([height, 0]);
-
-                    var color = d3.scale.category20();
-
-                    var yAxis = d3.svg.axis()
-                        .scale(y)
-                        .orient("left")
-                        .ticks(5)
-                        .tickSize(-width, 0, 0)
-                        .tickFormat(function (d) {
-                            return d;
-                        });
-
-                    var xAxis = d3.svg.axis()
-                        .scale(x)
-                        .orient(margin.bottom)
-                        .ticks(5);
-
-                    svg.append("g")
-                        .attr("class", "y axis")
-                        .call(yAxis);
-
-                    svg.append("g")
-                        .attr("class", "x axis")
-                        .attr("transform", "translate(0," + height + ")")
-                        .call(xAxis);
-
-                    var groups = svg.selectAll("g.time")
-                        .data(dataset) 
-                        .enter().append("g")
-                        .attr("class", "time")
-                        .attr("fill", function (d, i) {
-                            return color(i);
-                        });
-
-                    var rect = groups.selectAll("rect")
-                        .data(function (d) { return d; })
-                        .enter().append("rect")
-                        .attr("x", function (d) {
-                            return x(d.x);
-                        })
-                        .attr("y", height)
-                        .attr("width", x.rangeBand())
-                        .attr("height", 0);
-
-
-                    rect.transition()
-                    .delay(function(d, i) { return i * 74; })
-                    .attr("y", function (d) {
-                        return y(d.y0 + d.y);
-                    })
-                    .attr("height", function (d) {
-                        return y(d.y0) - y(d.y0 + d.y);
-                    })
-
-                    rect.on("mouseover", function () {
-                        tooltip.style("display", null);
-                    })
-                    .on("mouseout", function () {
-                        tooltip.style("display", "none");
-                    })
-                    .on("mousemove", function (d) {
-                        var xPosition = d3.mouse(this)[0] - 15;
-                        var yPosition = d3.mouse(this)[1] - 25;
-                        tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                        tooltip.select("text").text(returnSource(d.label, d.y) ) ;
-                    })
-
-                    var tooltip = svg.append("g")
-                        .attr("class", "tooltip")
-                        .style("display", "none");
-
-                    tooltip.append("text")
-                        .attr("x", 15)
-                        .attr("dy", "1.2em")
-                        .style("text-anchor", "middle")
-                        .attr("font-size", "12px")
-                        .attr("font-weight", "bold");
                 }
 
                 function returnSource(label, articlesRead) {
@@ -839,32 +573,22 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         }
                         tableElem.appendChild(tr);
                     }
-                }
-
-                function prependHTTPSIfNeeded(string) {
-                    if(string.includes('https://')){
-                        return string;
-                    }else {
-                        return 'https://' + string;
+                
+                    function prependHTTPSIfNeeded(string) {
+                        if(string.includes('https://')){
+                            return string;
+                        }else {
+                            return 'https://' + string;
+                        }
                     }
-                }
 
-                function hasSubdomains(articleSource, isArticle) {
-                    if(articleSource.length > 2) {
-                        return articleSource[0] + "." + articleSource[1] + ".com";
+                    function hasSubdomains(articleSource, isArticle) {
+                        if(articleSource.length > 2) {
+                            return articleSource[0] + "." + articleSource[1] + ".com";
+                        }
+                        return articleSource[0] + ".com"; 
                     }
-                    return articleSource[0] + ".com"; 
-                }
-
-                function getLastDays(days) {
-                    var lastDays = [];
-                    for (let i = 0; i < days; i++) {
-                        let date = new Date();
-                        date.setDate(date.getDate() - i); //subtract i days from current date
-                        lastDays.push(date.toString("M/d/yyyy"));
-                    }
-                    return lastDays;
-                }
+	            }
             });
         }).catch(function (error) {
             console.log(error);
