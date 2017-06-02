@@ -19,25 +19,21 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var todaysDate = Date.now();
                 var millisecondsPerDay = 86400000;
 
-                updateDashboard((daysBack - 1) * millisecondsPerDay);
+                updateCharts((daysBack - 1) * millisecondsPerDay);
 
-                function updateDashboard(timeSpan) {
+                function updateCharts(timeSpan) {
                     var timeEnd = Date.now();
                     var timeStart = timeEnd - timeSpan;    
 
                     var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
-                    var articleTimespanTemplate = 
+                    var articleTimespanTemplate = createTemplate(articlesInTimespan);
 
+                    var articleCountInTimespan = getArticleCount(articlesInTimespan);
 
+                    var donutDataset = createDonutChartDataset(articleCountInTimespan);
 
-                    console.log(articlesInTimespan);
-                    console.log(timeEnd);
-                    console.log(timeStart);
-
-                    console.log( getArticleCount(articlesInTimespan) );
-                    console.log( createTemplate(articlesInTimespan) );
-                    console.log( organizeArticlesByDate(articlesInTimespan) );
-
+                    updateBarChart();
+                    updateDonutChart(donutDataset);
 
                     function getArticlesInTimespan(end, start) {
                         var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
@@ -79,40 +75,141 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return articleCount;
                     }
 
-                    function organizeArticlesByDate(articles) {
+                    function organizeArticlesByDate(articles, template) {
                         var articleCount = {};
                         console.log(articles);
 
                         for (let key in articles) {
                             var article = articles[key];
                             var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                            articleCount[articleDate] = 
-                            
-                            console.log( articleDate );
+                            articleCount[articleDate] = JSON.parse(JSON.stringify(template));
                         }
 
-                        // for (let key in articles) {
-                        //     var article = articles[key];
-                        //     var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                        //     articleCount[articleDate] = JSON.parse(JSON.stringify(template));
-                        // }
+                        for (let key in articles) {
+                            let article = articles[key];
+                            let articleSource = articles[key].source;
+                            let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+                            articleCount[articleDate][articleSource]++;
+                        }
 
-                        // for (let key in articles) {
-                        //     let article = articles[key];
-                        //     let articleSource = articles[key].source;
-                        //     let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
-                        //     articleCount[articleDate][articleSource]++;
-                        // }
-
-                        // for (let key in articleCount) {
-                        //     let article = articleCount[key];
-                        //     article.date = key;
-                        // }
+                        for (let key in articleCount) {
+                            let article = articleCount[key];
+                            article.date = key;
+                        }
 
                         console.log(articleCount);
                         return articleCount;
                     }
-                }
+
+                    function updateBarChart() {
+                        console.log("update bar chart here");
+                    }
+                    
+                    /* Creates array that is better suited for D3 parsing
+                     *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+                     *  Returns -> Ordered array of sources read and their count
+                     */
+                    function createDonutChartDataset(articlesToParse) {
+                        var dataset = [];
+                        for (let source in articlesToParse) {
+                            var articleCountObj = {};
+                            articleCountObj['source'] = source;
+                            articleCountObj['count'] = articlesToParse[source];
+                            dataset.push(articleCountObj);
+                        }
+
+                        dataset.sort(function (a, b) {
+                            var nameA = a.source;
+                            var nameB = b.source;
+                            if (nameA < nameB) {
+                                return -1;
+                            }
+                            if (nameA > nameB) {
+                                return 1;
+                            }
+                            return 0;
+                        });
+                        return dataset;
+                    }
+
+                    function updateDonutChart(dataset) {
+                        console.log(dataset);
+
+                        var donutWidth = 50;
+
+                        var width = 480,
+                            height = 288;
+                        var radius = Math.min(width, height) / 2;
+
+                        var pie = d3.layout.pie()
+                            .value(function (d) {
+                                return d.count;
+                            })
+                            .sort(null);
+
+                        var arc = d3.svg.arc()
+                            .innerRadius(radius - donutWidth)
+                            .outerRadius(radius)
+                            .padAngle(0.02);
+
+                        var color = d3.scale.category20();
+
+                        var svg = d3.select("div.donut-chart")
+                            .append("svg")
+                            .attr("class", "chart")
+                            .attr("class","chart--font")
+                            .attr("width", width)
+                            .attr("height", height)
+                            .append("g")
+                            .attr("transform", "translate(" + 240 + "," + (height / 2) + ")");
+
+                        var path = svg.selectAll("path")
+                            .data(pie(dataset))
+                            .enter()
+                            .append("path")
+                            .attr("class", "donut-chart-arc")
+                            .attr("d", arc)
+                            .attr("fill", function (d, i) {
+                                console.log(d.data.source);
+                                return color(d.data.source);
+                            })
+                            .on("mouseover", function () {
+                                tooltip.style("display", null);
+                            })
+                            .on("mouseout", function () {
+                                tooltip.style("display", "none");
+                            })
+                            .on("mousemove", function (d) { 
+                                tooltip.select("text").text( returnSource(d.data) ) ;
+                            });
+
+                        path.transition()
+                            .duration(1000)
+                            .attrTween('d', function(d) {
+                                var interpolate = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+                                return function(t) {
+                                    return arc(interpolate(t));
+                                }
+                            });
+
+                        function returnSource(data, type) {
+                            var total = d3.sum(dataset.map(function(d) { return d.count; }));
+                            var percent = Math.round(1000 * data.count / total) / 10;
+                            var tooltipText = data.source + " - " + data.count + " - " + percent + "%"   ;
+                            return tooltipText;
+                        }
+
+                        var tooltip = svg.append("g")
+                            .attr("class", "tooltip")
+                                
+                        tooltip.append("text")
+                            .style("text-anchor", "middle")
+                            .attr("font-size", "14px")
+                            .attr("font-weight", "bold")
+                        };
+                    }
+                
+
 
 
 
@@ -149,8 +246,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                 var sourceCount = countSources(articlesRead, articleObj);
 
                 appendData("days-back", daysBack);
-
-                createPieChart(sourceCount, articleObj, daysBack);
                 createBarChart(sourceCount, articleObj, daysBack);
 
                 var total = calculateTotalArticleCounts(articlesRead);
@@ -227,183 +322,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     console.log(articleCount);
                     return articleCount;
-                }
-
-                function createPieChart(data, obj, timeBack) {
-                    var daysBack = timeBack;
-                    var daysBackArr = getLastDays(daysBack);
-                    var tempObjTwo = JSON.parse(JSON.stringify(obj));
-
-                    var dataArray = [];
-
-                    for (let key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            dataArray.push(data[key]);
-                        }
-                    }
-
-                    for (let i = 0; i < daysBackArr.length; i++) {
-                        if (arrayObjectIndexOf(dataArray, daysBackArr[i], "date") < 0) {
-                            let tempObj = {};
-                            tempObj = JSON.parse(JSON.stringify(obj));
-                            tempObj.date = daysBackArr[i];
-                            dataArray.push(tempObj);
-                        }
-                    }
-
-                    function arrayObjectIndexOf(myArray, searchTerm, property) {
-                        for (let i = 0, len = myArray.length; i < len; i++) {
-                            if (myArray[i].date === searchTerm) return i;
-                        }
-                        return -1;
-                    }
-
-                    dataArray.sort(function (a, b) {
-                        var dateA = Date.parse(a.date);
-                        var dateB = Date.parse(b.date);
-
-                        if (dateA < dateB) return -1;
-                        if (dateA > dateB) return 1;
-                        return 0;
-                    });
-
-                    var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
-
-                    for (let i = 0; i < finalData.length; i++) {
-                        for (let property in finalData[i]) {
-                            if (finalData[i].hasOwnProperty(property)) {
-                                let currentCount = finalData[i][property];
-                                tempObjTwo[property] += currentCount;
-                            }
-                        }
-                    }
-
-                    var tempArr = [];
-
-                    for (let property in tempObjTwo) {
-                        if (tempObjTwo.hasOwnProperty(property)) {
-                            var tempArticleCount = {};
-                            tempArticleCount.label = property;
-                            tempArticleCount.count = tempObjTwo[property];
-                            if(tempArticleCount.count > 0) {
-                                tempArr.push(tempArticleCount);
-                            }
-                        }
-                    }
-
-                    var dataset = tempArr;
-
-                    dataset.sort(function(a, b) {
-                        var nameA = a.label;
-                        var nameB = b.label;
-                        if(nameA < nameB) {
-                            return -1;
-                        }
-                        if (nameA > nameB) {
-                            return 1;
-                        }
-                        return 0;
-                    });
-
-                    var donutWidth = 50;
-
-                    var width = 480,
-                        height = 288;
-                    var radius = Math.min(width, height) / 2;
-
-                    var pie = d3.layout.pie()
-                        .value(function (d) {
-                            return d.count;
-                        })
-                        .sort(null);
-
-                    var arc = d3.svg.arc()
-                        .innerRadius(radius - donutWidth)
-                        .outerRadius(radius)
-                        .padAngle(0.02);
-
-                    var color = d3.scale.category20();
-
-                    var svg = d3.select("div.donut-chart")
-                        .append("svg")
-                        .attr("class", "chart")
-                        .attr("class","chart--font")
-                        .attr("width", width)
-                        .attr("height", height)
-                        .append("g")
-                        .attr("transform", "translate(" + 240 + "," + (height / 2) + ")");
-
-                    var path = svg.selectAll("path")
-                        .data(pie(dataset))
-                        .enter()
-                        .append("path")
-                        .attr("class", "donut-chart-arc")
-                        .attr("d", arc)
-                        .attr("fill", function (d, i) {
-                            return color(d.data.label);
-                        })
-                        .on("mouseover", function () {
-                            tooltip.style("display", null);
-                        })
-                        .on("mouseout", function () {
-                            tooltip.style("display", "none");
-                        })
-                        .on("mousemove", function (d) { 
-                            tooltip.select("text").text( returnSource(d.data) ) ;
-                        });
-
-                    path.transition()
-                        .duration(1000)
-                        .attrTween('d', function(d) {
-                            var interpolate = d3.interpolate({startAngle: 0, endAngle: 0}, d);
-                            return function(t) {
-                                return arc(interpolate(t));
-                            }
-                        });
-
-                    function returnSource(data, type) {
-                        var total = d3.sum(dataset.map(function(d) { return d.count; }));
-                        var percent = Math.round(1000 * data.count / total) / 10;
-                        var tooltipText = data.label + " - " + data.count + " - " + percent + "%"   ;
-                        return tooltipText;
-                    }
-
-                    var tooltip = svg.append("g")
-                        .attr("class", "tooltip")
-                            
-                    tooltip.append("text")
-                        .style("text-anchor", "middle")
-                        .attr("font-size", "14px")
-                        .attr("font-weight", "bold")
-
-                    // var legendRectSize = 18;
-                    // var legendSpacing = 4;
-
-                    // var legend = svg.selectAll(".legend")
-                    //     .data(color.domain())
-                    //     .enter()
-                    //     .append("g")
-                    //     .attr("class", "legend")
-                    //     .attr("transform", function (d, i) {
-                    //         var height = legendRectSize + legendSpacing;
-                    //         var offset = height * color.domain().length / 2;
-                    //         var horz = 9     * legendRectSize;
-                    //         var vert = i * height - offset;
-                    //         return "translate( " + horz + "," + vert + ")";
-                    //     });
-
-                    // legend.append("rect")
-                    //     .attr("width", legendRectSize)
-                    //     .attr("height", legendRectSize)
-                    //     .style("fill", color)
-                    //     .style("stroke", color);
-
-                    // legend.append("text")
-                    //     .attr("x", legendRectSize + legendSpacing)
-                    //     .attr("y", legendRectSize - legendSpacing)
-                    //     .text(function (d) {
-                    //         return d;
-                    //     });
                 }
 
                 function calculateTotalArticleCounts(articles) {
@@ -661,18 +579,17 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     })
 
                     rect.on("mouseover", function () {
-                            tooltip.style("display", null);
-                        })
-                        .on("mouseout", function () {
-                            tooltip.style("display", "none");
-                        })
-                        .on("mousemove", function (d) {
-                            var xPosition = d3.mouse(this)[0] - 15;
-                            var yPosition = d3.mouse(this)[1] - 25;
-                            tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                            tooltip.select("text").text(returnSource(d.label, d.y) ) ;
-                        })
-
+                        tooltip.style("display", null);
+                    })
+                    .on("mouseout", function () {
+                        tooltip.style("display", "none");
+                    })
+                    .on("mousemove", function (d) {
+                        var xPosition = d3.mouse(this)[0] - 15;
+                        var yPosition = d3.mouse(this)[1] - 25;
+                        tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                        tooltip.select("text").text(returnSource(d.label, d.y) ) ;
+                    })
 
                     var tooltip = svg.append("g")
                         .attr("class", "tooltip")
