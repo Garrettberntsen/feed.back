@@ -35,7 +35,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     console.log(timeStart);
 
                     console.log( getArticleCount(articlesInTimespan) );
-                    console.log( getTemplate(articlesInTimespan) );
+                    console.log( createTemplate(articlesInTimespan) );
                     console.log( organizeArticlesByDate(articlesInTimespan) );
 
 
@@ -64,11 +64,17 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                         return totalCount;
                     }
 
-                    function getTemplate(articles) {
+                    function createTemplate(articles) {
                         var articleCount = {};
 
-                        for(let key in articles) {
-                            console.log(articles[key])
+                        for (let key in articles) {
+                            if (articles.hasOwnProperty(key)) {
+                                var article = articles[key];
+                                var source = article.source;
+                                if (!articleCount.hasOwnProperty(source)) {
+                                    articleCount[source] = 0;
+                                }
+                            }
                         }
                         return articleCount;
                     }
