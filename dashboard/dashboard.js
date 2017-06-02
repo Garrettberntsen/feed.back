@@ -26,11 +26,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var timeStart = timeEnd - timeSpan;    
 
                     var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
-                    var articleTimespanTemplate = createTemplate(articlesInTimespan);
 
+                    var articleTimespanTemplate = createTemplate(articlesInTimespan);
                     var articleCountInTimespan = getArticleCount(articlesInTimespan);
 
                     var donutDataset = createDonutChartDataset(articleCountInTimespan);
+                    var barchartDataset = createBarChartDataset(articlesInTimespan);
 
                     updateBarChart();
                     updateDonutChart(donutDataset);
@@ -77,8 +78,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     function organizeArticlesByDate(articles, template) {
                         var articleCount = {};
-                        console.log(articles);
-
                         for (let key in articles) {
                             var article = articles[key];
                             var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
@@ -96,12 +95,22 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                             let article = articleCount[key];
                             article.date = key;
                         }
-
-                        console.log(articleCount);
                         return articleCount;
                     }
 
-                    function updateBarChart() {
+                    function createBarChartDataset(articlesToParse) {
+                        var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
+                        for(let i = 0; i < daysBack; i++) {
+                            var timeToAdd = i * millisecondsPerDay;
+                            var currentDay = new Date(timeStart + timeToAdd).toString("M/d/yyyy");
+                            if( !articles.hasOwnProperty(currentDay) ) {
+                                articles[currentDay] = articleTimespanTemplate;
+                            }
+                        }
+                        return articles;
+                    }
+
+                    function updateBarChart(dataset) {
                         console.log("update bar chart here");
                     }
                     
@@ -133,8 +142,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     }
 
                     function updateDonutChart(dataset) {
-                        console.log(dataset);
-
                         var donutWidth = 50;
 
                         var width = 480,
@@ -441,6 +448,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                     var finalData = dataArray.splice(dataArray.length - daysBack, dataArray.length);
 
+                    console.log(finalData);
                     var template = createTemplate(finalData);
                     var templateCategories = JSON.parse(JSON.stringify(template));
                     delete templateCategories.date;
@@ -500,6 +508,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
                     var categoryKeys = Object.getOwnPropertyNames(templateCategories);
 
                     categoryKeys.sort();
+
+                    console.log(categoryKeys);
+                    console.log(finalFinalData);
                     
                     var dataset = d3.layout.stack()(categoryKeys.map(function (source) {
                         return finalFinalData.map(function (d) {
