@@ -18,6 +18,57 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
                 var todaysDate = Date.now();
                 var millisecondsPerDay = 86400000;
+
+                updateDashboard(daysBack * millisecondsPerDay);
+
+                function updateDashboard(timeSpan) {
+                    var timeEnd = Date.now();
+                    var timeStart = timeEnd - timeSpan;    
+
+                    var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
+
+                    console.log(articlesInTimespan);
+                    console.log(timeEnd);
+                    console.log(timeStart);
+
+
+
+                    function getArticlesInTimespan(end, start) {
+                        var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
+                        //To-Do: Add support to find articles in between two dates. Should be an easy
+                        //fix, just add in another more that sign to check for the end
+                        for (let key in articles) {
+                            if (articles[key].dateRead < start) {
+                                delete articles[key];
+                            }
+                        }   
+                        return articles;
+                    }
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 var millisecondsBack = daysBack * millisecondsPerDay;
                 var articlesFromThisDate = todaysDate - millisecondsBack;
 
