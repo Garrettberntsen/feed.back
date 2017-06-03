@@ -3,8 +3,8 @@
  *
  * This module responds to the given messages:
  * - type: getSources
- * - message: none
- * - response: the source definitions
+ *      - message: none
+ *      - response: the source definitions object
  * Created by Damie on 5/2/2017.
  */
 
@@ -779,6 +779,23 @@ var sources = {
         'text-selector': 'div.field-item > p',
         'text-selector-property': '',
         'title-selector': 'header.article-top > h1.title',
+        'title-selector-property': ''
+    }),
+    "latimes" : new SourceDefinition({
+        'urls': [{
+            urlRoot: 'latimes.com',
+            'article-url-matcher': {
+                pattern: "{category}/{title}",
+                groups: ["category","title"]
+            }
+        }],
+        'author-selector': 'span[itemprop="author"]',
+        'author-selector-property': '',
+        'date-selector': 'div.trb_ar_dateline > time[itemprop="datePublished"]',
+        'date-selector-property': 'dt',
+        'text-selector': 'div[itemprop="articleBody"] > div.trb_ar_page',
+        'text-selector-property': '',
+        'title-selector': 'h1.trb_ar_hl_t',
         'title-selector-property': ''
     })
 };
