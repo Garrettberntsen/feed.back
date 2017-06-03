@@ -188,7 +188,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             if (sourceName) {
                 last_url = reduceUrl(last_visited_url);
             }
-            if (scraping_in_progress[last_url] && request.message.waitForScrape) {
+            if (scraping_in_progress[last_url] && request.message && request.message.waitForScrape) {
                 scraping_in_progress[last_url].then(function (article) {
                     if (article) {
                         sendResponse(article);
