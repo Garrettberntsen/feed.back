@@ -87,8 +87,24 @@
   margin-bottom: 1rem;
 }
 
+.bar-chart-bar:hover {
+  opacity: 0.85;
+}
+
 .donut-chart {
   align-items: center;
+}
+
+.donut-chart-arc {
+  stroke: #FFF;
+  stroke-width: 5px;
+  transition-delay: 0.10s;
+  transition: all 250ms ease;
+}
+
+.donut-chart-arc:hover {
+  stroke-width: 0;
+  opacity: 0.85;
 }
 
 /* ------------ ------------Table Styling ------------ ------------ */
@@ -104,12 +120,12 @@ tbody tr {
   transition: all 0.3s ease;
 }
 
-tbody tr:nth-child(odd) {
-  background-color: #ffe0b2;
-}
+/*tbody tr:nth-child(odd) {
+  background-color: 
+}*/
 
 tbody tr:hover {
-  background-color: #ffc166;
+  background-color: #ffe0b2;
 }
 
 tbody td {
@@ -123,6 +139,14 @@ tbody td {
 
 .card--table {
   display: block;
+}
+
+.dataTable-pagination .active a, .dataTable-pagination .active a:focus, .dataTable-pagination .active a:hover {
+  background-color: #ffe0b2;
+}
+
+.dataTable-pagination a:hover {
+    background-color: #ffc166;
 }
 
 /* ------------ ------------Facts Styling ------------ ------------ */
