@@ -290,10 +290,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					function updateDonutChart(dataset) {
 						var donutWidth = 50;
+						var arcSpace = 0.00;
 
 						var width = 480,
 							height = 288;
 						var radius = Math.min(width, height) / 2;
+
+						var total = d3.sum(dataset.map(function(d) { return d.count; }));
 
 						var pie = d3.layout.pie()
 							.value(function (d) {
@@ -304,7 +307,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var arc = d3.svg.arc()
 							.innerRadius(radius - donutWidth)
 							.outerRadius(radius)
-							.padAngle(0.02);
+							.padAngle(arcSpace);
 
 						var color = d3.scale.category20();
 
@@ -321,20 +324,18 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.data(pie(dataset))
 							.enter()
 							.append("path")
-							.attr("class", "donut-chart-arc")
 							.attr("d", arc)
 							.attr("fill", function (d, i) {
 								return color(d.data.source);
 							})
-							.on("mouseover", function () {
+							.on("mouseover", function (d) {
 								tooltip.style("display", null);
+								tooltip.select(".tooltip__source").text( returnSource(d.data) ) ;
+								tooltip.select(".tooltip__count").text( returnCount(d.data) ) ;
 							})
 							.on("mouseout", function () {
 								tooltip.style("display", "none");
 							})
-							.on("mousemove", function (d) { 
-								tooltip.select("text").text( returnSource(d.data) ) ;
-							});
 
 						path.transition()
 							.duration(1000)
@@ -343,12 +344,22 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 								return function(t) {
 									return arc(interpolate(t));
 								}
+							})
+							.each("end", function(){
+								this.classList.add("donut-chart-arc");
+
 							});
 
-						function returnSource(data, type) {
-							var total = d3.sum(dataset.map(function(d) { return d.count; }));
+
+
+						function returnSource(data) {
+							var tooltipText = data.source;
+							return tooltipText;
+						}
+						
+						function returnCount(data) {
 							var percent = Math.round(1000 * data.count / total) / 10;
-							var tooltipText = data.source + " - " + data.count + " - " + percent + "%"   ;
+							var tooltipText = data.count + " - " + percent + "%"   ;
 							return tooltipText;
 						}
 
@@ -356,6 +367,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.attr("class", "tooltip")
 								
 						tooltip.append("text")
+							.attr("class", "tooltip__source")
+							.attr("transform", "translate(" + 0 + "," + -8 + ")")
+							.style("text-anchor", "middle")
+							.attr("font-size", "14px")
+							.attr("font-weight", "bold");
+
+						tooltip.append("text")
+							.attr("class", "tooltip__count")
+							.attr("transform", "translate(" + 0 + "," + 10 + ")")
 							.style("text-anchor", "middle")
 							.attr("font-size", "14px")
 							.attr("font-weight", "bold");

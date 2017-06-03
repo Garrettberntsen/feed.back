@@ -91,7 +91,15 @@
   align-items: center;
 }
 
+.donut-chart-arc {
+  stroke: #FFF;
+  stroke-width: 5px;
+  transition-delay: 0.10s;
+  transition: all 250ms ease;
+}
+
 .donut-chart-arc:hover {
+  stroke-width: 0;
   opacity: 0.85;
 }
 
