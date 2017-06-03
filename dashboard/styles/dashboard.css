@@ -91,6 +91,10 @@
   align-items: center;
 }
 
+.donut-chart-arc:hover {
+  opacity: 0.85;
+}
+
 /* ------------ ------------Table Styling ------------ ------------ */
 #table {
   font-size: 1.6rem;
