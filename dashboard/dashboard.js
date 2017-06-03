@@ -217,32 +217,33 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.attr("x", function (d) {
 								return x(d.x);
 							})
+							.attr("class", "bar-chart-bar")
 							.attr("y", height)
 							.attr("width", x.rangeBand())
 							.attr("height", 0);
 
 
 						rect.transition()
-						.delay(function(d, i) { return i * 74; })
-						.attr("y", function (d) {
-							return y(d.y0 + d.y);
-						})
-						.attr("height", function (d) {
-							return y(d.y0) - y(d.y0 + d.y);
-						})
+							.delay(function(d, i) { return i * 74; })
+							.attr("y", function (d) {
+								return y(d.y0 + d.y);
+							})
+							.attr("height", function (d) {
+								return y(d.y0) - y(d.y0 + d.y);
+							})
 
-						rect.on("mouseover", function () {
-							tooltip.style("display", null);
-						})
-						.on("mouseout", function () {
-							tooltip.style("display", "none");
-						})
-						.on("mousemove", function (d) {
-							var xPosition = d3.mouse(this)[0] - 15;
-							var yPosition = d3.mouse(this)[1] - 25;
-							tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-							tooltip.select("text").text(returnSource(d.label, d.y) ) ;
-						})
+							rect.on("mouseover", function (d) {
+								tooltip.style("display", null);
+								tooltip.select("text").text(returnSource(d.label, d.y) ) ;
+							})
+							.on("mouseout", function () {
+								tooltip.style("display", "none");
+							})
+							.on("mousemove", function (d) {
+								var xPosition = d3.mouse(this)[0] - 15;
+								var yPosition = d3.mouse(this)[1] - 25;
+								tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+							});
 
 						var tooltip = svg.append("g")
 							.attr("class", "tooltip")
