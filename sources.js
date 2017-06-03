@@ -25,6 +25,7 @@ function testSingleUrlMatcher(matcher, urlRoot, url) {
 
 function SourceDefinition(definition) {
     this.urls = definition.urls;
+    this["categorization"] = definition["categorization"];
     this["article-url-matcher"] = definition["article-url-matcher"];
     this["author-selector"] = definition["author-selector"];
     this["author-selector-property"] = definition["author-selector-property"];
@@ -92,6 +93,19 @@ var sources = {
                     groups: ["title", "year", "month", "day", "id"]
                 }
             }],
+        'categorization': {
+            type: 'url',
+            matcher: {
+                url_element: ["type", "category"],
+                mappings: {
+                    "lifestyle": "Arts",
+                    "business": "Business",
+                    "food": "Culture",
+                    "local" : "Local",
+                    "capital-weather-gang":" Local"
+                }
+            }
+        },
         'author-selector': 'div.pb-sig-line > span.pb-byline > a > span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
@@ -105,7 +119,7 @@ var sources = {
         'urls': [{
             urlRoot: 'nytimes.com',
             'article-url-matcher': {
-                pattern: "{year}/{month}/{day}/{location}/{category}/{title}.html",
+                pattern: "{year}/{month}/{day}/{category}/{subcategory}/{title}.html",
                 groups: ["year", "month", "day", "location", "category", "title"]
             }
         },
@@ -116,6 +130,23 @@ var sources = {
                     groups: ["year", "month", "day", "category", "title"]
                 }
             }],
+        'categorization': {
+            type: 'url',
+            matcher: {
+                url_element: ["category", "subcategory"],
+                mappings: {
+                    "business": "Business",
+                    "realestate": "Business",
+                    "your-money": "Business",
+                    "fashion": "Culture",
+                    "books": "Culture",
+                    "arts": "Culture",
+                    "well" : "Health",
+                    "opinion" : "Opinion",
+                    "politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'meta[name="byl"]',
         'author-selector-property': 'content',
         'date-selector': 'time',
@@ -167,6 +198,12 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title", "id", "title"]
             }
         }],
+        'categorization' : {
+            type: 'url',
+            matcher: {
+                "science-and-health" : "Health"
+            }
+        },
         'author-selector': 'meta[property="author"]',
         'author-selector-property': 'content',
         'date-selector': 'time.c-byline__item',
@@ -183,7 +220,32 @@ var sources = {
                 pattern: "{year}/{month}/{day}/{category}/{title}/index.html",
                 groups: ["year", "month", "day", "category", "title "]
             }
-        }],
+        },
+            {
+                urlRoot: 'cnn.com',
+                'article-url-matcher': {
+                    pattern: "{year}/{month}/{day}/news/{category}/{title}/index.html",
+                    groups: ["year", "month", "day", "category", "title "]
+                }
+            }],
+        'categorization': {
+            type: "url",
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "economy": "Business",
+                    "architecture": "Culture",
+                    "travel": "Culture",
+                    "entertainment": "Entertainment",
+                    "celebrities": "Entertainment",
+                    "health" : "Health",
+                    "media" : "Media",
+                    "opinion" : "Opinion",
+                    "opinions" : "Opinion",
+                    "politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'span.metadata__byline__author',
         'author-selector-property': '',
         'date-selector': 'p.update-time',
@@ -208,6 +270,16 @@ var sources = {
                     groups: ["category", "subcategory", "title"]
                 }
             }],
+        'categorization': {
+            type: "url",
+            matcher: {
+                url_element: "category",
+                matcher: {
+                    "culture": "Culture",
+                    "humor" : "Humor"
+                }
+            }
+        },
         'author-selector': 'span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'time',
@@ -293,6 +365,18 @@ var sources = {
                 groups: ["category", "year", "month", "title", "id"]
             }
         }],
+        'categoriztion': {
+            type: 'url',
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "business": "Business",
+                    "entertainment": "Entertainment",
+                    "health" : "Health",
+                    "politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'div.article-cover-extra > ul.metadata > li.byline > span[itemprop="author"] > a > span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -331,6 +415,19 @@ var sources = {
                     groups: ["category", "subcategory", "year", "month", "title"]
                 }]
         }],
+        'categorization': {
+            type: "url",
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "business": "Business",
+                    "moneybox": "Business",
+                    "arts": "Culture",
+                    "health_and_science" : "Health",
+                    "news_and_politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'div#main_byline > a',
         'author-selector-property': '',
         'date-selector': 'div.pub-date',
@@ -360,15 +457,21 @@ var sources = {
     'bloomberg': new SourceDefinition({
         'urls': [{
             urlRoot: 'bloomberg.com',
-            'article-url-matcher': [{
-                pattern: "news/articles/{year}-{month}-{day}/{title}",
-                groups: ["year", "month", "day", "title"]
-            },
+            'article-url-matcher': [
                 {
-                    pattern: "politics/articles/{year}-{month}-{day}/{title}",
-                    groups: ["year", "month", "day", "title"]
+                    pattern: "{category}/articles/{year}-{month}-{day}/{title}",
+                    groups: ["{category}","year", "month", "day", "title"]
                 }]
         }],
+        "categorization" : {
+            type: "url",
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'address.lede-text-only__byline > div.author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -403,6 +506,15 @@ var sources = {
                 groups: ["author", "year", "month", "day", "title"]
             }
         }],
+        'categorization': {
+            type: 'url',
+            matcher: {
+                url_element: "author",
+                mappings: {
+                    "bizblog": "Business"
+                }
+            }
+        },
         'article-root-element-selector': 'article.main-article:not(article#article-container-spinner) > div > div.main-article-padding',
         'author-selector': 'p.contrib-byline-author > a',
         'author-selector-property': '',
@@ -434,10 +546,22 @@ var sources = {
         'urls': [{
             urlRoot: 'foxnews.com',
             'article-url-matcher': {
-                pattern: "{location}/{year}/{month}/{day}/{title}.html",
-                groups: ["location", "year", "month", "day", "title"]
+                pattern: "{category}/{year}/{month}/{day}/{title}.html",
+                groups: ["category", "year", "month", "day", "title"]
             }
         }],
+        "categorization": {
+            type: "url",
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "entertainment": "Entertainment",
+                    "health" : "Health",
+                    "opinion" : "Opinion",
+                    "politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'div.byline > span.author > a',
         'author-selector-property': '',
         'date-selector': 'div.article-info time', //going to need cleanup
@@ -455,6 +579,19 @@ var sources = {
                 groups: ["area", "category", "id", "title"]
             }
         }],
+        'categorization': {
+            type: url,
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "finance": "Business",
+                    "50-most-beautiful": "Entertainment",
+                    "healthcare" : "Health",
+                    "defence" : "Politics",
+                    "national-security" : "Politics"
+                }
+            }
+        },
         'author-selector': 'span.submitted-by', //going to need cleanup
         'author-selector-property': '',
         'date-selector': 'span.submitted-date',
@@ -490,8 +627,23 @@ var sources = {
             }, {
                 pattern: "{category}/{title}/story",
                 groups: ["area", "category", "id", "title"]
-            }]
+            },
+                {
+                    pattern: "{category}/{subcategory}/{title}/story",
+                    groups: ["area", "category", "subcategory", "id", "title"]
+                }]
         }],
+        "categorization": {
+            type: "url",
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "Entertainment": "Entertainment",
+                    "Health" : "Health",
+                    "Politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'div.article-meta > ul > div.author', //going to need clean up
         'author-selector-property': '',
         'date-selector': 'span.timestamp',
@@ -509,6 +661,17 @@ var sources = {
                 groups: ["category", "subcategory", "title", "id"]
             }
         }],
+        'categorization': {
+            type: "url",
+            matcher: {
+                url_element: ["subcategory", "category"],
+                mappings: {
+                    "careers": "Business",
+                    "health" : "Health",
+                    "politics" : "Politics"
+                }
+            }
+        },
         'author-selector': 'span.byline_author',
         'author-selector-property': '',
         'date-selector': 'time.timestamp_article',
@@ -560,6 +723,15 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title"]
             }
         }],
+        'categorization':{
+            type: "url",
+            matcher: {
+                url_element : "category",
+                mappings : {
+                    "big-government" : "Politics"
+                }
+            }
+        },
         'author-selector': 'a.byauthor',
         'author-selector-property': '',
         'date-selector': 'span.bydate',
@@ -590,10 +762,19 @@ var sources = {
         'urls': [{
             urlRoot: 'economist.com',
             'article-url-matcher': {
-                pattern: "news/{locatoin}/{id}-{title}",
-                groups: ["region", "category", "id"]
+                pattern: "news/{category}/{id}-{title}",
+                groups: ["category", "id", "title"]
             }
         }],
+        'categorization' :{
+            type: 'url',
+            matcher: {
+                url_element: "category",
+                mappings: {
+                    "business" : "Business"
+                }
+            }
+        },
         'author-selector': 'span.blog-post__byline',
         'author-selector-property': '',
         'date-selector': 'time.blog-post__datetime',
@@ -645,6 +826,16 @@ var sources = {
                 groups: ["subject", "title"]
             }
         }],
+        'categorization' :{
+            type: 'url',
+            matcher: {
+                url_element: "subject",
+                mappings: {
+                    "culture" : "Culture",
+                    "national-security", "Politics"
+                }
+            }
+        },
         'author-selector': 'span.author a',
         'author-selector-property': '',
         'date-selector': 'time.entry-date',
@@ -781,12 +972,12 @@ var sources = {
         'title-selector': 'header.article-top > h1.title',
         'title-selector-property': ''
     }),
-    "latimes" : new SourceDefinition({
+    "latimes": new SourceDefinition({
         'urls': [{
             urlRoot: 'latimes.com',
             'article-url-matcher': {
                 pattern: "{category}/{title}",
-                groups: ["category","title"]
+                groups: ["category", "title"]
             }
         }],
         'author-selector': 'span[itemprop="author"]',
