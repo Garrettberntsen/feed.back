@@ -102,7 +102,10 @@ var sources = {
                     "business": "Business",
                     "food": "Culture",
                     "local" : "Local",
-                    "capital-weather-gang":" Local"
+                    "capital-weather-gang":" Local",
+                    "animalia" : "US News",
+                    "national" : "US News",
+                    "world" : "World"
                 }
             }
         },
@@ -129,6 +132,13 @@ var sources = {
                     pattern: "{year}/{month}/{day}/{category}/{title}.html",
                     groups: ["year", "month", "day", "category", "title"]
                 }
+            },
+            {
+                urlRoot: 'nytimes.com',
+                'article-url-matcher': {
+                    pattern: "interactive/{year}/{month}/{day}/{category}/{title}.html",
+                    groups: ["year", "month", "day", "category", "title"]
+                }
             }],
         'categorization': {
             type: 'url',
@@ -143,7 +153,9 @@ var sources = {
                     "arts": "Culture",
                     "well" : "Health",
                     "opinion" : "Opinion",
-                    "politics" : "Politics"
+                    "politics" : "Politics",
+                    "sports" : "Sports",
+                    "world" : "World"
                 }
             }
         },
@@ -201,7 +213,8 @@ var sources = {
         'categorization' : {
             type: 'url',
             matcher: {
-                "science-and-health" : "Health"
+                "science-and-health" : "Health",
+                "world" : "World"
             }
         },
         'author-selector': 'meta[property="author"]',
@@ -242,7 +255,12 @@ var sources = {
                     "media" : "Media",
                     "opinion" : "Opinion",
                     "opinions" : "Opinion",
-                    "politics" : "Politics"
+                    "politics" : "Politics",
+                    "sport" : "Sports",
+                    "technology" : "Technology",
+                    "us":"US News",
+                    "middleeast" : "World",
+                    "europe" : "World"
                 }
             }
         },
@@ -373,7 +391,8 @@ var sources = {
                     "business": "Business",
                     "entertainment": "Entertainment",
                     "health" : "Health",
-                    "politics" : "Politics"
+                    "politics" : "Politics",
+                    "international" : "World"
                 }
             }
         },
@@ -558,7 +577,9 @@ var sources = {
                     "entertainment": "Entertainment",
                     "health" : "Health",
                     "opinion" : "Opinion",
-                    "politics" : "Politics"
+                    "politics" : "Politics",
+                    "us" : "US News",
+                    "world" : "World"
                 }
             }
         },
@@ -588,7 +609,8 @@ var sources = {
                     "50-most-beautiful": "Entertainment",
                     "healthcare" : "Health",
                     "defence" : "Politics",
-                    "national-security" : "Politics"
+                    "national-security" : "Politics",
+                    "international" : "World"
                 }
             }
         },
@@ -609,6 +631,15 @@ var sources = {
                 groups: ["region", "category", "id"]
             }
         }],
+        "categorization" : {
+            type: "url",
+            matcher: {
+                url_element: "region",
+                mappings: {
+                    "world" : "World"
+                }
+            }
+        },
         'author-selector': 'li.mini-info-list__item a',
         'author-selector-property': '',
         'date-selector': 'div.date',
@@ -623,7 +654,7 @@ var sources = {
             urlRoot: 'abcnews.go.com',
             'article-url-matcher': [{
                 pattern: "{category}/wireStory/{title}-{id}$",
-                groups: ["area", "category", "id", "title"]
+                groups: ["category", "title", "id"]
             }, {
                 pattern: "{category}/{title}/story",
                 groups: ["area", "category", "id", "title"]
@@ -640,7 +671,10 @@ var sources = {
                 mappings: {
                     "Entertainment": "Entertainment",
                     "Health" : "Health",
-                    "Politics" : "Politics"
+                    "Politics" : "Politics",
+                    "Technology" : "Technology",
+                    "US": "US News",
+
                 }
             }
         },
@@ -668,7 +702,9 @@ var sources = {
                 mappings: {
                     "careers": "Business",
                     "health" : "Health",
-                    "politics" : "Politics"
+                    "politics" : "Politics",
+                    "us-news" : "US News",
+                    "world" : "World"
                 }
             }
         },
@@ -687,6 +723,12 @@ var sources = {
             'article-url-matcher': {
                 pattern: "article/.*?id{id}",
                 groups: ["id"]
+            }
+        }, {
+            urlRoot: 'reuters.com',
+            'article-url-matcher': {
+                pattern: "article/us-{region}-{subject}-.*?id{id}",
+                groups: ["region", "subject","id"]
             }
         }],
         'author-selector': '#article-byline > span.author > a',
@@ -728,7 +770,8 @@ var sources = {
             matcher: {
                 url_element : "category",
                 mappings : {
-                    "big-government" : "Politics"
+                    "big-government" : "Politics",
+                    "sports" : "Sports"
                 }
             }
         },
@@ -771,7 +814,11 @@ var sources = {
             matcher: {
                 url_element: "category",
                 mappings: {
-                    "business" : "Business"
+                    "business" : "Business",
+                    "americas" : "US News",
+                    "europe" : "World",
+                    "leaders" : "World",
+                    "middle-east-and-africa" : "World"
                 }
             }
         },
