@@ -93,7 +93,7 @@ var sources = {
                     groups: ["title", "year", "month", "day", "id"]
                 }
             }],
-        'categorization': {
+        'categorization': [{
             type: 'url',
             matcher: {
                 url_element: ["type", "category"],
@@ -108,7 +108,7 @@ var sources = {
                     "world" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'div.pb-sig-line > span.pb-byline > a > span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'span.pb-timestamp',
@@ -140,7 +140,7 @@ var sources = {
                     groups: ["year", "month", "day", "category", "title"]
                 }
             }],
-        'categorization': {
+        'categorization': [{
             type: 'url',
             matcher: {
                 url_element: ["category", "subcategory"],
@@ -158,7 +158,7 @@ var sources = {
                     "world" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'meta[name="byl"]',
         'author-selector-property': 'content',
         'date-selector': 'time',
@@ -210,13 +210,13 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title", "id", "title"]
             }
         }],
-        'categorization' : {
+        'categorization' : [{
             type: 'url',
             matcher: {
                 "science-and-health" : "Health",
                 "world" : "World"
             }
-        },
+        }],
         'author-selector': 'meta[property="author"]',
         'author-selector-property': 'content',
         'date-selector': 'time.c-byline__item',
@@ -241,7 +241,7 @@ var sources = {
                     groups: ["year", "month", "day", "category", "title "]
                 }
             }],
-        'categorization': {
+        'categorization': [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -263,7 +263,7 @@ var sources = {
                     "europe" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'span.metadata__byline__author',
         'author-selector-property': '',
         'date-selector': 'p.update-time',
@@ -288,7 +288,7 @@ var sources = {
                     groups: ["category", "subcategory", "title"]
                 }
             }],
-        'categorization': {
+        'categorization': [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -297,7 +297,7 @@ var sources = {
                     "humor" : "Humor"
                 }
             }
-        },
+        }],
         'author-selector': 'span[itemprop="name"]',
         'author-selector-property': '',
         'date-selector': 'time',
@@ -434,7 +434,7 @@ var sources = {
                     groups: ["category", "subcategory", "year", "month", "title"]
                 }]
         }],
-        'categorization': {
+        'categorization': [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -446,7 +446,7 @@ var sources = {
                     "news_and_politics" : "Politics"
                 }
             }
-        },
+        }],
         'author-selector': 'div#main_byline > a',
         'author-selector-property': '',
         'date-selector': 'div.pub-date',
@@ -482,7 +482,7 @@ var sources = {
                     groups: ["{category}","year", "month", "day", "title"]
                 }]
         }],
-        "categorization" : {
+        "categorization" : [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -490,7 +490,7 @@ var sources = {
                     "politics" : "Politics"
                 }
             }
-        },
+        }],
         'author-selector': 'address.lede-text-only__byline > div.author',
         'author-selector-property': '',
         'date-selector': 'time[itemprop="datePublished"]',
@@ -525,7 +525,7 @@ var sources = {
                 groups: ["author", "year", "month", "day", "title"]
             }
         }],
-        'categorization': {
+        'categorization': [{
             type: 'url',
             matcher: {
                 url_element: "author",
@@ -533,7 +533,7 @@ var sources = {
                     "bizblog": "Business"
                 }
             }
-        },
+        }],
         'article-root-element-selector': 'article.main-article:not(article#article-container-spinner) > div > div.main-article-padding',
         'author-selector': 'p.contrib-byline-author > a',
         'author-selector-property': '',
@@ -569,7 +569,7 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title"]
             }
         }],
-        "categorization": {
+        "categorization": [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -582,7 +582,7 @@ var sources = {
                     "world" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'div.byline > span.author > a',
         'author-selector-property': '',
         'date-selector': 'div.article-info time', //going to need cleanup
@@ -600,7 +600,7 @@ var sources = {
                 groups: ["area", "category", "id", "title"]
             }
         }],
-        'categorization': {
+        'categorization': [{
             type: url,
             matcher: {
                 url_element: "category",
@@ -613,7 +613,7 @@ var sources = {
                     "international" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'span.submitted-by', //going to need cleanup
         'author-selector-property': '',
         'date-selector': 'span.submitted-date',
@@ -631,7 +631,7 @@ var sources = {
                 groups: ["region", "category", "id"]
             }
         }],
-        "categorization" : {
+        "categorization" : [{
             type: "url",
             matcher: {
                 url_element: "region",
@@ -639,7 +639,7 @@ var sources = {
                     "world" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'li.mini-info-list__item a',
         'author-selector-property': '',
         'date-selector': 'div.date',
@@ -664,7 +664,7 @@ var sources = {
                     groups: ["area", "category", "subcategory", "id", "title"]
                 }]
         }],
-        "categorization": {
+        "categorization": [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -677,7 +677,7 @@ var sources = {
 
                 }
             }
-        },
+        }],
         'author-selector': 'div.article-meta > ul > div.author', //going to need clean up
         'author-selector-property': '',
         'date-selector': 'span.timestamp',
@@ -695,7 +695,7 @@ var sources = {
                 groups: ["category", "subcategory", "title", "id"]
             }
         }],
-        'categorization': {
+        'categorization': [{
             type: "url",
             matcher: {
                 url_element: ["subcategory", "category"],
@@ -707,7 +707,7 @@ var sources = {
                     "world" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'span.byline_author',
         'author-selector-property': '',
         'date-selector': 'time.timestamp_article',
@@ -765,7 +765,7 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title"]
             }
         }],
-        'categorization':{
+        'categorization':[{
             type: "url",
             matcher: {
                 url_element : "category",
@@ -774,7 +774,7 @@ var sources = {
                     "sports" : "Sports"
                 }
             }
-        },
+        }],
         'author-selector': 'a.byauthor',
         'author-selector-property': '',
         'date-selector': 'span.bydate',
@@ -809,7 +809,7 @@ var sources = {
                 groups: ["category", "id", "title"]
             }
         }],
-        'categorization' :{
+        'categorization' :[{
             type: 'url',
             matcher: {
                 url_element: "category",
@@ -821,7 +821,7 @@ var sources = {
                     "middle-east-and-africa" : "World"
                 }
             }
-        },
+        }],
         'author-selector': 'span.blog-post__byline',
         'author-selector-property': '',
         'date-selector': 'time.blog-post__datetime',
@@ -873,7 +873,7 @@ var sources = {
                 groups: ["subject", "title"]
             }
         }],
-        'categorization' :{
+        'categorization' :[{
             type: 'url',
             matcher: {
                 url_element: "subject",
@@ -882,7 +882,7 @@ var sources = {
                     "national-security", "Politics"
                 }
             }
-        },
+        }],
         'author-selector': 'span.author a',
         'author-selector-property': '',
         'date-selector': 'time.entry-date',
