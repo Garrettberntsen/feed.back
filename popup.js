@@ -181,10 +181,8 @@ function refreshDisplayedArticle(article) {
     if (!article || !article.article_data) {
         console.log("Not article")
         $("#form-loading").fadeOut(500, function () {
-            //$("#form > .loading").hide();
             addTrackThisQuestion();
         });
-        //addCircleGraph();
     } else {
         if (!article.user_metadata) {
             article.user_metadata = {};
