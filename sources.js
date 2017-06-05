@@ -14,9 +14,37 @@ function testSingleUrlMatcher(matcher, urlRoot, url) {
     var regex = new RegExp(regexString).exec(url);
     if (regex) {
         var groupNames = matcher.groups;
-        var result = {};
+        var result = {
+            groups: {}
+        };
         for (var i = 0; i < groupNames.length; i++) {
-            result[groupNames[i]] = regex[i + 1];
+            result.groups[groupNames[i]] = regex[i + 1];
+        }
+        var categorization = this.category;
+        if (categorization) {
+            result.category = categorization.reduce(function (current, category) {
+                if (!current) {
+                    switch (category.type) {
+                        case "url":
+                            var found_category = null;
+                            for (var element of category.matcher.url_element) {
+                                if (!found_category) {
+                                    var element_value = result.groups[element];
+                                    if (element_value) {
+                                        found_category = category.matcher.mappings[Object.keys(category.matcher.mappings).find(function (mapping) {
+                                            "use strict";
+                                            return mapping === element_value;
+                                        })];
+                                    }
+                                } else {
+                                    return found_category;
+                                }
+                            }
+                            return found_category;
+                    }
+                }
+                return current;
+            }, null);
         }
         return result;
     }
@@ -25,7 +53,7 @@ function testSingleUrlMatcher(matcher, urlRoot, url) {
 
 function SourceDefinition(definition) {
     this.urls = definition.urls;
-    this["categorization"] = definition["categorization"];
+    this["category"] = definition["category"];
     this["article-url-matcher"] = definition["article-url-matcher"];
     this["author-selector"] = definition["author-selector"];
     this["author-selector-property"] = definition["author-selector-property"];
@@ -48,9 +76,9 @@ function SourceDefinition(definition) {
                     return current;
                 }.bind(this), false);
             } else {
-                return testSingleUrlMatcher(urlDescription["article-url-matcher"], urlDescription.urlRoot, url);
+                return testSingleUrlMatcher.bind(this)(urlDescription["article-url-matcher"], urlDescription.urlRoot, url);
             }
-        });
+        }, this);
     }
 }
 
@@ -93,7 +121,7 @@ var sources = {
                     groups: ["title", "year", "month", "day", "id"]
                 }
             }],
-        'categorization': [{
+        "category": [{
             type: 'url',
             matcher: {
                 url_element: ["type", "category"],
@@ -101,11 +129,11 @@ var sources = {
                     "lifestyle": "Arts",
                     "business": "Business",
                     "food": "Culture",
-                    "local" : "Local",
-                    "capital-weather-gang":" Local",
-                    "animalia" : "US News",
-                    "national" : "US News",
-                    "world" : "World"
+                    "local": "Local",
+                    "capital-weather-gang": " Local",
+                    "animalia": "US News",
+                    "national": "US News",
+                    "world": "World"
                 }
             }
         }],
@@ -140,7 +168,7 @@ var sources = {
                     groups: ["year", "month", "day", "category", "title"]
                 }
             }],
-        'categorization': [{
+        "category": [{
             type: 'url',
             matcher: {
                 url_element: ["category", "subcategory"],
@@ -151,11 +179,11 @@ var sources = {
                     "fashion": "Culture",
                     "books": "Culture",
                     "arts": "Culture",
-                    "well" : "Health",
-                    "opinion" : "Opinion",
-                    "politics" : "Politics",
-                    "sports" : "Sports",
-                    "world" : "World"
+                    "well": "Health",
+                    "opinion": "Opinion",
+                    "politics": "Politics",
+                    "sports": "Sports",
+                    "world": "World"
                 }
             }
         }],
@@ -210,11 +238,11 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title", "id", "title"]
             }
         }],
-        'categorization' : [{
+        "category": [{
             type: 'url',
             matcher: {
-                "science-and-health" : "Health",
-                "world" : "World"
+                "science-and-health": "Health",
+                "world": "World"
             }
         }],
         'author-selector': 'meta[property="author"]',
@@ -241,7 +269,7 @@ var sources = {
                     groups: ["year", "month", "day", "category", "title "]
                 }
             }],
-        'categorization': [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -251,16 +279,16 @@ var sources = {
                     "travel": "Culture",
                     "entertainment": "Entertainment",
                     "celebrities": "Entertainment",
-                    "health" : "Health",
-                    "media" : "Media",
-                    "opinion" : "Opinion",
-                    "opinions" : "Opinion",
-                    "politics" : "Politics",
-                    "sport" : "Sports",
-                    "technology" : "Technology",
-                    "us":"US News",
-                    "middleeast" : "World",
-                    "europe" : "World"
+                    "health": "Health",
+                    "media": "Media",
+                    "opinion": "Opinion",
+                    "opinions": "Opinion",
+                    "politics": "Politics",
+                    "sport": "Sports",
+                    "technology": "Technology",
+                    "us": "US News",
+                    "middleeast": "World",
+                    "europe": "World"
                 }
             }
         }],
@@ -288,13 +316,13 @@ var sources = {
                     groups: ["category", "subcategory", "title"]
                 }
             }],
-        'categorization': [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "category",
                 matcher: {
                     "culture": "Culture",
-                    "humor" : "Humor"
+                    "humor": "Humor"
                 }
             }
         }],
@@ -390,9 +418,9 @@ var sources = {
                 mappings: {
                     "business": "Business",
                     "entertainment": "Entertainment",
-                    "health" : "Health",
-                    "politics" : "Politics",
-                    "international" : "World"
+                    "health": "Health",
+                    "politics": "Politics",
+                    "international": "World"
                 }
             }
         },
@@ -434,7 +462,7 @@ var sources = {
                     groups: ["category", "subcategory", "year", "month", "title"]
                 }]
         }],
-        'categorization': [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "category",
@@ -442,8 +470,8 @@ var sources = {
                     "business": "Business",
                     "moneybox": "Business",
                     "arts": "Culture",
-                    "health_and_science" : "Health",
-                    "news_and_politics" : "Politics"
+                    "health_and_science": "Health",
+                    "news_and_politics": "Politics"
                 }
             }
         }],
@@ -479,15 +507,15 @@ var sources = {
             'article-url-matcher': [
                 {
                     pattern: "{category}/articles/{year}-{month}-{day}/{title}",
-                    groups: ["{category}","year", "month", "day", "title"]
+                    groups: ["{category}", "year", "month", "day", "title"]
                 }]
         }],
-        "categorization" : [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "category",
                 mappings: {
-                    "politics" : "Politics"
+                    "politics": "Politics"
                 }
             }
         }],
@@ -525,7 +553,7 @@ var sources = {
                 groups: ["author", "year", "month", "day", "title"]
             }
         }],
-        'categorization': [{
+        "category": [{
             type: 'url',
             matcher: {
                 url_element: "author",
@@ -569,17 +597,17 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title"]
             }
         }],
-        "categorization": [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "category",
                 mappings: {
                     "entertainment": "Entertainment",
-                    "health" : "Health",
-                    "opinion" : "Opinion",
-                    "politics" : "Politics",
-                    "us" : "US News",
-                    "world" : "World"
+                    "health": "Health",
+                    "opinion": "Opinion",
+                    "politics": "Politics",
+                    "us": "US News",
+                    "world": "World"
                 }
             }
         }],
@@ -600,17 +628,17 @@ var sources = {
                 groups: ["area", "category", "id", "title"]
             }
         }],
-        'categorization': [{
-            type: url,
+        "category": [{
+            type: "url",
             matcher: {
                 url_element: "category",
                 mappings: {
                     "finance": "Business",
                     "50-most-beautiful": "Entertainment",
-                    "healthcare" : "Health",
-                    "defence" : "Politics",
-                    "national-security" : "Politics",
-                    "international" : "World"
+                    "healthcare": "Health",
+                    "defence": "Politics",
+                    "national-security": "Politics",
+                    "international": "World"
                 }
             }
         }],
@@ -631,12 +659,12 @@ var sources = {
                 groups: ["region", "category", "id"]
             }
         }],
-        "categorization" : [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "region",
                 mappings: {
-                    "world" : "World"
+                    "world": "World"
                 }
             }
         }],
@@ -664,15 +692,15 @@ var sources = {
                     groups: ["area", "category", "subcategory", "id", "title"]
                 }]
         }],
-        "categorization": [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: "category",
                 mappings: {
                     "Entertainment": "Entertainment",
-                    "Health" : "Health",
-                    "Politics" : "Politics",
-                    "Technology" : "Technology",
+                    "Health": "Health",
+                    "Politics": "Politics",
+                    "Technology": "Technology",
                     "US": "US News",
 
                 }
@@ -695,16 +723,16 @@ var sources = {
                 groups: ["category", "subcategory", "title", "id"]
             }
         }],
-        'categorization': [{
+        "category": [{
             type: "url",
             matcher: {
                 url_element: ["subcategory", "category"],
                 mappings: {
                     "careers": "Business",
-                    "health" : "Health",
-                    "politics" : "Politics",
-                    "us-news" : "US News",
-                    "world" : "World"
+                    "health": "Health",
+                    "politics": "Politics",
+                    "us-news": "US News",
+                    "world": "World"
                 }
             }
         }],
@@ -728,7 +756,7 @@ var sources = {
             urlRoot: 'reuters.com',
             'article-url-matcher': {
                 pattern: "article/us-{region}-{subject}-.*?id{id}",
-                groups: ["region", "subject","id"]
+                groups: ["region", "subject", "id"]
             }
         }],
         'author-selector': '#article-byline > span.author > a',
@@ -765,13 +793,13 @@ var sources = {
                 groups: ["category", "year", "month", "day", "title"]
             }
         }],
-        'categorization':[{
+        "category": [{
             type: "url",
             matcher: {
-                url_element : "category",
-                mappings : {
-                    "big-government" : "Politics",
-                    "sports" : "Sports"
+                url_element: "category",
+                mappings: {
+                    "big-government": "Politics",
+                    "sports": "Sports"
                 }
             }
         }],
@@ -809,16 +837,16 @@ var sources = {
                 groups: ["category", "id", "title"]
             }
         }],
-        'categorization' :[{
+        "category": [{
             type: 'url',
             matcher: {
                 url_element: "category",
                 mappings: {
-                    "business" : "Business",
-                    "americas" : "US News",
-                    "europe" : "World",
-                    "leaders" : "World",
-                    "middle-east-and-africa" : "World"
+                    "business": "Business",
+                    "americas": "US News",
+                    "europe": "World",
+                    "leaders": "World",
+                    "middle-east-and-africa": "World"
                 }
             }
         }],
@@ -873,13 +901,13 @@ var sources = {
                 groups: ["subject", "title"]
             }
         }],
-        'categorization' :[{
+        "category": [{
             type: 'url',
             matcher: {
                 url_element: "subject",
                 mappings: {
-                    "culture" : "Culture",
-                    "national-security", "Politics"
+                    "culture": "Culture",
+                    "national-security": "Politics"
                 }
             }
         }],
