@@ -41,7 +41,6 @@ var last_visited_url;
  * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
  */
 
-
 debug = true;
 
 function addCurrentuserToArticleReaders(article) {
@@ -270,7 +269,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
     }
 })
-;
 
 function calculateAverageRatingForArticle(url) {
     "use strict";
@@ -418,7 +416,7 @@ function Article(article_data, user_metadata) {
     this.user_metadata = user_metadata;
 }
 
-function ArticleData(url, source, title, date, author, text, readers, partialRecord) {
+function ArticleData(url, source, title, date, author, text, readers, category, partialRecord) {
     if (url === undefined) {
         throw "url must be set";
     }
@@ -436,10 +434,11 @@ function ArticleData(url, source, title, date, author, text, readers, partialRec
     this.author = author || "";
     this.text = text || "";
     this.readers = readers || [];
+    this.category = category || null;
     this.partialRecord = partialRecord || false;
 }
 
-function UserMetadata(dateRead, source, lean, stars, tags, notes) {
+function UserMetadata(dateRead, source, lean, stars, tags, notes, category) {
     this.dateRead = dateRead !== undefined ? dateRead : null;
     if (source === undefined) {
         throw "Source must be set";
@@ -449,6 +448,7 @@ function UserMetadata(dateRead, source, lean, stars, tags, notes) {
     this.stars = stars !== undefined ? stars : null;
     this.tags = tags !== undefined ? tags : null;
     this.notes = notes !== undefined ? notes : null;
+    this.category = category !== undefined ? category : null;
 }
 
 /**
