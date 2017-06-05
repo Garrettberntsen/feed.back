@@ -13,6 +13,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				article_definitions.push(firebase.database().ref("articles/" + key).once("value"));
 				article_ids.push(key);
 			}
+
+			var color = 
+			["#393B79", "#3182BD", "#E6550D", "#31A354", "#CE6BDB", "#17BECF",
+			"#ED6A5A", "#EFCB68", "#88D18A", "#3E5C76", "#D1D1D1", "#114B5F",
+			"#FFE74C", "#FE5F55", "#35A7FF", "#468966", "#B64926", "#1695A3",
+			"#BDD4DE", "#832F5C", "#382513", "#363942", "#405952", "#F54F29",
+			"#083643", "#CEF09D", "#FF974F", "#91BED4", "#365FB7", "#D23600",
+			"#FC9D9A", "#83AF9B", "#791F33", "#78C0F9", "#FFDBE6", "#B9121B"];
+
 			Promise.all(article_definitions).then(function (articleSnapshots) {
 				var daysBack = 14;
 
@@ -178,7 +187,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							})])
 							.range([height, 0]);
 
-						var color = d3.scale.category20();
+						// var color = d3.scale.category20();
 
 						var yAxis = d3.svg.axis()
 							.scale(y)
@@ -208,7 +217,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.enter().append("g")
 							.attr("class", "time")
 							.attr("fill", function (d, i) {
-								return color(i);
+								return color[i];
 							});
 
 						var rect = groups.selectAll("rect")
@@ -310,7 +319,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.outerRadius(radius)
 							.padAngle(arcSpace);
 
-						var color = d3.scale.category20();
+						// var color = d3.scale.category20();
 
 						var svg = d3.select("div.donut-chart")
 							.append("svg")
@@ -327,7 +336,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.append("path")
 							.attr("d", arc)
 							.attr("fill", function (d, i) {
-								return color(d.data.source);
+								return color[i];
 							})
 							.on("mouseover", function (d) {
 								tooltip.style("display", null);
