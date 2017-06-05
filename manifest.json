@@ -12,12 +12,12 @@
     "scripts": [
       "firebase.js",
       "identity.js",
+      "sources.js",
       "articles.js",
       "article-cache.js",
       "database.js",
       "analytics.js",
       "background.js",
-      "sources.js",
       "history.js"
     ]
   },
