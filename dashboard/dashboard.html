@@ -17,6 +17,14 @@
         <img class="sidebar__image" src=/app-assets/img/logo.svg>
         <section class="sidebar__items">
           <p class="user-info">Days Back:<span class="days-back"></span></p>
+          <div class="user-info dropdown">
+            <button class="sidebar__date-selector"></button>
+            <div id="dropdown-dates" class="dropdown-content">
+              <p class="dropdown-day" data-days="7">1 Week</p>
+              <p class="dropdown-day" data-days="14">2 Weeks</p>
+              <p class="dropdown-day" data-days="28">4 Weeks</p>
+            </div>
+          </div>
         	<a class="sidebar__link sidebar__link--active" href=#> Dashboard</a>
         	<a class="sidebar__link sidebar__link--disabled" href=#>Goals</a>
           <a class="sidebar__link sidebar__link--disabled" href=#>Notes</a>
