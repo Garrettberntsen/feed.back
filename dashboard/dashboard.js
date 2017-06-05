@@ -15,7 +15,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				article_definitions.push(firebase.database().ref("articles/" + key).once("value"));
 				article_ids.push(key);
 			}
-			createDropdownMenu();
+			
 
 			var color = 
 			["#393B79", "#3182BD", "#E6550D", "#31A354", "#CE6BDB", "#17BECF",
@@ -175,6 +175,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.attr("height", height + margin.top + margin.bottom)
 							.append("g")
 							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+						console.log(dataset);
 
 						var x = d3.scale.ordinal()
 							.domain(dataset[0].map(function (d) {
@@ -462,6 +464,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 				appendData("days-back", daysBack);
 
+				createDropdownMenu();
+
 				createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
 
 				var myTable = document.querySelector("#table");
@@ -581,30 +585,30 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						return articleSource[0] + ".com"; 
 					}
 				}
-			});
-		
-			function createDropdownMenu() {
-				document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
 
-				window.onclick = function(e) {
-					if(!e.target.matches(".sidebar__date-selector")) {
-						var dropdowns = document.getElementsByClassName("dropdown-content");
-						for(var i = 0; i < dropdowns.length; i++) {
-							var openDropdown = dropdowns[i];
-							if(openDropdown.classList.contains("show")) {
-								openDropdown.classList.remove("show");
+				function createDropdownMenu() {
+					document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
+
+					window.onclick = function(e) {
+						if(!e.target.matches(".sidebar__date-selector")) {
+							var dropdowns = document.getElementsByClassName("dropdown-content");
+							for(var i = 0; i < dropdowns.length; i++) {
+								var openDropdown = dropdowns[i];
+								if(openDropdown.classList.contains("show")) {
+									openDropdown.classList.remove("show");
+								}
 							}
 						}
+						if(e.target.matches(".dropdown-day")) {
+							console.log( parseInt( e.target.dataset.days ) );
+						}
 					}
-					if(e.target.matches(".dropdown-day")) {
-						console.log(e.target.dataset.days);
-					}
-				}
 
-				function toggleDates() {
-					document.getElementById("dropdown-dates").classList.toggle("show");
+					function toggleDates() {
+						document.getElementById("dropdown-dates").classList.toggle("show");
+					}
 				}
-			}			
+			});		
 		}).catch(function (error) {
 			console.log(error);
 		});
