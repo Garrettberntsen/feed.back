@@ -474,7 +474,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 				function appendData(elem, name) {
 					var elem = document.getElementsByClassName(elem)[0];
-					var elemText = elem.innerHTML += " " + name;
+					var elemText = elem.innerHTML = " " + name;
 				}
 				
 				function createTable(userArticleInformation, articleInformation) {
@@ -596,7 +596,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						if(e.target.matches(".dropdown-day")) {
 							updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
 							appendData("days-back", e.target.dataset.days);
-							console.log( parseInt( e.target.dataset.days ) );
 						}
 					}
 
