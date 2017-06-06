@@ -4,8 +4,6 @@
   height: 100vh;
   background-color: #343C48;
   position: fixed;
-  width: 16rem;
-  padding: 1rem;
 
   display: flex;
   flex-direction: column;
@@ -23,16 +21,23 @@
   margin-bottom: 0.5rem;
 }
 
-.sidebar__link {
-  color: #ffa400;
-  text-decoration: none;
+.sidebar__icon {
+  color: white;
+  height: 3rem;
+}
 
+.sidebar__icon:hover {
+}
+
+.sidebar__link {
+  background-color: red;
   padding: 1rem 1rem;
-  margin-left: 2px;
+
+  transition: all .2s ease-in-out;
 }
 
 .sidebar__link:hover {
-  text-shadow: 0 0 3px #ffa400;
+  padding: 1rem 2rem 1rem 1rem;
 }
 
 .sidebar__link--disabled {
@@ -43,9 +48,7 @@
   text-shadow: 0 0 0px #0f1215;
 }
 
-.sidebar__link--active {
-  margin-left: 0;
-  border-left: 2px solid #ffa400;
+.sidebar__link--active {  
 }
 
 .sidebar__date-selector {
@@ -113,7 +116,7 @@
 }
 
 .container--dashboard {
-  margin-left: 18rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
+  margin-left: 12rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: space-around;
