@@ -26,16 +26,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 			"#FC9D9A", "#83AF9B", "#791F33", "#78C0F9", "#FFDBE6", "#B9121B"];
 
 			Promise.all(article_definitions).then(function (articleSnapshots) {
-				var daysBack = 14;
-
 				var todaysDate = Date.now();
 				var millisecondsPerDay = 86400000;
 
-				updateCharts((daysBack - 1) * millisecondsPerDay);
+				updateCharts(13 * millisecondsPerDay, 14);
 
-				function updateCharts(timeSpan) {
+				function updateCharts(timeSpan, daysToGoBack) {
 					var timeEnd = Date.now();
-					var timeStart = timeEnd - timeSpan;    
+					var timeStart = timeEnd - timeSpan;
 
 					var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
 
@@ -57,7 +55,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							if (articles[key].dateRead < start) {
 								delete articles[key];
 							}
-						}   
+						}
 						return articles;
 					}
 
@@ -91,6 +89,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					function organizeArticlesByDate(articles, template) {
 						var articleCount = {};
+
 						for (let key in articles) {
 							var article = articles[key];
 							var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
@@ -118,14 +117,18 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					 */
 					function createBarChartDataset(articlesToParse) {
 						var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
-						for (let i = 0; i < daysBack; i++) {
+
+						for (let i = 0; i < daysToGoBack; i++) {
 							let timeToAdd = i * millisecondsPerDay;
 							let currentDay = new Date(timeStart + timeToAdd).toString("M/d/yyyy");
+							console.log(currentDay);
 							if (!articles.hasOwnProperty(currentDay)) {
 								articles[currentDay] = JSON.parse(JSON.stringify(articleTimespanTemplate));
 								articles[currentDay].date = currentDay;
 							}
 						}
+
+						console.log("------------------------------------------------------------------------");
 
 						var articlesArray = Object.values(articles);
 						var articleSourcesArray = createArrayOfSources();
@@ -158,7 +161,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					function updateBarChart(dataset) {
 						var margin = {
-							top: 0,
+							top: 10,
 							right: 0,
 							bottom: 25,
 							left: 30
@@ -176,8 +179,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.append("g")
 							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-						console.log(dataset);
-
 						var x = d3.scale.ordinal()
 							.domain(dataset[0].map(function (d) {
 								return d.x;
@@ -187,12 +188,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var y = d3.scale.linear()
 							.domain([0, d3.max(dataset, function (d) {
 								return d3.max(d, function (d) {
-									return d.y * 3;
+									return d.y * 2;
 								});
 							})])
 							.range([height, 0]);
-
-						// var color = d3.scale.category20();
 
 						var yAxis = d3.svg.axis()
 							.scale(y)
@@ -235,7 +234,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.attr("y", height)
 							.attr("width", x.rangeBand())
 							.attr("height", 0);
-
 
 						rect.transition()
 							.delay(function(d, i) { return i * 74; })
@@ -324,8 +322,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.outerRadius(radius)
 							.padAngle(arcSpace);
 
-						// var color = d3.scale.category20();
-
 						var svg = d3.select("div.donut-chart")
 							.append("svg")
 							.attr("class", "chart")
@@ -364,8 +360,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 								this.classList.add("donut-chart-arc");
 
 							});
-
-
 
 						function returnSource(data) {
 							var tooltipText = data.source;
@@ -462,7 +456,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 				var articlesRead = userData.articles;
 
-				appendData("days-back", daysBack);
+				appendData("days-back", 14);
 
 				createDropdownMenu();
 
@@ -600,6 +594,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							}
 						}
 						if(e.target.matches(".dropdown-day")) {
+							updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
+							appendData("days-back", e.target.dataset.days);
 							console.log( parseInt( e.target.dataset.days ) );
 						}
 					}
