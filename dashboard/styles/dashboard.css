@@ -41,13 +41,13 @@
   transition: all .2s ease-in-out;
 }
 
+.sidebar__link:hover{
+  background-color: red
+}
+
 .sidebar__link p {
   margin-left: 10px;
 } 
-
-.sidebar__link:hover {
-  background-color: red;
-}
 
 .sidebar__link--disabled {
   color: #1f242b
