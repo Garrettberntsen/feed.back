@@ -456,7 +456,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 				var articlesRead = userData.articles;
 
-				appendData("days-back", 14);
+				appendData("days-back", tranformDates(14) );
 
 				createDropdownMenu();
 
@@ -475,6 +475,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				function appendData(elem, name) {
 					var elem = document.getElementsByClassName(elem)[0];
 					var elemText = elem.innerHTML = " " + name;
+				}
+
+				function tranformDates(num) {
+					return num < 8 ? num/7 + " Week" : num/7 + " Weeks"
 				}
 				
 				function createTable(userArticleInformation, articleInformation) {
@@ -584,6 +588,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
 
 					window.onclick = function(e) {
+						console.log(e.target)
 						if(!e.target.matches(".sidebar__date-selector")) {
 							var dropdowns = document.getElementsByClassName("dropdown-content");
 							for(var i = 0; i < dropdowns.length; i++) {
@@ -595,7 +600,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						}
 						if(e.target.matches(".dropdown-day")) {
 							updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
-							appendData("days-back", e.target.dataset.days);
+							appendData("days-back", tranformDates(e.target.dataset.days) );
 						}
 					}
 
