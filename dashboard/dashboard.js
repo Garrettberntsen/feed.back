@@ -173,7 +173,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var svg = d3.select("div.bar-chart")
 							.append("svg")
 							.attr("class", "chart")
-							.attr("class","chart--font")
 							.attr("width", width + margin.left + margin.right)
 							.attr("height", height + margin.top + margin.bottom)
 							.append("g")
@@ -470,7 +469,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				});
 
 				//Need to find a more logical place to put this
-				document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard card--table";
+				document.getElementsByClassName("dataTable-wrapper")[0].className += " card--table";
 
 				function appendData(elem, name) {
 					var elem = document.getElementsByClassName(elem)[0];

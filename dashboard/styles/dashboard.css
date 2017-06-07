@@ -117,6 +117,13 @@
 }
 
 .card__title {
+  background: #fe8c00; /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #fe8c00, #f83600); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #fe8c00, #f83600); 
+  border-radius: 1rem 1rem 0 0;
+
+  color: white;
+  padding: 1rem;
   margin-bottom: 1rem;
 }
 
