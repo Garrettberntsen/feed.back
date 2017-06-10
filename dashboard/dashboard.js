@@ -606,25 +606,21 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				}
 
 				function createDropdownMenu() {
-					document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
+					// document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
+					// document.getElementsByClassName("sidebar__icon")[0].addEventListener("click", toggleDates);
+
 
 					window.onclick = function(e) {
 						console.log(e.target)
-						if(!e.target.matches(".sidebar__date-selector")) {
-							var dropdowns = document.getElementsByClassName("dropdown-content");
-							for(var i = 0; i < dropdowns.length; i++) {
-								var openDropdown = dropdowns[i];
-								if(openDropdown.classList.contains("show")) {
-									openDropdown.classList.remove("show");
-								}
-							}
-						}
-						if(e.target.matches(".dropdown-day")) {
-
+						if(e.target.matches(".dropdown") || e.target.matches(".sidebar__icon") || e.target.matches(".days-back")  ){
+							toggleDates();
+						}else if(e.target.matches(".dropdown-day") ) {
+							var dropdownMenu = e.target.parentElement;
+							dropdownMenu.classList.remove("show")	
+							console.log(dropdownMenu);
 							var parents = document.getElementsByClassName("card--dashboard");
 							var childBar = document.getElementsByClassName("chart")[0];
 							var childDonut = document.getElementsByClassName("chart")[1];
-							console.log(childDonut);
 							parents[0].removeChild(childBar);
 							parents[1].removeChild(childDonut);
 
