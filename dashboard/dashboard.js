@@ -127,8 +127,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							}
 						}
 
-						console.log("------------------------------------------------------------------------");
-
 						var articlesArray = Object.values(articles);
 						var articleSourcesArray = createArrayOfSources();
 
@@ -186,7 +184,12 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var y = d3.scale.linear()
 							.domain([0, d3.max(dataset, function (d) {
 								return d3.max(d, function (d) {
-									return d.y * 2;
+									if(d.y === 1){
+										return d.y * 6;
+									}
+									else{
+										return d.y * 3;
+									}
 								});
 							})])
 							.range([height, 0]);
@@ -202,15 +205,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 						var xAxis = d3.svg.axis()
 							.scale(x)
-							.orient(margin.bottom)
-							.ticks(5);
 
 						svg.append("g")
-							.attr("class", "y axis")
-							.call(yAxis);
+							.attr("class", "y-axis")
+							.call(yAxis)
 
 						svg.append("g")
-							.attr("class", "x axis")
+							.attr("class", "x-axis")
 							.attr("transform", "translate(0," + height + ")")
 							.call(xAxis);
 
@@ -265,6 +266,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.style("text-anchor", "middle")
 							.attr("font-size", "12px")
 							.attr("font-weight", "bold");
+
+						if(dataset[0].length > 14) {
+							var parent = d3.select(".x-axis")[0][0];
+							var ticks = d3.selectAll(".x-axis .tick")[0];
+							for(var i = 1; i < ticks.length; i += 2){
+								parent.removeChild(ticks[i]);
+							}
+						};
 
 						function returnSource(label, articlesRead) {
 							var tooltipText = label + " - " + articlesRead;
