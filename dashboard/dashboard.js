@@ -16,7 +16,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				article_ids.push(key);
 			}
 			
-
 			var color = 
 			["#393B79", "#3182BD", "#E6550D", "#31A354", "#CE6BDB", "#17BECF",
 			"#ED6A5A", "#EFCB68", "#88D18A", "#3E5C76", "#D1D1D1", "#114B5F",
@@ -43,8 +42,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					var donutDataset = createDonutChartDataset(articleCountInTimespan);
 					var barchartDataset = createBarChartDataset(articlesInTimespan);
 
-					updateBarChart(barchartDataset);
-					updateDonutChart(donutDataset);
+					createBarChart(barchartDataset);
+					createDonutChart(donutDataset);
 					appendFacts(articleCountInTimespan);
 
 					function getArticlesInTimespan(end, start) {
@@ -159,7 +158,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						}
 					}
 
-					function updateBarChart(dataset) {
+					function createBarChart(dataset) {
 						var margin = {
 							top: 10,
 							right: 0,
@@ -172,8 +171,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 						var svg = d3.select("div.bar-chart")
 							.append("svg")
-							.attr("class", "chart")
-							.attr("class","chart--font")
+							.attr("class","chart chart--font")
 							.attr("width", width + margin.left + margin.right)
 							.attr("height", height + margin.top + margin.bottom)
 							.append("g")
@@ -301,7 +299,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						return dataset;
 					}
 
-					function updateDonutChart(dataset) {
+					function createDonutChart(dataset) {
 						var donutWidth = 50;
 						var arcSpace = 0.00;
 
@@ -391,11 +389,27 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					function appendFacts(articlesRead) {
 						var factContainer = document.getElementsByClassName("facts")[0]
+						var sourceCount = Object.keys(articlesRead).length;
 						var count = countArticles(articlesRead);
 						var faveSource = findFavoriteSource(articlesRead, false);
 						var faveSourceRead = findFavoriteSource(articlesRead, true);
 
-						factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
+						var factsArray = [sourceCount, count, faveSource, faveSourceRead];
+
+						var currentFacts = document.getElementsByClassName("bubble__data");
+						if( currentFacts.length > 0 ){
+							for(var i = 0; i < currentFacts.length; i++) {
+								currentFacts[i].innerHTML = factsArray[i];
+							}
+							if(currentFacts[2].innerHTML.length > 10){
+								currentFacts[2].setAttribute("style", "font-size: 1.6rem");
+							} else{
+								currentFacts[2].setAttribute("style", "font-size: 3rem");
+							}
+							return;
+						}
+
+						factContainer.appendChild( createBubbleFact(sourceCount, "sources", "red") );
 						factContainer.appendChild( createBubbleFact(count, "articles", "green") );
 						factContainer.appendChild( createBubbleFact(faveSource, "fav. source", "orange") );
 						factContainer.appendChild( createBubbleFact(faveSourceRead, "fav. source # read", "purple") );
@@ -452,7 +466,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				}
 
 				var userData = userSnapshot.val();
-
 				var articlesRead = userData.articles;
 
 				appendData("days-back", tranformDates(14) );
@@ -598,6 +611,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							}
 						}
 						if(e.target.matches(".dropdown-day")) {
+
+							var parents = document.getElementsByClassName("card--dashboard");
+							var childBar = document.getElementsByClassName("chart")[0];
+							var childDonut = document.getElementsByClassName("chart")[1];
+							console.log(childDonut);
+							parents[0].removeChild(childBar);
+							parents[1].removeChild(childDonut);
+
 							updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
 							appendData("days-back", tranformDates(e.target.dataset.days) );
 						}
@@ -607,6 +628,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						document.getElementById("dropdown-dates").classList.toggle("show");
 					}
 				}
+
 			});		
 		}).catch(function (error) {
 			console.log(error);
