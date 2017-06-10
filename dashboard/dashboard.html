@@ -15,18 +15,45 @@
   <body>
     <nav class="sidebar">
         <img class="sidebar__image" src=/app-assets/img/logo.svg>
+
+
         <section class="sidebar__items">
-          <p class="user-info">Days Back:<span class="days-back"></span></p>
-        	<a class="sidebar__link sidebar__link--active" href=#> Dashboard</a>
-        	<a class="sidebar__link sidebar__link--disabled" href=#>Goals</a>
-          <a class="sidebar__link sidebar__link--disabled" href=#>Notes</a>
-          <a class="sidebar__link" href="/tutorial/tutorial-page.html">Tutorial</a>
+
+          <div class="dropdown sidebar__link sidebar__date-selector">
+            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/clock.svg">
+            <p class="days-back"></p>
+          </div>
+            <div id="dropdown-dates" class="dropdown-content">
+              <p class="dropdown-day" data-days="7">1 Week</p>
+              <p class="dropdown-day" data-days="14">2 Weeks</p>
+              <p class="dropdown-day" data-days="28">4 Weeks</p>
+            </div>
+
+          <a class="sidebar__link sidebar__link--active" href=#>
+            <img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/pie-chart.svg">
+            <p>Dashboard</p>
+          </a>
+
+          <a class="sidebar__link" href=#>
+            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/bar-chart.svg">
+            <p>Goals</p>
+          </a>
+
+          <a class="sidebar__link" href="http://www.feedback.news/tutorial.html" target="_blank">
+            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/comment-square.svg">
+            <p>How-to</p>
+          </a>
+
+          <a class="sidebar__link" href="http://www.feedback.news/faq.html" target="_blank">
+            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/edit.svg">
+            <p>FAQ</p>
+          </a>
         </section>
     </nav>
     <main class="container container--dashboard">
       <section class="dashboard-row">
         <div class="card card--dashboard bar-chart">
-          <p class="card__title">Daily Article Consumption</p>
+          <p class="card__title">Daily Articles</p>
         </div>
       </section>  
       <section class="dashboard-row">
@@ -39,22 +66,25 @@
         </div>
       </section>
       <section class="dashboard-row">
-        <table id="table">
-          <thead>
-            <tr>
-              <th class="table-header--eval">Eval</th>
-              <th class="table-header--date">Date</th>
-              <th class="table-header--publisher">Publisher</th>
-              <th class="table-header--title">Title</th>
-<!--               <th class="table-header--type">Type</th> -->
-              <th class="table-header--author">Author</th>
-              <th class="table-header--read">% Read</th>
-            </tr>
-          </thead>
-          <tbody id="table-body">
-          </tbody>
-        </table>
-      </section>
+        <div class="card card--dashboard">
+          <p class="card__title">Overall</p>
+          <table id="table">
+            <thead>
+              <tr>
+                <th class="table-header--eval" style="width: 3%">Eval</th>
+                <th class="table-header--date">Date</th>
+                <th class="table-header--publisher">Publisher</th>
+                <th class="table-header--title">Title</th>
+  <!--               <th class="table-header--type">Type</th> -->
+                <th class="table-header--author">Author</th>
+                <th class="table-header--read" style="width: 10%">% Read</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+          </table>
+        </section>
+      </div>
     </main>
 
 

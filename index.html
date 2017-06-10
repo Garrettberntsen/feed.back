@@ -7,51 +7,50 @@
     <link href="bars-movie.css" rel="stylesheet">
     <link href="taggle.css" rel="stylesheet">
     <link href="popup/popup-style.css" rel="stylesheet">
-
     <title></title>
 </head>
 <body>
-<div id="form-loading" class="loading">
-    <img src="gears-180px.gif">
-</div>
-<form hidden="">
-    <div class="has-text-centered">
-        <h5 class="title is-5" id="title"></h5>
-        <h6 class="subtitle is-6" id="author"></h6>
-    </div>
-    <br>
-    <div class="columns is-mobile">
-        <div class="column has-text-centered">
-            rate the article <select id="starRating">
-            <option value="">
-            </option>
-            <option value="1">
-                1
-            </option>
-            <option value="2">
-                2
-            </option>
-            <option value="3">
-                3
-            </option>
-            <option value="4">
-                4
-            </option>
-            <option value="5">
-                5
-            </option>
-        </select>
+    <div class="loading has-text-centered" id="form-loading">
+        <div class="cssload-thecube">
+            <div class="cssload-cube cssload-c1"></div>
+            <div class="cssload-cube cssload-c2"></div>
+            <div class="cssload-cube cssload-c4"></div>
+            <div class="cssload-cube cssload-c3"></div>
         </div>
-        <div class="political-slant column has-text-centered">
-            <p>rate the slant</p>
-            <div class="columns is-mobile">
-
+    </div>
+    <form hidden="">
+        <div class="has-text-centered">
+            <h5 class="title is-5" id="title"></h5>
+            <h6 class="subtitle is-6" id="author"></h6>
+        </div><br>
+        <div class="columns is-mobile">
+            <div class="column has-text-centered">
+                rate the article <select id="starRating">
+                    <option value="">
+                    </option>
+                    <option value="1">
+                        1
+                    </option>
+                    <option value="2">
+                        2
+                    </option>
+                    <option value="3">
+                        3
+                    </option>
+                    <option value="4">
+                        4
+                    </option>
+                    <option value="5">
+                        5
+                    </option>
+                </select>
+            </div>
+            <div class="political-slant column has-text-centered">
+                <p>rate the slant</p>
+                <div class="columns is-mobile">
                     <figure class="image is-pulled-right is-32x32">
                         <img src="donkey.png">
-                    </figure>
-
-
-                    <select id="leanRating">
+                    </figure><select id="leanRating">
                         <option selected value="">
                             None
                         </option>
@@ -71,64 +70,62 @@
                             Very Conservative
                         </option>
                     </select>
-
-
                     <figure class="image is-32x32">
                         <img src="elephant.png">
                     </figure>
-
+                </div>
             </div>
         </div>
-    </div>
-    <div class="columns is-mobile has-text-centered">
-        <div class="column">
-            <div class="message" hidden="" id="avg-rating-message">
-                <div class="message-header">
-                    Avg Rating
-                </div>
-                <div class="message-body" id="avg-rating">
-                    <div class="loading">
-                        <img src="gears-50px.gif">
+        <div class="columns is-mobile has-text-centered">
+            <div class="column">
+                <div class="message" hidden="" id="avg-rating-message">
+                    <div class="message-header">
+                        Avg Rating
+                    </div>
+                    <div class="message-body" id="avg-rating">
+                        <div class="loading"><img src="gears-50px.gif"></div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="column">
-            <div class="message">
-                <div class="message-header">
-                    Read Count
-                </div>
-                <div class="message-body" id="read-count"></div>
-            </div>
-        </div>
-        <div class="column">
-            <div class="message" hidden="" id="avg-lean-message">
-                <div class="message-header">
-                    Avg Lean
-                </div>
-                <div class="message-body" id="avg-lean">
-                    <img src="gears-50px.gif" class="loading">
+            <div class="column">
+                <div class="message">
+                    <div class="message-header">
+                        Read Count
+                    </div>
+                    <div class="message-body" id="read-count"></div>
                 </div>
             </div>
+            <div class="column">
+                <div class="message" hidden="" id="avg-lean-message">
+                    <div class="message-header">
+                        Avg Lean
+                    </div>
+                    <div class="message-body" id="avg-lean"><img class="loading" src="gears-50px.gif"></div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div id="tags"></div>
+        <div id="tags"></div>
+        <div class="colums">
+            <textarea class="user-notes taggle_input" id="notes-area" placeholder="Enter notes here..."></textarea>
+        </div>
+    </form>
     <div class="colums">
-        <textarea id="notes-area" class="user-notes taggle_input" placeholder="Enter notes here..."></textarea>
+        <div id="track-this"></div>
     </div>
-</form>
-<div class="colums">
-    <div id="track-this"></div>
-</div>
-<div class="colums">
-    <a class="dashboard-button button is-primary is-large has-text-centered" id="dashboard-link">My Dashboard</a>
-</div>
-
-<script src='/d3.min.js'></script>
-<script src='dashboard/libraries/js/date.js'></script>
-<script src="/jquery-3.1.1.min.js"></script>
-<script src="/jquery.barrating.min.js"></script>
-<script src='/taggle.js'></script>
-<script src='/popup.js'></script>
+    <div class="colums">
+        <a class="dashboard-button button is-primary is-large has-text-centered" id="dashboard-link">My Dashboard</a>
+    </div>
+    <script src='/d3.min.js'>
+    </script> 
+    <script src='dashboard/libraries/js/date.js'>
+    </script> 
+    <script src="/jquery-3.1.1.min.js">
+    </script> 
+    <script src="/jquery.barrating.min.js">
+    </script> 
+    <script src='/taggle.js'>
+    </script> 
+    <script src='/popup.js'>
+    </script>
 </body>
 </html>

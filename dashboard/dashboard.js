@@ -6,6 +6,8 @@ chrome.runtime.sendMessage({type: "forcePersist"}, function(){
 chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
 		firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
+			
+
 			var articles = userSnapshot.val().articles;
 			var article_ids = [];
 			var article_definitions = [];
@@ -13,17 +15,24 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				article_definitions.push(firebase.database().ref("articles/" + key).once("value"));
 				article_ids.push(key);
 			}
-			Promise.all(article_definitions).then(function (articleSnapshots) {
-				var daysBack = 14;
+			
+			var color = 
+			["#393B79", "#3182BD", "#E6550D", "#31A354", "#CE6BDB", "#17BECF",
+			"#ED6A5A", "#EFCB68", "#88D18A", "#3E5C76", "#D1D1D1", "#114B5F",
+			"#FFE74C", "#FE5F55", "#35A7FF", "#468966", "#B64926", "#1695A3",
+			"#BDD4DE", "#832F5C", "#382513", "#363942", "#405952", "#F54F29",
+			"#083643", "#CEF09D", "#FF974F", "#91BED4", "#365FB7", "#D23600",
+			"#FC9D9A", "#83AF9B", "#791F33", "#78C0F9", "#FFDBE6", "#B9121B"];
 
+			Promise.all(article_definitions).then(function (articleSnapshots) {
 				var todaysDate = Date.now();
 				var millisecondsPerDay = 86400000;
 
-				updateCharts((daysBack - 1) * millisecondsPerDay);
+				updateCharts(13 * millisecondsPerDay, 14);
 
-				function updateCharts(timeSpan) {
+				function updateCharts(timeSpan, daysToGoBack) {
 					var timeEnd = Date.now();
-					var timeStart = timeEnd - timeSpan;    
+					var timeStart = timeEnd - timeSpan;
 
 					var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
 
@@ -33,8 +42,8 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					var donutDataset = createDonutChartDataset(articleCountInTimespan);
 					var barchartDataset = createBarChartDataset(articlesInTimespan);
 
-					updateBarChart(barchartDataset);
-					updateDonutChart(donutDataset);
+					createBarChart(barchartDataset);
+					createDonutChart(donutDataset);
 					appendFacts(articleCountInTimespan);
 
 					function getArticlesInTimespan(end, start) {
@@ -45,7 +54,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							if (articles[key].dateRead < start) {
 								delete articles[key];
 							}
-						}   
+						}
 						return articles;
 					}
 
@@ -79,6 +88,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					function organizeArticlesByDate(articles, template) {
 						var articleCount = {};
+
 						for (let key in articles) {
 							var article = articles[key];
 							var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
@@ -106,9 +116,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					 */
 					function createBarChartDataset(articlesToParse) {
 						var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
-						for (let i = 0; i < daysBack; i++) {
+
+						for (let i = 0; i < daysToGoBack; i++) {
 							let timeToAdd = i * millisecondsPerDay;
 							let currentDay = new Date(timeStart + timeToAdd).toString("M/d/yyyy");
+							console.log(currentDay);
 							if (!articles.hasOwnProperty(currentDay)) {
 								articles[currentDay] = JSON.parse(JSON.stringify(articleTimespanTemplate));
 								articles[currentDay].date = currentDay;
@@ -144,9 +156,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						}
 					}
 
-					function updateBarChart(dataset) {
+					function createBarChart(dataset) {
 						var margin = {
-							top: 0,
+							top: 10,
 							right: 0,
 							bottom: 25,
 							left: 30
@@ -157,8 +169,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 						var svg = d3.select("div.bar-chart")
 							.append("svg")
-							.attr("class", "chart")
-							.attr("class","chart--font")
+							.attr("class","chart chart--font")
 							.attr("width", width + margin.left + margin.right)
 							.attr("height", height + margin.top + margin.bottom)
 							.append("g")
@@ -173,12 +184,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var y = d3.scale.linear()
 							.domain([0, d3.max(dataset, function (d) {
 								return d3.max(d, function (d) {
-									return d.y * 3;
+									if(d.y === 1){
+										return d.y * 6;
+									}
+									else{
+										return d.y * 3;
+									}
 								});
 							})])
 							.range([height, 0]);
-
-						var color = d3.scale.category20();
 
 						var yAxis = d3.svg.axis()
 							.scale(y)
@@ -191,15 +205,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 						var xAxis = d3.svg.axis()
 							.scale(x)
-							.orient(margin.bottom)
-							.ticks(5);
 
 						svg.append("g")
-							.attr("class", "y axis")
-							.call(yAxis);
+							.attr("class", "y-axis")
+							.call(yAxis)
 
 						svg.append("g")
-							.attr("class", "x axis")
+							.attr("class", "x-axis")
 							.attr("transform", "translate(0," + height + ")")
 							.call(xAxis);
 
@@ -208,7 +220,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.enter().append("g")
 							.attr("class", "time")
 							.attr("fill", function (d, i) {
-								return color(i);
+								return color[i];
 							});
 
 						var rect = groups.selectAll("rect")
@@ -221,7 +233,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.attr("y", height)
 							.attr("width", x.rangeBand())
 							.attr("height", 0);
-
 
 						rect.transition()
 							.delay(function(d, i) { return i * 74; })
@@ -256,6 +267,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.attr("font-size", "12px")
 							.attr("font-weight", "bold");
 
+						if(dataset[0].length > 14) {
+							var parent = d3.select(".x-axis")[0][0];
+							var ticks = d3.selectAll(".x-axis .tick")[0];
+							for(var i = 1; i < ticks.length; i += 2){
+								parent.removeChild(ticks[i]);
+							}
+						};
+
 						function returnSource(label, articlesRead) {
 							var tooltipText = label + " - " + articlesRead;
 							return tooltipText;
@@ -289,7 +308,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						return dataset;
 					}
 
-					function updateDonutChart(dataset) {
+					function createDonutChart(dataset) {
 						var donutWidth = 50;
 						var arcSpace = 0.00;
 
@@ -310,12 +329,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.outerRadius(radius)
 							.padAngle(arcSpace);
 
-						var color = d3.scale.category20();
-
 						var svg = d3.select("div.donut-chart")
 							.append("svg")
 							.attr("class", "chart")
-							.attr("class","chart--font")
 							.attr("width", width)
 							.attr("height", height)
 							.append("g")
@@ -327,7 +343,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							.append("path")
 							.attr("d", arc)
 							.attr("fill", function (d, i) {
-								return color(d.data.source);
+								return color[i];
 							})
 							.on("mouseover", function (d) {
 								tooltip.style("display", null);
@@ -350,8 +366,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 								this.classList.add("donut-chart-arc");
 
 							});
-
-
 
 						function returnSource(data) {
 							var tooltipText = data.source;
@@ -384,11 +398,27 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					function appendFacts(articlesRead) {
 						var factContainer = document.getElementsByClassName("facts")[0]
+						var sourceCount = Object.keys(articlesRead).length;
 						var count = countArticles(articlesRead);
 						var faveSource = findFavoriteSource(articlesRead, false);
 						var faveSourceRead = findFavoriteSource(articlesRead, true);
 
-						factContainer.appendChild( createBubbleFact(Object.keys(articlesRead).length, "sources", "red") );
+						var factsArray = [sourceCount, count, faveSource, faveSourceRead];
+
+						var currentFacts = document.getElementsByClassName("bubble__data");
+						if( currentFacts.length > 0 ){
+							for(var i = 0; i < currentFacts.length; i++) {
+								currentFacts[i].innerHTML = factsArray[i];
+							}
+							if(currentFacts[2].innerHTML.length > 10){
+								currentFacts[2].setAttribute("style", "font-size: 1.6rem");
+							} else{
+								currentFacts[2].setAttribute("style", "font-size: 3rem");
+							}
+							return;
+						}
+
+						factContainer.appendChild( createBubbleFact(sourceCount, "sources", "red") );
 						factContainer.appendChild( createBubbleFact(count, "articles", "green") );
 						factContainer.appendChild( createBubbleFact(faveSource, "fav. source", "orange") );
 						factContainer.appendChild( createBubbleFact(faveSourceRead, "fav. source # read", "purple") );
@@ -445,10 +475,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				}
 
 				var userData = userSnapshot.val();
-
 				var articlesRead = userData.articles;
 
-				appendData("days-back", daysBack);
+				appendData("days-back", tranformDates(14) );
+
+				createDropdownMenu();
 
 				createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
 
@@ -460,11 +491,15 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				});
 
 				//Need to find a more logical place to put this
-				document.getElementsByClassName("dataTable-wrapper")[0].className += " card card--dashboard card--table";
+				document.getElementsByClassName("dataTable-wrapper")[0].className += " card--table";
 
 				function appendData(elem, name) {
 					var elem = document.getElementsByClassName(elem)[0];
-					var elemText = elem.innerHTML += " " + name;
+					var elemText = elem.innerHTML = " " + name;
+				}
+
+				function tranformDates(num) {
+					return num < 8 ? num/7 + " Week" : num/7 + " Weeks"
 				}
 				
 				function createTable(userArticleInformation, articleInformation) {
@@ -569,7 +604,37 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						return articleSource[0] + ".com"; 
 					}
 				}
-			});
+
+				function createDropdownMenu() {
+					// document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
+					// document.getElementsByClassName("sidebar__icon")[0].addEventListener("click", toggleDates);
+
+
+					window.onclick = function(e) {
+						console.log(e.target)
+						if(e.target.matches(".dropdown") || e.target.matches(".sidebar__icon") || e.target.matches(".days-back")  ){
+							toggleDates();
+						}else if(e.target.matches(".dropdown-day") ) {
+							var dropdownMenu = e.target.parentElement;
+							dropdownMenu.classList.remove("show")	
+							console.log(dropdownMenu);
+							var parents = document.getElementsByClassName("card--dashboard");
+							var childBar = document.getElementsByClassName("chart")[0];
+							var childDonut = document.getElementsByClassName("chart")[1];
+							parents[0].removeChild(childBar);
+							parents[1].removeChild(childDonut);
+
+							updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
+							appendData("days-back", tranformDates(e.target.dataset.days) );
+						}
+					}
+
+					function toggleDates() {
+						document.getElementById("dropdown-dates").classList.toggle("show");
+					}
+				}
+
+			});		
 		}).catch(function (error) {
 			console.log(error);
 		});
