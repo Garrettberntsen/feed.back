@@ -26,20 +26,16 @@ function testSingleUrlMatcher(matcher, urlRoot, url) {
                 if (!current) {
                     switch (category.type) {
                         case "url":
-                            var found_category = null;
-                            for (var element of category.matcher.url_element) {
-                                if (!found_category) {
-                                    var element_value = result.groups[element];
-                                    if (element_value) {
-                                        found_category = category.matcher.mappings[Object.keys(category.matcher.mappings).find(function (mapping) {
-                                            "use strict";
-                                            return mapping === element_value;
-                                        })];
+                            var found_category = category.matcher.url_elements.reduce(function (current, next_category) {
+                                "use strict";
+                                if (!current) {
+                                    var url_element = result.groups[next_category];
+                                    if (url_element) {
+                                        return category.matcher.mappings[url_element];
                                     }
-                                } else {
-                                    return found_category;
                                 }
-                            }
+                                return current;
+                            }, null);
                             return found_category;
                     }
                 }
@@ -52,8 +48,31 @@ function testSingleUrlMatcher(matcher, urlRoot, url) {
 }
 
 function SourceDefinition(definition) {
+    if (!definition.urls) {
+        throw new Error("Urls must be defined in definition object.")
+    }
     this.urls = definition.urls;
-    this["category"] = definition["category"];
+    this.category = definition["category"];
+    if (this.category) {
+        if (!Array.isArray(this.category)) {
+            throw new Error("Source definition categoryization definition must have an array of definition objects");
+        }
+        for (var def of this.category) {
+            if (!def.type) {
+                throw new Error("Source definition categorization definition must have a type");
+            }
+            if (!def.matcher) {
+                throw new Error("Source definition categorization definition must define a matcher object.");
+            }
+            if (!def.matcher.url_elements || !Array.isArray(def.matcher.url_elements)) {
+                throw new Error("Source definition must define an array of url elements it analyzes.");
+            }
+            if(!def.matcher.mappings || typeof def.matcher.mappings !== "object"){
+                throw new Error("Source definition categorization definition must defined an object containing source-specific values to category names.");
+            }
+        }
+
+    }
     this["article-url-matcher"] = definition["article-url-matcher"];
     this["author-selector"] = definition["author-selector"];
     this["author-selector-property"] = definition["author-selector-property"];
@@ -67,6 +86,9 @@ function SourceDefinition(definition) {
     //Test the given url against this sources' article matching pattern, returning an object mapping the url element
     //names to their matched values, or false if there was no match.
     this.testForArticleUrlMatch = function (url) {
+        if (!this.urls) {
+            throw "No urls defined in definition."
+        }
         return this.urls.find(function (urlDescription) {
             if (Array.isArray(urlDescription["article-url-matcher"])) {
                 return urlDescription["article-url-matcher"].reduce(function (current, next) {
@@ -79,7 +101,7 @@ function SourceDefinition(definition) {
                 return testSingleUrlMatcher.bind(this)(urlDescription["article-url-matcher"], urlDescription.urlRoot, url);
             }
         }, this);
-    }
+    }.bind(this);
 }
 
 var sources = {
@@ -124,7 +146,7 @@ var sources = {
         "category": [{
             type: 'url',
             matcher: {
-                url_element: ["type", "category"],
+                url_elements: ["type", "category"],
                 mappings: {
                     "lifestyle": "Arts",
                     "business": "Business",
@@ -171,7 +193,7 @@ var sources = {
         "category": [{
             type: 'url',
             matcher: {
-                url_element: ["category", "subcategory"],
+                url_elements: ["category", "subcategory"],
                 mappings: {
                     "business": "Business",
                     "realestate": "Business",
@@ -241,8 +263,11 @@ var sources = {
         "category": [{
             type: 'url',
             matcher: {
-                "science-and-health": "Health",
-                "world": "World"
+                url_elements: ["category"],
+                mappings: {
+                    "science-and-health": "Health",
+                    "world": "World"
+                }
             }
         }],
         'author-selector': 'meta[property="author"]',
@@ -272,7 +297,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "economy": "Business",
                     "architecture": "Culture",
@@ -319,8 +344,8 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
-                matcher: {
+                url_elements: ["category"],
+                mappings: {
                     "culture": "Culture",
                     "humor": "Humor"
                 }
@@ -414,7 +439,7 @@ var sources = {
         'categoriztion': {
             type: 'url',
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "business": "Business",
                     "entertainment": "Entertainment",
@@ -465,7 +490,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "business": "Business",
                     "moneybox": "Business",
@@ -513,7 +538,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "politics": "Politics"
                 }
@@ -556,7 +581,7 @@ var sources = {
         "category": [{
             type: 'url',
             matcher: {
-                url_element: "author",
+                url_elements: ["author"],
                 mappings: {
                     "bizblog": "Business"
                 }
@@ -600,7 +625,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "entertainment": "Entertainment",
                     "health": "Health",
@@ -631,7 +656,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "finance": "Business",
                     "50-most-beautiful": "Entertainment",
@@ -662,7 +687,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "region",
+                url_elements: ["region"],
                 mappings: {
                     "world": "World"
                 }
@@ -695,7 +720,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "Entertainment": "Entertainment",
                     "Health": "Health",
@@ -726,7 +751,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: ["subcategory", "category"],
+                url_elements: ["subcategory", "category"],
                 mappings: {
                     "careers": "Business",
                     "health": "Health",
@@ -796,7 +821,7 @@ var sources = {
         "category": [{
             type: "url",
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "big-government": "Politics",
                     "sports": "Sports"
@@ -840,7 +865,7 @@ var sources = {
         "category": [{
             type: 'url',
             matcher: {
-                url_element: "category",
+                url_elements: ["category"],
                 mappings: {
                     "business": "Business",
                     "americas": "US News",
@@ -904,7 +929,7 @@ var sources = {
         "category": [{
             type: 'url',
             matcher: {
-                url_element: "subject",
+                url_elements: ["subject"],
                 mappings: {
                     "culture": "Culture",
                     "national-security": "Politics"
@@ -1065,15 +1090,21 @@ var sources = {
         'title-selector-property': ''
     })
 };
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    switch (request.type) {
-        case "getSources":
-            sendResponse(sources);
-            break;
-        case "getSourceUrlMatches":
-            if (request.message.source_name) {
-                sendResponse(sources[request.message.source_name].testForArticleUrlMatch(reduceUrl(request.message.location)));
-            }
-            break;
-    }
-});
+if (typeof chrome !== "undefined") {
+    chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+        switch (request.type) {
+            case "getSources":
+                sendResponse(sources);
+                break;
+            case "getSourceUrlMatches":
+                if (request.message.source_name) {
+                    sendResponse(sources[request.message.source_name].testForArticleUrlMatch(reduceUrl(request.message.location)));
+                }
+                break;
+        }
+    });
+}
+
+return module.exports = {
+    sources: sources
+}
