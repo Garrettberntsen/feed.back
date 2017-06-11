@@ -20,9 +20,11 @@
   "homepage": "https://github.com/Garrettberntsen/feed.back#readme",
   "devDependencies": {
     "chromedriver": "^2.29.0",
+    "firebase-admin": "^5.0.0",
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
+    "grunt-execute": "^0.2.2",
     "grunt-mkdir": "^1.0.0",
     "jasmine": "^2.6.0",
     "jsdom": "^9.12.0",
