@@ -27,20 +27,10 @@ function initializeFirebase() {
         if (firebase.apps.length == 0) {
             firebase.initializeApp(config);
         }
-        var signIn = function (token) {
-            firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token))
-                .catch(function (error) {
-                    console.error(error.message);
-                });
-        }
         try {
-            chrome.identity.getAuthToken(function (token) {
-                signIn(token).then(function(){}, function(){
-                    chrome.identity.removeCachedAuthToken(token, function () {
-                        signIn(token)
-                    });
-                });
-            });
+            chrome.identity.getAuthToken({interactive: true}, function (token) {
+                firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token));
+            })
         } catch (ex) {
             console.error(ex);
         }
@@ -57,7 +47,7 @@ function initializeFirebase() {
 var _firebase = initializeFirebase();
 //When signin changes, reauthenticate firebase.
 chrome.identity.onSignInChanged.addListener(function (accountInfo, signedIn) {
-    if (signedIn) {
+    if(signedIn) {
         _firebase = initializeFirebase();
     } else {
         _firebase = Promise.reject("User is not authenticated.");
@@ -67,10 +57,10 @@ chrome.identity.onSignInChanged.addListener(function (accountInfo, signedIn) {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
         case "getUser":
-            current_user.then(function (user) {
+            current_user.then(function(user){
                 "use strict";
                 return getUser(user.id);
-            }).then(function (user) {
+            }).then(function(user){
                 "use strict";
                 sendResponse(user);
             });
@@ -83,7 +73,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * @param   user_id the id of the user to get
  */
 function getUser(user_id) {
-    if (!user_id) {
+    if(!user_id){
         throw new Error("getUser called with no id set");
     }
     return _firebase.then(function (firebase) {
@@ -103,7 +93,7 @@ function getUser(user_id) {
  * @param user
  */
 function setUser(user_id, user) {
-    if (!user_id) {
+    if(!user_id){
         throw new Error("setUser called with no id set");
     }
     return _firebase.then(function (firebase) {
@@ -147,9 +137,4 @@ function setArticle(article_id, article_data) {
     }).then(function () {
         return true;
     });
-}
-
-function setArticleMetaData(article_id, user_id, user_metadata) {
-    "use strict";
-    return
 }
