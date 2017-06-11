@@ -5,10 +5,6 @@
  *  - type : "getUser"
  *  - message: user_id
  *  - response: the user matching the given id from the database
- *
- *  - type: "setUser"
- *  - message: {user_id, user}
- *  - response: a promise that resolves after the write completes
  */
 //We guarantee that firebase is initialized before trying to access.
 function initializeFirebase() {
@@ -137,9 +133,4 @@ function setArticle(article_id, article_data) {
     }).then(function () {
         return true;
     });
-}
-
-function setArticleMetaData(article_id, user_id, user_metadata){
-    "use strict";
-    return
 }
