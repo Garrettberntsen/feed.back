@@ -86,6 +86,11 @@ module.exports = function (grunt) {
         clean: {
             dist: ["dist/", "*.pem", "*.crx", "dist.zip"],
             testBuild: ["test-dist"]
+        },
+        execute:{
+            target: {
+                src: ["sources.js", "utility/categorize-articles.js"]
+            }
         }
     });
 
@@ -94,6 +99,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-download");
     grunt.loadNpmTasks("grunt-mkdir");
     grunt.loadNpmTasks("grunt-contrib-clean");
+    grunt.loadNpmTasks("grunt-execute");
 
     //Tasks for downloading chromedriver dependency for Selenium. https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
     grunt.registerTask("linux32-install", ["mkdir:chromedriver", "download:chromewebdriver_linux32", "move", "unzip"]);
@@ -104,4 +110,5 @@ module.exports = function (grunt) {
     grunt.registerTask("default", ["clean:dist", "zip:dist"]);
     //Create a test distribution
     grunt.registerTask("testBuild", ["clean:testBuild", "mkdir:testBuild", "copy:testBuild"]);
+    grunt.registerTask("categorize-articles", ["execute"]);
 };
