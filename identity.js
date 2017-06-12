@@ -19,30 +19,35 @@
  */
 var current_user = new Promise(function (resolve, reject) {
     "use strict";
-    chrome.identity.getProfileUserInfo(function (userInfo) {
-        if(!userInfo.id){
-            var message = "It looks like you aren't logged in to Google.";
-            console.error(message);
-            alert(message);
-            reject(message);
-        }
-        resolve(userInfo);
-    });
+    chrome.identity.getAuthToken({interactive: true},
+        function () {
+            chrome.identity.getProfileUserInfo(function (userInfo) {
+                if (!userInfo.id) {
+                    var message = "It looks like you aren't logged in to Google.";
+                    console.error(message);
+                    alert(message);
+                    reject(message);
+                }
+                resolve(userInfo);
+            });
+        });
 });
 /**
  * Updates current_user when the authentication changes.
  */
-chrome.identity.onSignInChanged.addListener(function(){
+chrome.identity.onSignInChanged.addListener(function () {
     "use strict";
     current_user = new Promise(function (resolve, reject) {
         "use strict";
-        chrome.identity.getProfileUserInfo(function (userInfo) {
-            if(!userInfo.id){
-                var message = "It looks like you aren't logged in to Google.";
-                console.error(message);
-                reject(message);
-            }
-            resolve(userInfo);
+        chrome.identity.getAuthToken({interactive: true}, function () {
+            chrome.identity.getProfileUserInfo(function (userInfo) {
+                if (!userInfo.id) {
+                    var message = "It looks like you aren't logged in to Google.";
+                    console.error(message);
+                    reject(message);
+                }
+                resolve(userInfo);
+            });
         });
     })
 });
