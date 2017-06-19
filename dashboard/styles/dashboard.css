@@ -86,6 +86,10 @@
 
 .show {display:block;}
 
+.goals-hidden {
+  visibility: hidden;
+}
+
 /* ------------ ------------Dashboard Styling ------------ ------------ */
 .chart {
   display: block;

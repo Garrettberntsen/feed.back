@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Feedback - Dashboard</title>
+        <title>Feedback - Goals</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">     
 
         <link rel="stylesheet" href="libraries/css/normalize.css">
@@ -18,7 +18,7 @@
 
         <section class="sidebar__items">
 
-          <div class="dropdown sidebar__link sidebar__date-selector">
+          <div class="dropdown sidebar__link sidebar__date-selector goals-hidden">
             <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/clock.svg">
             <p class="days-back"></p>
           </div>
@@ -28,12 +28,12 @@
               <p class="dropdown-day" data-days="28">4 Weeks</p>
             </div>
 
-          <a class="sidebar__link sidebar__link--active" href=/dashboard/dashboard.html>
+          <a class="sidebar__link" href=/dashboard/dashboard.html>
             <img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/pie-chart.svg">
             <p>Dashboard</p>
           </a>
 
-          <a class="sidebar__link" href="/dashboard/goals.html">
+          <a class="sidebar__link sidebar__link--active" href="/dashboard/goals.html">
             <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/bar-chart.svg">
             <p>Goals</p>
           </a>
@@ -49,41 +49,13 @@
           </a>
         </section>
     </nav>
+
     <main class="container container--dashboard">
       <section class="dashboard-row">
         <div class="card card--dashboard bar-chart">
-          <p class="card__title">Daily Articles</p>
-        </div>
-      </section>  
-      <section class="dashboard-row">
-        <div class="card card--dashboard donut-chart">
-          <p class="card__title">Cumulative Consumption</p>
-        </div>
-        <div class="card card--dashboard">
-          <p class="card__title">Snapshot</p>
-          <div class="facts"></div>
+          <p class="card__title">Goals</p>
         </div>
       </section>
-      <section class="dashboard-row">
-        <div class="card card--dashboard">
-          <p class="card__title">Overall</p>
-          <table id="table">
-            <thead>
-              <tr>
-                <th class="table-header--eval" style="width: 3%">Eval</th>
-                <th class="table-header--date">Date</th>
-                <th class="table-header--publisher">Publisher</th>
-                <th class="table-header--title">Title</th>
-  <!--               <th class="table-header--type">Type</th> -->
-                <th class="table-header--author">Author</th>
-                <th class="table-header--read" style="width: 10%">% Read</th>
-              </tr>
-            </thead>
-            <tbody id="table-body">
-            </tbody>
-          </table>
-        </section>
-      </div>
     </main>
 
 

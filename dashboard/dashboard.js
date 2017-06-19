@@ -434,7 +434,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							factElem.className = "bubble__data";
 							factElem.appendChild( document.createTextNode(data) );
 							if(data.length > 10) {
-								factElem.setAttribute("style", "font-size: 1.6rem");
+								factElem.setAttribute("style", "font-size: 2rem");
 							}
 
 							var descriptionElem = document.createElement("p");
@@ -499,7 +499,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				}
 
 				function tranformDates(num) {
-					return num < 8 ? num/7 + " Week" : num/7 + " Weeks"
+					return num < 8 ? num/7 + " Week" : num/7 + " Weeks";
 				}
 				
 				function createTable(userArticleInformation, articleInformation) {
@@ -606,10 +606,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				}
 
 				function createDropdownMenu() {
-					// document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
-					// document.getElementsByClassName("sidebar__icon")[0].addEventListener("click", toggleDates);
-
-
 					window.onclick = function(e) {
 						console.log(e.target)
 						if(e.target.matches(".dropdown") || e.target.matches(".sidebar__icon") || e.target.matches(".days-back")  ){
