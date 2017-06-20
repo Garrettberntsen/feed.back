@@ -26,14 +26,13 @@ h1   { font-size: 5.0rem; } /* =50px */
 }
 
 .card{
-  margin: 1.0rem;
-  padding: 2.0rem;
+  margin: 2rem;
   background: white;
   width: 90%;
   max-width: 880px;
 
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-  border-radius: 1.0rem;
+  border-radius: 3px;
 }
 
 .card--half {
