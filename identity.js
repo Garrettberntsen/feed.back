@@ -19,18 +19,14 @@
  */
 var current_user = new Promise(function (resolve, reject) {
     "use strict";
-    chrome.identity.getAuthToken({interactive: true},
-        function () {
-            chrome.identity.getProfileUserInfo(function (userInfo) {
-                if (!userInfo.id) {
-                    var message = "It looks like you aren't logged in to Google.";
-                    console.error(message);
-                    alert(message);
-                    reject(message);
-                }
-                resolve(userInfo);
-            });
-        });
+    chrome.identity.getProfileUserInfo(function (userInfo) {
+        if (!userInfo.id) {
+            var message = "It looks like you aren't logged in to Google.";
+            console.error(message);
+            reject(message);
+        }
+        resolve(userInfo);
+    });
 });
 /**
  * Updates current_user when the authentication changes.
@@ -39,14 +35,27 @@ chrome.identity.onSignInChanged.addListener(function () {
     "use strict";
     current_user = new Promise(function (resolve, reject) {
         "use strict";
-        chrome.identity.getAuthToken({interactive: true}, function () {
+        chrome.identity.getAuthToken(function (token) {
             chrome.identity.getProfileUserInfo(function (userInfo) {
                 if (!userInfo.id) {
                     var message = "It looks like you aren't logged in to Google.";
                     console.error(message);
                     reject(message);
                 }
-                resolve(userInfo);
+
+                if (token) {
+                    resolve(userInfo);
+                } else {
+                    var ok = confirm("Feed.back attempted to start, but requires that you be signed in to your Google account to work. Sign in to continue or click cancel to go back to where you were.")
+                    if (!ok) {
+                        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                            "use strict";
+                            chrome.tabs.remove(tabs.map(function (t) {
+                                return t.id;
+                            }));
+                        });
+                    }
+                }
             });
         });
     })
