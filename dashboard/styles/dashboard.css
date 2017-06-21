@@ -120,6 +120,7 @@
 }
 
 .card--dashboard {
+  min-height: 358px;  
   width: 100%;
   max-width: 100%;
   padding: 1rem;
