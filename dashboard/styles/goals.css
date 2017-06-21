@@ -1,0 +1,11 @@
+.user-goals {
+  display: flex;
+  align-items: center;
+}
+
+.user-goals__number {
+  padding: 5px;
+  font-size: 2rem;
+  width: 40px;
+}
+
