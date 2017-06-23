@@ -120,7 +120,7 @@
 }
 
 .card--dashboard {
-  min-height: 358px;  
+  min-height: 330px;  
   width: 100%;
   max-width: 100%;
   padding: 1rem;
@@ -228,8 +228,8 @@ tbody td {
   /*background-color: rgb(0,0,0);*/
   padding: 3px;
   border-radius: 20px; /* IE 9 */ /* Safari */
-  -webkit-transform: translate(0, 50px);
-          transform: translate(0, 50px);
+  -webkit-transform: translate(0, 51px);
+          transform: translate(0, 51px);
   text-align: center;
   color: white;
   font-size: 1.6rem;
