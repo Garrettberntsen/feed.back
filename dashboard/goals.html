@@ -56,13 +56,27 @@
         <div class="card card--dashboard bar-chart">
           <p class="card__title">Goals</p>
           <p class="user-goals">You are currently planning to read <input id="number" type="number" class="user-goals__number"> articles a week.</p>
-
         </div>
-
-
-
-
       </section>
+      <section class="dashboard-row">
+        <div class="card card--dashboard">
+          <p class="card__title">Overall</p>
+          <table id="table">
+            <thead>
+              <tr>
+                <th class="table-header--eval" style="width: 3%">Eval</th>
+                <th class="table-header--date">Date</th>
+                <th class="table-header--publisher">Publisher</th>
+                <th class="table-header--title">Title</th>
+  <!--               <th class="table-header--type">Type</th> -->
+                <th class="table-header--author">Author</th>
+                <th class="table-header--read" style="width: 10%">% Read</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+          </table>
+        </section>
     </main>
 
 

@@ -7,6 +7,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
 		firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
 			var articles = userSnapshot.val().articles;
+
 			var article_ids = [];
 			var article_definitions = [];
 			for (let key in articles) {
@@ -14,13 +15,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				article_ids.push(key);
 			}
 
-			console.log(article_definitions);
-
 			var todaysDate = Date.now();
 			var millisecondsPerDay = 86400000;
 
 			var userData = userSnapshot.val();
-			var articlesRead = userData.articles;
+			var articlesRead = userData.articles;	
 
 			var currentPage = location.pathname.split("/")[2].split(".")[0];
 
@@ -44,8 +43,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 					var donutDataset = createDonutChartDataset(articleCountInTimespan);
 					var barchartDataset = createBarChartDataset(articlesInTimespan);
-
-					console.log(createBarChart);
 
 					createBarChart(barchartDataset);
 					createDonutChart(donutDataset);
@@ -378,119 +375,14 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					function tranformDates(num) {
 						return num < 8 ? num/7 + " Week" : num/7 + " Weeks";
 					}
-					
-					function createTable(userArticleInformation, articleInformation) {
-						var articlesRead = [];
-						var tableElem = document.getElementById("table-body");
-
-						for (let key in userArticleInformation) {
-							if (userArticleInformation.hasOwnProperty(key)) {
-								var id_index;
-								for (i = 0; i < articleInformation.ids.length; i++) {
-									if (articleInformation.ids[i] === key) {
-										id_index = i;
-										break;
-									}
-								}
-								var currentArticleUserInfo = userArticleInformation[key];
-								var currentArticle = articleInformation.snapshots[id_index].val();
-								var articleInfo = {
-									dateString: '',
-									dateUnix: 0,
-									url: '',
-									sourceUrl: ''
-								};
-								
-								var userEvaluation = currentArticleUserInfo.stars; //to add
-								articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
-								articleInfo.dateUnix = currentArticleUserInfo.dateRead;
-								var publisher = currentArticle.source;
-								var title = currentArticle.title;
-								// var type = ""; //to add
-								var author = currentArticle.author;
-								var slant = currentArticle.lean;
-								var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
-
-
-								articleInfo.url = currentArticle.url;
-								articleInfo.sourceUrl = currentArticle.url.split(".");
-
-								var articleData = new Array(userEvaluation, articleInfo, publisher, title, author, read_percentage);
-								articlesRead.push(articleData);
-							}
-						}
-
-						articlesRead.sort(function (a, b) {
-							var articleA = a[1].dateUnix;
-							var articleB = b[1].dateUnix;
-							if (articleA > articleB) {
-								return -1;
-							}
-							if (articleA < articleB) {
-								return 1;
-							}
-							return 0;
-						});
-
-						for (let i = 0; i < articlesRead.length; i++) {
-							var tr = document.createElement("TR");
-							for (let j = 0; j < articlesRead[i].length; j++) {
-								var td = document.createElement("TD");
-								var content = articlesRead[i][j] ? articlesRead[i][j] : "";
-								if(j === 1) {
-									content = articlesRead[i][j].dateString ? articlesRead[i][j].dateString : "";
-								}
-								else if(j === 2) {
-									var linkElem = document.createElement("a");
-									linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
-									linkElem.target = "_blank";
-									linkElem.href = prependHTTPSIfNeeded(hasSubdomains(articlesRead[i][1].sourceUrl));
-									td.appendChild(linkElem);                                
-								}
-								else if(j === 3) {
-									var linkElem = document.createElement("a");
-									linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
-									linkElem.target = "_blank";
-									linkElem.href = prependHTTPSIfNeeded(articlesRead[i][1].url);
-									td.appendChild(linkElem);
-								}
-								else if (j === 5) {
-									content = Math.floor(Number(content) * 100);
-								}
-
-								if(!td.firstChild){
-									td.appendChild(document.createTextNode(content));
-								}
-								tr.appendChild(td);
-							}
-							tableElem.appendChild(tr);
-						}
-
-						function prependHTTPSIfNeeded(string) {
-							if(string.includes('https://')){
-								return string;
-							}else {
-								return 'https://' + string;
-							}
-						}
-
-						function hasSubdomains(articleSource, isArticle) {
-							if(articleSource.length > 2) {
-								return articleSource[0] + "." + articleSource[1] + ".com";
-							}
-							return articleSource[0] + ".com"; 
-						}
-					}
 
 					function createDropdownMenu() {
 						window.onclick = function(e) {
-							console.log(e.target)
 							if(e.target.matches(".dropdown") || e.target.matches(".sidebar__icon") || e.target.matches(".days-back")  ){
 								toggleDates();
 							}else if(e.target.matches(".dropdown-day") ) {
 								var dropdownMenu = e.target.parentElement;
 								dropdownMenu.classList.remove("show")	
-								console.log(dropdownMenu);
 								var parents = document.getElementsByClassName("card--dashboard");
 								var childBar = document.getElementsByClassName("chart")[0];
 								var childDonut = document.getElementsByClassName("chart")[1];
@@ -629,10 +521,19 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						return Object.keys( articleTimespanTemplate ).sort();
 					}
 				}
+
+				Promise.all(article_definitions).then(function (articleSnapshots) {
+					console.log(articleSnapshots);
+					createTable(articlesReadThisWeek, {ids: article_ids, snapshots: articleSnapshots});
+
+					var myTable = document.querySelector("#table");
+					var dataTable = new DataTable(myTable, {
+						searchable: true,
+						perPage: 25,
+						perPageSelect: [25, 50, 100]
+					});
+				});
 			}
-
-
-
 		}).catch(function (error) {
 			console.log(error);
 		});

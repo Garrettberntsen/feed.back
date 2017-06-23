@@ -130,3 +130,110 @@ function createBarChart(dataset) {
     return tooltipText;
   }
 }
+
+function createTable(userArticleInformation, articleInformation) {
+  console.log(userArticleInformation);
+  var keys = Object.keys(userArticleInformation);
+  var length = Object.keys(userArticleInformation).length;
+
+  var articlesRead = [];
+  var tableElem = document.getElementById("table-body");
+
+  for (let key in userArticleInformation) {
+    if (userArticleInformation.hasOwnProperty(key)) {
+      var id_index;
+      for (i = 0; i < articleInformation.ids.length; i++) {
+        if (articleInformation.ids[i] === key) {
+          id_index = i;
+          break;
+        }
+      }
+      var currentArticleUserInfo = userArticleInformation[key];
+      var currentArticle = articleInformation.snapshots[id_index].val();
+      var articleInfo = {
+        dateString: '',
+        dateUnix: 0,
+        url: '',
+        sourceUrl: ''
+      };
+      
+      var userEvaluation = currentArticleUserInfo.stars; //to add
+      articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
+      articleInfo.dateUnix = currentArticleUserInfo.dateRead;
+      var publisher = currentArticle.source;
+      var title = currentArticle.title;
+      // var type = ""; //to add
+      var author = currentArticle.author;
+      var slant = currentArticle.lean;
+      var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
+
+
+      articleInfo.url = currentArticle.url;
+      articleInfo.sourceUrl = currentArticle.url.split(".");
+
+      var articleData = new Array(userEvaluation, articleInfo, publisher, title, author, read_percentage);
+      articlesRead.push(articleData);
+    }
+  }
+
+  articlesRead.sort(function (a, b) {
+    var articleA = a[1].dateUnix;
+    var articleB = b[1].dateUnix;
+    if (articleA > articleB) {
+      return -1;
+    }
+    if (articleA < articleB) {
+      return 1;
+    }
+    return 0;
+  });
+
+  for (let i = 0; i < articlesRead.length; i++) {
+    var tr = document.createElement("TR");
+    for (let j = 0; j < articlesRead[i].length; j++) {
+      var td = document.createElement("TD");
+      var content = articlesRead[i][j] ? articlesRead[i][j] : "";
+      if(j === 1) {
+        content = articlesRead[i][j].dateString ? articlesRead[i][j].dateString : "";
+      }
+      else if(j === 2) {
+        var linkElem = document.createElement("a");
+        linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+        linkElem.target = "_blank";
+        linkElem.href = prependHTTPSIfNeeded(hasSubdomains(articlesRead[i][1].sourceUrl));
+        td.appendChild(linkElem);                                
+      }
+      else if(j === 3) {
+        var linkElem = document.createElement("a");
+        linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
+        linkElem.target = "_blank";
+        linkElem.href = prependHTTPSIfNeeded(articlesRead[i][1].url);
+        td.appendChild(linkElem);
+      }
+      else if (j === 5) {
+        content = Math.floor(Number(content) * 100);
+      }
+
+      if(!td.firstChild){
+        td.appendChild(document.createTextNode(content));
+      }
+      tr.appendChild(td);
+    }
+    tableElem.appendChild(tr);
+  }
+
+  function prependHTTPSIfNeeded(string) {
+    if(string.includes('https://')){
+      return string;
+    }else {
+      return 'https://' + string;
+    }
+  }
+
+  function hasSubdomains(articleSource, isArticle) {
+    if(articleSource.length > 2) {
+      return articleSource[0] + "." + articleSource[1] + ".com";
+    }
+    return articleSource[0] + ".com"; 
+  }
+}
