@@ -113,7 +113,7 @@
 }
 
 .container--dashboard {
-  margin-left: 16rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
+  margin-left: 18rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: space-around;
