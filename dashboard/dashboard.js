@@ -27,8 +27,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 			var currentPage = location.pathname.split("/")[2].split(".")[0];
 
 			if(currentPage === "dashboard") {
+				console.log("dashboard page");
 				onDashboardPage();
 			}else if(currentPage === "goals") {
+				console.log("goals page");
 				onGoalsPage();
 			}
 
@@ -323,7 +325,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var arcSpace = 0.00;
 
 						var width = 480,
-							height = 288;
+								height = 288;
 						var radius = Math.min(width, height) / 2;
 
 						var total = d3.sum(dataset.map(function(d) { return d.count; }));
@@ -644,7 +646,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				var dateStr = Date.today().moveToDayOfWeek(0, -1).toISOString();
 				var dateTime = new Date(dateStr).getTime();
 
+
 				var articlesReadThisWeek = getArticlesInTimespan(todaysDate, dateTime);
+				var articleTimespanTemplate = createTemplate(articlesReadThisWeek);
+
+				var barchartDataset = createBarChartDataset(articlesReadThisWeek);
+				
+				console.log(barchartDataset);
 
 				function getArticlesInTimespan(end, start) {
 					var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
@@ -670,11 +678,92 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					}
 					return totalCount;
 				}
+
+				function createTemplate(articles) {
+					var articleCount = {};
+
+					for (let key in articles) {
+						if (articles.hasOwnProperty(key)) {
+							var article = articles[key];
+							var source = article.source;
+							if (!articleCount.hasOwnProperty(source)) {
+								articleCount[source] = 0;
+							}
+						}
+					}
+					return articleCount;
+				}
+
+				function organizeArticlesByDate(articles, template) {
+					var articleCount = {};
+
+					for (let key in articles) {
+						var article = articles[key];
+						var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+						articleCount[articleDate] = JSON.parse(JSON.stringify(template));
+					}
+
+					for (let key in articles) {
+						let article = articles[key];
+						let articleSource = articles[key].source;
+						let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+						articleCount[articleDate][articleSource]++;
+					}
+
+					for (let key in articleCount) {
+						let article = articleCount[key];
+						article.date = key;
+					}
+					return articleCount;
+				}
+
+				/* Creates a very specific array of object that is better suited for D3 parsing
+				 * for creating a stacked bar chart.
+				 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+				 *  Returns -> Ordered array useful only for the stacked bar chart.
+				 */
+				function createBarChartDataset(articlesToParse) {
+					var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
+
+					for (let i = 0; i < 7; i++) {
+						let timeToAdd = i * millisecondsPerDay;
+						let currentDay = new Date(dateTime + timeToAdd).toString("M/d/yyyy");
+						if (!articles.hasOwnProperty(currentDay)) {
+							articles[currentDay] = JSON.parse(JSON.stringify(articleTimespanTemplate));
+							articles[currentDay].date = currentDay;
+						}
+					}
+
+					var articlesArray = Object.values(articles);
+					var articleSourcesArray = createArrayOfSources();
+
+					articlesArray.sort(function (a, b) {
+						var dateA = Date.parse(a.date);
+						var dateB = Date.parse(b.date);
+
+						if (dateA < dateB) return -1;
+						if (dateA > dateB) return 1;
+						return 0;
+					});
+
+					var parsedData = d3.layout.stack()(articleSourcesArray.map(function (source) {
+						return articlesArray.map(function (d) {
+							return {
+								x: Date.parse(d.date).toString('dddd'),
+								y: +d[source],
+								label: source
+							};
+						});
+					}));
+
+					return parsedData;
+
+					function createArrayOfSources() {
+						return Object.keys( articleTimespanTemplate ).sort();
+					}
+				}
 			}
 
-			console.log(userData);
-			console.log(location.pathname.split("/")[2].split(".")[0]);
-			
 
 
 		}).catch(function (error) {
