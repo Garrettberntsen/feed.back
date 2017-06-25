@@ -6,51 +6,54 @@
 
 var only_scrape_new_user_history = false;
 
-function extractHistory(firebase){
+function extractHistory(){
+    console.log("Begin scraping browser history for news items.");
     "use strict";
-    return current_user.then(function (user) {
-        return Promise.all([
-            firebase.database().ref("/users/" + user.id).once("value"),
-            current_user]);
-    }).then(function (resolved) {
-        var userSnapshot = resolved[0];
-        var chrome_user = resolved[1];
-        if (!userSnapshot.exists() || !only_scrape_new_user_history) {
-            Object.keys(sources).map(function (name) {
-                return sources[name];
-            }).forEach(function (source) {
-                try {
-                    var now = new Date();
-                    //TODO: Get rid of these magic numbers.
-                    var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-                    //Search browser history for entries from each source.
-                    source.urls.forEach(function (source) {
-                        chrome.history.search({
-                            text: source.urlRoot,
-                            startTime: cutoff.getTime(),
-                            maxResults: 10000
-                        }, function (results) {
-                            console.log("Searching for entries: " + source.url);
-                            if (results.length > 0) {
-                                console.log("Found " + results.length);
-                            }
-                            results.forEach(function (historyItem) {
-                                console.log("Trying to extract history for " + historyItem.url);
-                                var extractedItem = extractHistoryItemData(historyItem);
-                                if (extractedItem) {
-                                    console.log("Extracted");
-                                    writeArticleData(extractedItem, chrome_user);
+    return _firebase.then(function(firebase){
+        return current_user.then(function (user) {
+            return Promise.all([
+                firebase.database().ref("/users/" + user.id).once("value"),
+                current_user]);
+        }).then(function (resolved) {
+            var userSnapshot = resolved[0];
+            var chrome_user = resolved[1];
+            if (!userSnapshot.exists() || !only_scrape_new_user_history) {
+                Object.keys(sources).map(function (name) {
+                    return sources[name];
+                }).forEach(function (source) {
+                    try {
+                        var now = new Date();
+                        //TODO: Get rid of these magic numbers.
+                        var cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
+                        //Search browser history for entries from each source.
+                        source.urls.forEach(function (source) {
+                            chrome.history.search({
+                                text: source.urlRoot,
+                                startTime: cutoff.getTime(),
+                                maxResults: 10000
+                            }, function (results) {
+                                console.log("Searching for entries: " + source.url);
+                                if (results.length > 0) {
+                                    console.log("Found " + results.length);
                                 }
+                                results.forEach(function (historyItem) {
+                                    console.log("Trying to extract history for " + historyItem.url);
+                                    var extractedItem = extractHistoryItemData(historyItem);
+                                    if (extractedItem) {
+                                        console.log("Extracted");
+                                        writeArticleData(extractedItem, chrome_user);
+                                    }
+                                });
                             });
-                        });
-                    })
-                } catch (e) {
-                    console.log(e);
-                }
-            });
-        }
-    }).catch(function (e) {
-        console.log(e);
+                        })
+                    } catch (e) {
+                        console.log(e);
+                    }
+                });
+            }
+        }).catch(function (e) {
+            console.log(e);
+        });
     });
 }
 
@@ -81,7 +84,5 @@ function extractHistoryItemData(historyItem) {
     }
 }
 
-chrome.runtime.onInstalled.addListener(function(){
-    "use strict";
-    return _firebase.then(extractHistory);
-})
+chrome.runtime.onStartup.addListener(extractHistory);
+chrome.runtime.onInstalled.addListener(extractHistory);
