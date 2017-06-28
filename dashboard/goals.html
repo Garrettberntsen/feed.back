@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Feedback - Tutorial</title>
+        <title>Feedback - Goals</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">     
 
         <link rel="stylesheet" href="libraries/css/normalize.css">
@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="/app-assets/css/reset.css">
         <link rel="stylesheet" href="/app-assets/css/styles.css">
         <link rel="stylesheet" href="styles/dashboard.css">
-        <link href="/app-assets/css/loading-icon.css" rel="stylesheet">
+        <link rel="stylesheet" href="styles/goals.css">
     </head>
   <body>
     <nav class="sidebar">
@@ -19,7 +19,7 @@
 
         <section class="sidebar__items">
 
-          <div class="dropdown sidebar__link sidebar__date-selector">
+          <div class="dropdown sidebar__link sidebar__date-selector goals-hidden">
             <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/clock.svg">
             <p class="days-back"></p>
           </div>
@@ -29,12 +29,12 @@
               <p class="dropdown-day" data-days="28">4 Weeks</p>
             </div>
 
-          <a class="sidebar__link sidebar__link--active" href=/dashboard/dashboard.html>
+          <a class="sidebar__link" href=/dashboard/dashboard.html>
             <img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/pie-chart.svg">
             <p>Dashboard</p>
           </a>
 
-<!--           <a class="sidebar__link" href="/dashboard/goals.html">
+<!--           <a class="sidebar__link sidebar__link--active" href="/dashboard/goals.html">
             <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/bar-chart.svg">
             <p>Goals</p>
           </a> -->
@@ -50,24 +50,23 @@
           </a>
         </section>
     </nav>
+
     <main class="container container--dashboard">
       <section class="dashboard-row">
         <div class="card card--dashboard bar-chart">
-          <p class="card__title">Daily Articles</p>
-        </div>
-      </section>  
-      <section class="dashboard-row">
-        <div class="card card--dashboard donut-chart">
-          <p class="card__title">Cumulative Consumption</p>
-        </div>
-        <div class="card card--dashboard">
-          <p class="card__title">Snapshot</p>
-          <div class="facts"></div>
+          <p class="card__title">Goals</p>
         </div>
       </section>
+
+      <section class="dashboard-row">
+        <div class="card card--dashboard bar-chart">
+          <p class="card__title">At a Glance</p>
+        </div>
+      </section>
+
       <section class="dashboard-row">
         <div class="card card--dashboard">
-          <p class="card__title">Overall</p>
+          <p class="card__title">What You've Been Reading this Week</p>
           <table id="table">
             <thead>
               <tr>
@@ -83,8 +82,8 @@
             <tbody id="table-body">
             </tbody>
           </table>
-        </div>
-      </section>
+        </section>
+      <section class="dashboard-row"></section>
     </main>
 
 
