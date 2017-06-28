@@ -350,6 +350,10 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					}
 				}
 
+				if(user.id === "leogen17@gmail.com" || "garrett.berntsen@gmail.com") {
+					createAdminDashboardLink();
+				}
+
 				Promise.all(article_definitions).then(function (articleSnapshots) {
 					appendData("days-back", tranformDates(14) );
 
