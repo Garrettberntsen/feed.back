@@ -24,11 +24,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 			var currentPage = location.pathname.split("/")[2].split(".")[0];
 
 			if(currentPage === "dashboard") {
-				console.log("dashboard page");
 				onDashboardPage();
 			}else if(currentPage === "goals") {
-				console.log("goals page");
 				onGoalsPage();
+			}else if(currentPage === "admin-dashboard") {
+
 			}
 
 			function onDashboardPage() {
