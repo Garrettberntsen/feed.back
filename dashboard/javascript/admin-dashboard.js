@@ -6,26 +6,20 @@ function createAdminDashboardLink() {
 	sidebar.appendChild(div);
 }
 
-var modelFuncs = {
-
-
-
-}
-
 var model = {
 	userData : {
 		users: database.users,
 		userNum: Object.keys(database.users).length,
-
+		articlesPerUser: function() { return Math.round(model.articleData.articlesNum / this.userNum); },
 	},
 
 	articleData : {
 		articles: database.articles,
 		articlesNum: Object.keys(database.articles).length,
-		fullArticles: function() { return model.countFullRecords(this.articles); },
 		wordsRead: function() { return model.countWordsRead(this.articles); },
-		wordsPerArticle: function() {return this.wordsRead / this.articlesNum; },
-		wordsPerFullArticle: function() {return this.wordsRead / this.fullArticles; },
+		fullArticles: function() { return model.countFullRecords(this.articles); },
+		wordsPerArticle: function() {return this.wordsRead() / this.articlesNum(); },
+		wordsPerFullArticle: function() {return Math.round(this.wordsRead() / this.fullArticles()); },
 	},
 
 	countWordsRead: function(data) {
@@ -49,15 +43,14 @@ var model = {
 			}
 		}
 		return count;
-	}.
-
-
+	},
 };
 
 var controller = {
 	init: function() {
 		model.form = document.querySelector(".date-picker"),
 		this.datepickerInit();
+		views.databaseOverInit();
 		console.log(model);
 	},
 
@@ -73,21 +66,25 @@ var controller = {
 	},
 };
 
-var views = {};
+var views = {
+	databaseOverInit: function() {
+		this.appendData("total users", ".card-database", model.userData.userNum);
+		this.appendData("total articles", ".card-database", model.articleData.articlesNum);
+		this.appendData("articles/user", ".card-database", model.userData.articlesPerUser());
 
-function countWordsRead(data){
-	var count = 0,
-		text = "",
-		textLen = 0;
+		this.appendData("full record articles", ".card-database", model.articleData.fullArticles());
+		this.appendData("words read", ".card-database", model.articleData.wordsRead());
+		this.appendData("words read/full record article", ".card-database", model.articleData.wordsPerFullArticle());
 
-	for (let key in data) {
-		text = data[key].text;
-		textLen = text.split(" ").length;
-		count += textLen;
+	},
+
+	appendData: function(string, parentElem, data) {
+		var elem = document.createElement("div");
+		var parent = document.querySelector(parentElem);
+		elem.innerHTML = `<p>${string}: ${data}</p>`;
+		parent.appendChild(elem);
 	}
-	return count;
-}
-
+};
 
 //Kick off the process
 controller.init();
