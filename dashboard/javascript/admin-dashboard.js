@@ -51,17 +51,31 @@ var model = {
 		for (let userid in articles) {
 			for (let articlesid in articles[userid].articles) {
 				if (articles[userid].articles[articlesid].dateRead > model.datestart && articles[userid].articles[articlesid].dateRead < model.dateend) {
-					console.log(`is ${articles[userid].articles[articlesid].dateRead} > ${model.datestart} and < ${model.dateend}`); 
 					articlesInTimespan.push(articlesid);
 				}
 			}
 		};
 
-		//https://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array
+		//adapted from https://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array
 		var seen = {};
-		return articlesInTimespan.filter(function(item) {
-			return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+		articlesInTimespan.filter(function(item) {
+			return seen.hasOwnProperty(item) ? (seen[item] += 1) : (seen[item] = 1);
 		});
+
+		var sort = [];
+		for(var article in seen) {
+			sort.push({
+				article: article,
+				reads: seen[article]
+			})
+		};
+
+		sort.sort(function(a , b){
+			console.log(a);
+			return b.reads - a.reads;
+		});
+
+		console.log(sort);
 	},
 };
 
