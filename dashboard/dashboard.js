@@ -350,11 +350,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					}
 				}
 
-				if(user.id === "leogen17@gmail.com" || "garrett.berntsen@gmail.com") {
+				if(user.id === "leogen17@gmail.com" || "garrett.berntsen@gmail.com" || "mark.steidler@gmail.com") {
 					createAdminDashboardLink();
 				}
 
 				Promise.all(article_definitions).then(function (articleSnapshots) {
+
+					console.log(articleSnapshots);
 					appendData("days-back", tranformDates(14) );
 
 					createDropdownMenu();

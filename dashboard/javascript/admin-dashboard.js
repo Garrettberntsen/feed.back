@@ -9,17 +9,21 @@ function createAdminDashboardLink() {
 var model = {
 	userData : {
 		users: database.users,
-		userNum: Object.keys(database.users).length,
-		articlesPerUser: function() { return Math.round(model.articleData.articlesNum / this.userNum); },
+		userNum: function() { return Object.keys(this.users).length },
+		articlesPerUser: function() { return Math.round(model.articleData.articlesNum() / this.userNum()); },
 	},
 
 	articleData : {
 		articles: database.articles,
-		articlesNum: Object.keys(database.articles).length,
+		articlesNum: function() { return Object.keys(this.articles).length },
 		wordsRead: function() { return model.countWordsRead(this.articles); },
 		fullArticles: function() { return model.countFullRecords(this.articles); },
 		wordsPerArticle: function() {return this.wordsRead() / this.articlesNum(); },
 		wordsPerFullArticle: function() {return Math.round(this.wordsRead() / this.fullArticles()); },
+	},
+
+	sortedData: {
+
 	},
 
 	countWordsRead: function(data) {
@@ -57,25 +61,34 @@ var model = {
 		};
 
 		//adapted from https://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array
-		var seen = {};
+		var articleCounts = {};
 		articlesInTimespan.filter(function(item) {
-			return seen.hasOwnProperty(item) ? (seen[item] += 1) : (seen[item] = 1);
+			return articleCounts.hasOwnProperty(item) ? (articleCounts[item] += 1) : (articleCounts[item] = 1);
 		});
 
-		var sort = [];
-		for(var article in seen) {
-			sort.push({
+		var sortedArticles = [];
+		for(var article in articleCounts) {
+			sortedArticles.push({
 				article: article,
-				reads: seen[article]
+				reads: articleCounts[article]
 			})
 		};
 
-		sort.sort(function(a , b){
-			console.log(a);
+		sortedArticles.sort(function(a , b){
 			return b.reads - a.reads;
 		});
 
-		console.log(sort);
+		return sortedArticles;
+	},
+
+	getTopArticles: function(sortedArticles) {
+		var tempId = '';
+		var fullArticleData = [];
+		for(var i = 0; i < 20; i++) {
+			tempId = sortedArticles[i].article;
+			fullArticleData.push(model.articleData.articles[tempId]); 
+		}
+		return fullArticleData;
 	},
 };
 
@@ -95,17 +108,19 @@ var controller = {
 	datepickerMod: function(e) {
 		e.preventDefault();
 		model.datestart = model.form[0].valueAsNumber; 
-		model.dateend = model.form[1].valueAsNumber; 
-		
+		model.dateend = model.form[1].valueAsNumber;
+		model.sortedData.articles = model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles);
+		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
+		views.createTable(model.sortedData.topTwentyArticles, model.sortedData.articles.slice(0, 20), ".top-ten-articles");
 
-		console.log(  model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles)  );
+
 	},
 };
 
 var views = {
 	databaseOverInit: function() {
-		this.appendData("total users", ".card-database", model.userData.userNum);
-		this.appendData("total articles", ".card-database", model.articleData.articlesNum);
+		this.appendData("total users", ".card-database", model.userData.userNum());
+		this.appendData("total articles", ".card-database", model.articleData.articlesNum());
 		this.appendData("articles/user", ".card-database", model.userData.articlesPerUser());
 
 		this.appendData("full record articles", ".card-database", model.articleData.fullArticles());
@@ -118,8 +133,40 @@ var views = {
 		var parent = document.querySelector(parentElem);
 		elem.innerHTML = `<p>${string}: ${data}</p>`;
 		parent.appendChild(elem);
+	},
+
+	createTable: function(data, dataReads, parentElem) {
+		var len = data.length;
+		var title,
+			url,
+			reads,
+			source;
+
+		var parent = document.querySelector(parentElem);
+		var elem = document.createElement("table");
+		elem.setAttribute("id", "table");
+		var tr = document.createElement("tr");
+		tr.innerHTML = "<th>title</th> <th>source</th> <th>reads</th> <th>url</th>";
+		elem.appendChild(tr);
+		
+		var tbody = document.createElement("tbody");
+		elem.appendChild(tbody);
+
+		for(var i = 0; i < len; i++){
+			var tr = document.createElement("tr");
+			title = data[i].title;
+			url = data[i].url;
+			reads = dataReads[i].reads;
+			source = data[i].source;
+			tr.innerHTML = `<td>${title}</td> <td>${source}</td> <td>${reads}</td> <td>${url}</td>`;
+			tbody.appendChild(tr);
+		}
+		parent.appendChild(elem);
 	}
 };
 
 //Kick off the process
-controller.init();
+
+if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
+	controller.init();
+}
