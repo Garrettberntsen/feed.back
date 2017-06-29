@@ -5,6 +5,20 @@ function createAdminDashboardLink() {
 	div.innerHTML = link;
 	sidebar.appendChild(div);
 }
+if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
+	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
+		firebase.database().ref().once("value").then(function (snapshot) {
+			var db = snapshot.val();
+			console.log(db);
+			model.userData.users = db.users;
+			model.articleData.users = db.articles;
+			controller.init();
+		}).catch(function (error) {
+				console.log(error);
+			});
+		});
+}
+
 
 var model = {
 	userData : {
@@ -167,6 +181,4 @@ var views = {
 
 //Kick off the process
 
-if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
-	controller.init();
-}
+
