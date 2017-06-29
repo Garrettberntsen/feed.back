@@ -1,84 +1,80 @@
-<!doctype html>
+<!DOCTYPE html>
 <html class="no-js" lang="">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Feedback - Tutorial</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">     
+<head>
+	<meta charset="utf-8">
+	<meta content="ie=edge" http-equiv="x-ua-compatible">
+	<title>Feedback - Tutorial</title>
+	<meta content="width=device-width, initial-scale=1" name="viewport">
+	<link href="libraries/css/normalize.css" rel="stylesheet">
+	<link href="libraries/css/vanilla-datatables.css" rel="stylesheet">
+	<link href="/app-assets/css/reset.css" rel="stylesheet">
+	<link href="/app-assets/css/styles.css" rel="stylesheet">
+	<link href="styles/dashboard.css" rel="stylesheet">
+	<link href="/app-assets/css/loading-icon.css" rel="stylesheet">
+	<style type="text/css">
+		.card--dashboard {
+		   min-height: 0px;
 
-        <link rel="stylesheet" href="libraries/css/normalize.css">
-        <link rel="stylesheet" href="libraries/css/vanilla-datatables.css">
-        <link rel="stylesheet" href="/app-assets/css/reset.css">
-        <link rel="stylesheet" href="/app-assets/css/styles.css">
-        <link rel="stylesheet" href="styles/dashboard.css">
-        <link href="/app-assets/css/loading-icon.css" rel="stylesheet">
-    </head>
-  <body>
-    <nav class="sidebar">
-        <img class="sidebar__image" src=/app-assets/img/logo.svg>
-
-        <section class="sidebar__items">
-
-          <div class="dropdown sidebar__link sidebar__date-selector">
-            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/clock.svg">
-            <p class="days-back"></p>
-          </div>
-            <div id="dropdown-dates" class="dropdown-content">
-              <p class="dropdown-day" data-days="7">1 Week</p>
-              <p class="dropdown-day" data-days="14">2 Weeks</p>
-              <p class="dropdown-day" data-days="28">4 Weeks</p>
-            </div>
-
-          <a class="sidebar__link" href=/dashboard/dashboard.html>
-            <img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/pie-chart.svg">
-            <p>Dashboard</p>
-          </a>
-
-          <a class="sidebar__link" href="http://www.feedback.news/tutorial.html">
-            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/comment-square.svg">
-            <p>How-to</p>
-          </a>
-
-          <a class="sidebar__link" href="http://www.feedback.news/faq.html">
-            <img class="sidebar__icon" src="/app-assets/img/dashboard-icons/edit.svg">
-            <p>FAQ</p>
-          </a>
-
-          <a class="sidebar__link sidebar__link--active" href=/dashboard/admin-dashboard.html>
-            <img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/edit.svg">
-            <p>Admin</p>
-          </a>
-
-        </section>
-    </nav>
-
-    <main class="container container--dashboard">
-      <section class="dashboard-row">
-        <div class="card card--dashboard bar-chart">
-          <p class="card__title">Timeframe</p>
-          <form class="date-picker">
-            <p class="date-picker-title">Start Date: </p>
-            <input class="date-picker-startdate" type="date">
-            <p class="date-picker-title">End Date: </p>
-            <input class="date-picker-enddate" type="date">
-            <input class="date-picker-submit" type="submit">
-          </form>
-        </div>
-      </section>
-      <section class="dashboard-row">
-        <div class="card card-database card--dashboard bar-chart">
-          <p class="card__title">Overall Database Data</p>
-        </div>
-      </section>    
-    </main>
-
-
-    <script src="libraries/js/vanilla-datatables.js"></script>
-    <script src="libraries/js/d3.js"></script>
-    <script src="libraries/js/date.js"></script>
-    <script src="database-backup/06272017.js"></script>
-    <script src="javascript/chart-creation.js"></script>
-    <script src="javascript/admin-dashboard.js"></script>
-    <script src="dashboard.js"></script>
-  </body>
+		}
+	</style>
+</head>
+<body>
+	<nav class="sidebar">
+		<img class="sidebar__image" src="/app-assets/img/logo.svg">
+		<section class="sidebar__items">
+			<div class="dropdown sidebar__link sidebar__date-selector">
+				<img class="sidebar__icon" src="/app-assets/img/dashboard-icons/clock.svg">
+				<p class="days-back"></p>
+			</div>
+			<div class="dropdown-content" id="dropdown-dates">
+				<p class="dropdown-day" data-days="7">1 Week</p>
+				<p class="dropdown-day" data-days="14">2 Weeks</p>
+				<p class="dropdown-day" data-days="28">4 Weeks</p>
+			</div><a class="sidebar__link" href="/dashboard/dashboard.html"><img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/pie-chart.svg">
+			<p>Dashboard</p></a> <a class="sidebar__link" href="http://www.feedback.news/tutorial.html"><img class="sidebar__icon" src="/app-assets/img/dashboard-icons/comment-square.svg">
+			<p>How-to</p></a> <a class="sidebar__link" href="http://www.feedback.news/faq.html"><img class="sidebar__icon" src="/app-assets/img/dashboard-icons/edit.svg">
+			<p>FAQ</p></a> <a class="sidebar__link sidebar__link--active" href="/dashboard/admin-dashboard.html"><img class="sidebar__icon sidebar__icon--active" src="/app-assets/img/dashboard-icons/edit.svg">
+			<p>Admin</p></a>
+		</section>
+	</nav>
+	<main class="container container--dashboard">
+		<section class="dashboard-row">
+			<div class="card card--dashboard bar-chart">
+				<p class="card__title">Timeframe</p>
+				<form class="date-picker">
+					<p class="date-picker-title">Start Date:</p><input class="date-picker-startdate" type="date">
+					<p class="date-picker-title">End Date:</p><input class="date-picker-enddate" type="date"> <input class="date-picker-submit" type="submit">
+				</form>
+			</div>
+		</section>
+		<section class="dashboard-row">
+			<div class="card card-database card--dashboard bar-chart">
+				<p class="card__title">Overall Database Data</p>
+			</div>
+		</section>
+		<section class="dashboard-row">
+			<div class="card card-database card--dashboard bar-chart">
+				<p class="card__title">Selected Timeframe Data</p>
+				<p>top 10 articles:</p>
+				<div class="top-ten-articles"></div>
+				<p>top 10 sources:</p>
+				<div class="top-ten-articles"></div>
+			</div>
+		</section>
+	</main>
+	<script src="libraries/js/vanilla-datatables.js">
+	</script> 
+	<script src="libraries/js/d3.js">
+	</script> 
+	<script src="libraries/js/date.js">
+	</script> 
+	<script src="database-backup/06272017.js">
+	</script> 
+	<script src="javascript/chart-creation.js">
+	</script> 
+	<script src="javascript/admin-dashboard.js">
+	</script> 
+	<script src="dashboard.js">
+	</script>
+</body>
 </html>

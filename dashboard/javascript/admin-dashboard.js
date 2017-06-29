@@ -63,7 +63,13 @@ var controller = {
 		e.preventDefault();
 		model.datestart = model.form[0].valueAsNumber; 
 		model.dateend = model.form[1].valueAsNumber; 
+
+		console.log(model);
 	},
+
+	getArticlesInTimeSpan: function() {
+		
+	}
 };
 
 var views = {
@@ -75,7 +81,6 @@ var views = {
 		this.appendData("full record articles", ".card-database", model.articleData.fullArticles());
 		this.appendData("words read", ".card-database", model.articleData.wordsRead());
 		this.appendData("words read/full record article", ".card-database", model.articleData.wordsPerFullArticle());
-
 	},
 
 	appendData: function(string, parentElem, data) {
