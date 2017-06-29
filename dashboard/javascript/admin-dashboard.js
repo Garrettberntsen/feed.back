@@ -125,9 +125,10 @@ var controller = {
 		model.dateend = model.form[1].valueAsNumber;
 		model.sortedData.articles = model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles);
 		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
+		if(document.contains(document.querySelector("#table"))) {
+			document.querySelector("#table").remove();
+		}
 		views.createTable(model.sortedData.topTwentyArticles, model.sortedData.articles.slice(0, 20), ".top-ten-articles");
-
-
 	},
 };
 
