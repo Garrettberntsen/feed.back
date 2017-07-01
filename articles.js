@@ -82,7 +82,9 @@ chrome.runtime.onConnect.addListener(function (port) {
                                         reject(message.message.error);
                                     } else if (message.message.article) {
                                         var url = reduceUrl(message.message.url);
-                                        addCurrentuserToArticleReaders(message.message.article).then(function (article) {
+                                        categorizeArticle(message.message.article)
+                                            .then(addCurrentuserToArticleReaders)
+                                            .then(function (article) {
                                                 article.article_data.url = reduceUrl(article.article_data.url);
                                                 resolve(article);
                                             },

@@ -20,31 +20,39 @@ function testSingleUrlMatcher(matcher, urlRoot, url) {
         for (var i = 0; i < groupNames.length; i++) {
             result.groups[groupNames[i]] = regex[i + 1];
         }
-        var categorization = this.category;
-        if (categorization) {
-            result.category = categorization.reduce(function (current, category) {
-                if (!current) {
-                    switch (category.type) {
-                        case "url":
-                            var found_category = category.matcher.url_elements.reduce(function (current, next_category) {
-                                "use strict";
-                                if (!current) {
-                                    var url_element = result.groups[next_category];
-                                    if (url_element) {
-                                        return category.matcher.mappings[url_element];
-                                    }
-                                }
-                                return current;
-                            }, null);
-                            return found_category;
-                    }
-                }
-                return current;
-            }, null);
-        }
         return result;
     }
     return false;
+}
+
+function categorizeArticle(article) {
+    var source = sources[Object.keys(sources).find(function (sourceName) {
+        return sources[sourceName].urls.find(function (urlMatcher) {
+            var reducedUrl = reduceUrl(article.article_data.url);
+            return reducedUrl.indexOf(urlMatcher.urlRoot) !== -1;
+        });
+    })];
+    "use strict";
+    if (source && source.category) {
+        var url_matching = source.testForArticleUrlMatch(reduceUrl(article.article_data.url));
+        article.category = source.category.reduce(function (current, categorization) {
+            if(!current) {
+                if (categorization.type == "url") {
+                    var category = categorization.matcher.url_elements.reduce(function (category, next) {
+                        if (!category) {
+                            return url_matching.groups[next];
+                        } else {
+                            return category;
+                        }
+                    }, null);
+                    return categorization.matcher.mappings[category];
+                }
+            } else {
+                return current;
+            }
+        }, null);
+    }
+    return Promise.resolve(article);
 }
 
 function SourceDefinition(definition) {
@@ -55,7 +63,7 @@ function SourceDefinition(definition) {
     this.category = definition["category"];
     if (this.category) {
         if (!Array.isArray(this.category)) {
-            throw new Error("Source definition categoryization definition must have an array of definition objects");
+            throw new Error("Source definition categorization definition must have an array of definition objects");
         }
         for (var def of this.category) {
             if (!def.type) {
@@ -67,7 +75,7 @@ function SourceDefinition(definition) {
             if (!def.matcher.url_elements || !Array.isArray(def.matcher.url_elements)) {
                 throw new Error("Source definition must define an array of url elements it analyzes.");
             }
-            if(!def.matcher.mappings || typeof def.matcher.mappings !== "object"){
+            if (!def.matcher.mappings || typeof def.matcher.mappings !== "object") {
                 throw new Error("Source definition categorization definition must defined an object containing source-specific values to category names.");
             }
         }
@@ -89,18 +97,22 @@ function SourceDefinition(definition) {
         if (!this.urls) {
             throw "No urls defined in definition."
         }
-        return this.urls.find(function (urlDescription) {
-            if (Array.isArray(urlDescription["article-url-matcher"])) {
-                return urlDescription["article-url-matcher"].reduce(function (current, next) {
-                    if (!current) {
-                        return testSingleUrlMatcher(next, urlDescription.urlRoot, url);
-                    }
-                    return current;
-                }.bind(this), false);
+        return this.urls.reduce(function (current, urlDescription) {
+            if(!current) {
+                if (Array.isArray(urlDescription["article-url-matcher"])) {
+                    return urlDescription["article-url-matcher"].reduce(function (current, next) {
+                        if (!current) {
+                            return testSingleUrlMatcher(next, urlDescription.urlRoot, url);
+                        }
+                        return current;
+                    }.bind(this), false);
+                } else {
+                    return testSingleUrlMatcher.bind(this)(urlDescription["article-url-matcher"], urlDescription.urlRoot, url);
+                }
             } else {
-                return testSingleUrlMatcher.bind(this)(urlDescription["article-url-matcher"], urlDescription.urlRoot, url);
+                return current;
             }
-        }, this);
+        }, null);
     }.bind(this);
 }
 
@@ -1103,8 +1115,4 @@ if (typeof chrome !== "undefined") {
                 break;
         }
     });
-}
-
-return module.exports = {
-    sources: sources
 }

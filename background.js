@@ -86,6 +86,37 @@ chrome.identity.onSignInChanged.addListener(function(){
             chrome.tabs.create({url: "tutorial/tutorial-page.html"});
             tutorial = true;
         });
+    chrome.identity.getAuthToken(function(token){
+        if(token) {
+            if (object.reason === 'install') {
+                chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+                tutorial = true;
+            } else if (object.reason === 'update') {
+                chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+                tutorial = true;
+            }
+        } else {
+            chrome.tabs.create({
+                url: "chrome://chrome-signin"
+            });
+            var ok = confirm("Feed.back attempted to start, but requires that you be signed in to your Google account to work. Sign in to continue or click cancel to go back to where you were.")
+            if(!ok){
+                chrome.tabs.query({active:true, currentWindow:true}, function(tabs){
+                    "use strict";
+                   chrome.tabs.remove(tabs.map(function(t){return t.id;}));
+                });
+            }
+        }
+    });
+});
+
+chrome.identity.onSignInChanged.addListener(function(){
+    "use strict";
+    if(!tutorial){
+        chrome.identity.getAuthToken(function () {
+            chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+            tutorial = true;
+        });
     }
 });
 
