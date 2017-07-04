@@ -5,13 +5,12 @@ function createAdminDashboardLink() {
 	div.innerHTML = link;
 	sidebar.appendChild(div);
 }
+
 if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
 	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
 		firebase.database().ref().once("value").then(function (snapshot) {
-			var db = snapshot.val();
-			console.log(db);
-			model.userData.users = db.users;
-			model.articleData.users = db.articles;
+			model.userData.users = snapshot.val().users;
+			model.articleData.articles = snapshot.val().articles;
 			controller.init();
 		}).catch(function (error) {
 				console.log(error);
@@ -19,16 +18,15 @@ if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
 		});
 }
 
-
 var model = {
 	userData : {
-		users: database.users,
+		// users: database.users,
 		userNum: function() { return Object.keys(this.users).length },
 		articlesPerUser: function() { return Math.round(model.articleData.articlesNum() / this.userNum()); },
 	},
 
 	articleData : {
-		articles: database.articles,
+		// articles: database.articles,
 		articlesNum: function() { return Object.keys(this.articles).length },
 		wordsRead: function() { return model.countWordsRead(this.articles); },
 		fullArticles: function() { return model.countFullRecords(this.articles); },
@@ -135,8 +133,8 @@ var controller = {
 var views = {
 	databaseOverInit: function() {
 		this.appendData("total users", ".card-database", model.userData.userNum());
-		this.appendData("total articles", ".card-database", model.articleData.articlesNum());
-		this.appendData("articles/user", ".card-database", model.userData.articlesPerUser());
+		// this.appendData("total articles", ".card-database", model.articleData.articlesNum());
+		// this.appendData("articles/user", ".card-database", model.userData.articlesPerUser());
 
 		this.appendData("full record articles", ".card-database", model.articleData.fullArticles());
 		this.appendData("words read", ".card-database", model.articleData.wordsRead());
@@ -179,7 +177,3 @@ var views = {
 		parent.appendChild(elem);
 	}
 };
-
-//Kick off the process
-
-
