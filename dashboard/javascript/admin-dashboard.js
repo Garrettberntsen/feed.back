@@ -26,11 +26,48 @@ var model = {
 	},
 
 	timeframeData: {
-		wordsInTimeframe: function() { return this.getWordsInTimeframe(); }
+		
 	},
 
 	wordsReadInTimeframe: function(data) {
-		console.log(data);
+		console.log(data.length);
+
+		var wordsRead = 0,
+			multiplier = 1, 
+			currentArticle = "",
+			currentText = "",
+			currentTextLen = 0;
+		var arr = [];
+
+		for(var i = 0; i < data.length; i++) {
+
+			currentArticle = data[i].article;
+			console.log(currentArticle);
+			if( !model.articleData.articles[currentArticle].text ) {
+				arr.push(currentArticle);
+			}
+
+			// multiplier = data[i].reads;
+
+			// if(currentArticle !== "128159286") {
+			// 	console.log("fuck this guy")
+			// }
+
+			// if(model.articleData.articles[currentArticle].text && currentArticle !== "128159286"){
+			// 	console.log(model.articleData.articles[currentArticle]);
+			// 	console.log(model.articleData.articles[currentArticle].text);
+			// 	console.log(currentArticle);
+
+
+			// 	currentText = model.articleData.articles[currentArticle].text;
+			// 	currentTextLen = currentText.split(" ").length * multiplier;
+
+			// 	wordsRead += currentTextLen;
+			// } else { console.log("no text!") }
+
+		}
+		console.log(arr);
+		// return wordsRead;
 	},
 
 	countWordsRead: function(data) {
@@ -105,6 +142,7 @@ var controller = {
 		this.datepickerInit();
 		views.databaseOverInit();
 		console.log(model);
+
 	},
 
 	datepickerInit: function() {
@@ -141,6 +179,7 @@ var views = {
 
 	addTimeframeData: function() {
 		document.querySelector(".timeframe-data").innerHTML = "";
+
 		this.appendData("articles in timeframe", ".timeframe-data", model.sortedData.articles.length);
 		this.appendData("words read in timeframe", ".timeframe-data", model.sortedData.articles.length);
 	},
