@@ -14,7 +14,6 @@
 	<style type="text/css">
 		.card--dashboard {
 		   min-height: 0px;
-
 		}
 	</style>
 </head>
@@ -53,8 +52,11 @@
 			</div>
 		</section>
 		<section class="dashboard-row">
-			<div class="card card-database card--dashboard bar-chart">
+			<div class="card card-timeframe card--dashboard bar-chart">
 				<p class="card__title">Selected Timeframe Data</p>
+				<section class="timeframe-data">
+					
+				</section>
 				<p>top 20 articles:</p>
 				<div class="top-ten-articles"></div>
 				<p>top 10 sources:</p>
@@ -62,6 +64,7 @@
 			</div>
 		</section>
 	</main>
+	<script src="database-backup/06272017.js"></script> 
 	<script src="libraries/js/vanilla-datatables.js"></script> 
 	<script src="libraries/js/d3.js"></script> 
 	<script src="libraries/js/date.js"></script> 

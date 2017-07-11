@@ -6,17 +6,6 @@ function createAdminDashboardLink() {
 	sidebar.appendChild(div);
 }
 
-if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
-	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
-		firebase.database().ref().once("value").then(function (snapshot) {
-			model.userData.users = snapshot.val().users;
-			model.articleData.articles = snapshot.val().articles;
-			controller.init();
-		}).catch(function (error) {
-				console.log(error);
-			});
-		});
-}
 
 var model = {
 	userData : {
@@ -34,6 +23,14 @@ var model = {
 
 	sortedData: {
 
+	},
+
+	timeframeData: {
+		wordsInTimeframe: function() { return this.getWordsInTimeframe(); }
+	},
+
+	wordsReadInTimeframe: function(data) {
+		console.log(data);
 	},
 
 	countWordsRead: function(data) {
@@ -121,10 +118,13 @@ var controller = {
 		model.dateend = model.form[1].valueAsNumber;
 		model.sortedData.articles = model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles);
 		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
+		console.log(model.sortedData);
 		if(document.contains(document.querySelector("#table"))) {
 			document.querySelector("#table").remove();
 		}
 		views.createTable(model.sortedData.topTwentyArticles, model.sortedData.articles.slice(0, 20), ".top-ten-articles");
+		views.addTimeframeData();
+		
 	},
 };
 
@@ -137,6 +137,12 @@ var views = {
 		this.appendData("full record articles", ".card-database", model.articleData.fullArticles());
 		this.appendData("words read", ".card-database", model.articleData.wordsRead());
 		this.appendData("words read/full record article", ".card-database", model.articleData.wordsPerFullArticle());
+	},
+
+	addTimeframeData: function() {
+		document.querySelector(".timeframe-data").innerHTML = "";
+		this.appendData("articles in timeframe", ".timeframe-data", model.sortedData.articles.length);
+		this.appendData("words read in timeframe", ".timeframe-data", model.sortedData.articles.length);
 	},
 
 	appendData: function(string, parentElem, data) {
@@ -175,3 +181,21 @@ var views = {
 		parent.appendChild(elem);
 	}
 };
+
+if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
+	if(database) {
+		model.articleData.articles = database.articles;
+		model.userData.users = database.users;
+		controller.init();
+	} else {
+	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
+		firebase.database().ref().once("value").then(function (snapshot) {
+			model.userData.users = snapshot.val().users;
+			model.articleData.articles = snapshot.val().articles;
+			controller.init();
+		}).catch(function (error) {
+				console.log(error);
+			});
+		});	
+	}
+}
