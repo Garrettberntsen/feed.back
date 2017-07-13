@@ -141,28 +141,32 @@ function scrapePage(existing_article, url) {
 }
 
 function updateScrollRatio(url) {
-    var content_element;
-    if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
-        content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).find(encountered_urls[encountered_urls.current_index].content_element_selector);
-    } else {
-        content_element = $(encountered_urls[encountered_urls.current_index].content_element_selector);
+    try {
+        var content_element;
+        if (encountered_urls[encountered_urls.current_index].article_root_element_selector) {
+            content_element = $(encountered_urls[encountered_urls.current_index].article_root_element_selector).find(encountered_urls[encountered_urls.current_index].content_element_selector);
+        } else {
+            content_element = $(encountered_urls[encountered_urls.current_index].content_element_selector);
+        }
+        var content_height = content_element.last().height();
+        var bottom_position = content_element.last().offset().top;
+        var viewport_height = $(window).height();
+        var calculated_scroll_ratio = Math.min(
+            Math.max(
+                (window.scrollY + viewport_height) / (bottom_position + content_height),
+                0),
+            1);
+        if (calculated_scroll_ratio > encountered_urls[encountered_urls.current_index].scroll_ratio) {
+            encountered_urls[encountered_urls.current_index].scroll_ratio = calculated_scroll_ratio;
+            chrome.runtime.sendMessage({
+                type: "updateScrollMetric",
+                message: encountered_urls[encountered_urls.current_index].scroll_ratio
+            });
+        }
+        console.log("new scroll ratio: " + encountered_urls[encountered_urls.current_index].scroll_ratio);
+    } catch(e){
+        console.warn(e);
     }
-    var content_height = content_element.last().height();
-    var bottom_position = content_element.last().offset().top;
-    var viewport_height = $(window).height();
-    var calculated_scroll_ratio = Math.min(
-        Math.max(
-            (window.scrollY + viewport_height) / (bottom_position + content_height),
-            0),
-        1);
-    if (calculated_scroll_ratio > encountered_urls[encountered_urls.current_index].scroll_ratio) {
-        encountered_urls[encountered_urls.current_index].scroll_ratio = calculated_scroll_ratio;
-        chrome.runtime.sendMessage({
-            type: "updateScrollMetric",
-            message: encountered_urls[encountered_urls.current_index].scroll_ratio
-        });
-    }
-    console.log("new scroll ratio: " + encountered_urls[encountered_urls.current_index].scroll_ratio);
 }
 
 var port;
