@@ -50,6 +50,9 @@ function addCurrentuserToArticleReaders(article) {
         if (!article.article_data.readers) {
             article.article_data.readers = {};
         }
+        if(!article.user_metadata.source){
+            article.user_metadata.source = article.article_data.source;
+        }
         article.user_metadata.dateRead = new Date().getTime();
         article.article_data.readers[user.id] = true;
         console.log("Added article reader");
