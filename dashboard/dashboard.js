@@ -6,35 +6,37 @@ chrome.runtime.sendMessage({type: "forcePersist"}, function(){
 chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
 		firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
-			
-
 			var articles = userSnapshot.val().articles;
+
 			var article_ids = [];
 			var article_definitions = [];
 			for (let key in articles) {
 				article_definitions.push(firebase.database().ref("articles/" + key).once("value"));
 				article_ids.push(key);
 			}
-			
-			var color = 
-			["#393B79", "#3182BD", "#E6550D", "#31A354", "#CE6BDB", "#17BECF",
-			"#ED6A5A", "#EFCB68", "#88D18A", "#3E5C76", "#D1D1D1", "#114B5F",
-			"#FFE74C", "#FE5F55", "#35A7FF", "#468966", "#B64926", "#1695A3",
-			"#BDD4DE", "#832F5C", "#382513", "#363942", "#405952", "#F54F29",
-			"#083643", "#CEF09D", "#FF974F", "#91BED4", "#365FB7", "#D23600",
-			"#FC9D9A", "#83AF9B", "#791F33", "#78C0F9", "#FFDBE6", "#B9121B"];
 
-			Promise.all(article_definitions).then(function (articleSnapshots) {
-				var todaysDate = Date.now();
-				var millisecondsPerDay = 86400000;
+			var todaysDate = Date.now();
+			var millisecondsPerDay = 86400000;
 
+			var userData = userSnapshot.val();
+			var articlesRead = userData.articles;	
+
+			var currentPage = location.pathname.split("/")[2].split(".")[0];
+
+			if(currentPage === "dashboard") {
+				console.log("dashboard page");
+				onDashboardPage();
+			}else if(currentPage === "goals") {
+				console.log("goals page");
+				onGoalsPage();
+			}
+
+			function onDashboardPage() {
 				updateCharts(13 * millisecondsPerDay, 14);
-
 				function updateCharts(timeSpan, daysToGoBack) {
-					var timeEnd = Date.now();
-					var timeStart = timeEnd - timeSpan;
+					var timeStart = todaysDate - timeSpan;
 
-					var articlesInTimespan = getArticlesInTimespan(timeEnd, timeStart);
+					var articlesInTimespan = getArticlesInTimespan(todaysDate, timeStart);
 
 					var articleTimespanTemplate = createTemplate(articlesInTimespan);
 					var articleCountInTimespan = getArticleCount(articlesInTimespan);
@@ -120,7 +122,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						for (let i = 0; i < daysToGoBack; i++) {
 							let timeToAdd = i * millisecondsPerDay;
 							let currentDay = new Date(timeStart + timeToAdd).toString("M/d/yyyy");
-							console.log(currentDay);
 							if (!articles.hasOwnProperty(currentDay)) {
 								articles[currentDay] = JSON.parse(JSON.stringify(articleTimespanTemplate));
 								articles[currentDay].date = currentDay;
@@ -153,131 +154,6 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 
 						function createArrayOfSources() {
 							return Object.keys( articleTimespanTemplate ).sort();
-						}
-					}
-
-					function createBarChart(dataset) {
-						var margin = {
-							top: 10,
-							right: 0,
-							bottom: 25,
-							left: 30
-						};
-
-						var width = 960 - margin.left - margin.right,
-							height = 288 - margin.top - margin.bottom;
-
-						var svg = d3.select("div.bar-chart")
-							.append("svg")
-							.attr("class","chart chart--font")
-							.attr("width", width + margin.left + margin.right)
-							.attr("height", height + margin.top + margin.bottom)
-							.append("g")
-							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-						var x = d3.scale.ordinal()
-							.domain(dataset[0].map(function (d) {
-								return d.x;
-							}))
-							.rangeRoundBands([10, width - 10], 0.2);
-
-						var y = d3.scale.linear()
-							.domain([0, d3.max(dataset, function (d) {
-								return d3.max(d, function (d) {
-									if(d.y === 1){
-										return d.y * 6;
-									}
-									else{
-										return d.y * 3;
-									}
-								});
-							})])
-							.range([height, 0]);
-
-						var yAxis = d3.svg.axis()
-							.scale(y)
-							.orient("left")
-							.ticks(5)
-							.tickSize(-width, 0, 0)
-							.tickFormat(function (d) {
-								return d;
-							});
-
-						var xAxis = d3.svg.axis()
-							.scale(x)
-
-						svg.append("g")
-							.attr("class", "y-axis")
-							.call(yAxis)
-
-						svg.append("g")
-							.attr("class", "x-axis")
-							.attr("transform", "translate(0," + height + ")")
-							.call(xAxis);
-
-						var groups = svg.selectAll("g.time")
-							.data(dataset) 
-							.enter().append("g")
-							.attr("class", "time")
-							.attr("fill", function (d, i) {
-								return color[i];
-							});
-
-						var rect = groups.selectAll("rect")
-							.data(function (d) { return d; })
-							.enter().append("rect")
-							.attr("x", function (d) {
-								return x(d.x);
-							})
-							.attr("class", "bar-chart-bar")
-							.attr("y", height)
-							.attr("width", x.rangeBand())
-							.attr("height", 0);
-
-						rect.transition()
-							.delay(function(d, i) { return i * 74; })
-							.attr("y", function (d) {
-								return y(d.y0 + d.y);
-							})
-							.attr("height", function (d) {
-								return y(d.y0) - y(d.y0 + d.y);
-							})
-
-							rect.on("mouseover", function (d) {
-								tooltip.style("display", null);
-								tooltip.select("text").text(returnSource(d.label, d.y) ) ;
-							})
-							.on("mouseout", function () {
-								tooltip.style("display", "none");
-							})
-							.on("mousemove", function (d) {
-								var xPosition = d3.mouse(this)[0] - 15;
-								var yPosition = d3.mouse(this)[1] - 25;
-								tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-							});
-
-						var tooltip = svg.append("g")
-							.attr("class", "tooltip")
-							.style("display", "none");
-
-						tooltip.append("text")
-							.attr("x", 15)
-							.attr("dy", "1.2em")
-							.style("text-anchor", "middle")
-							.attr("font-size", "12px")
-							.attr("font-weight", "bold");
-
-						if(dataset[0].length > 14) {
-							var parent = d3.select(".x-axis")[0][0];
-							var ticks = d3.selectAll(".x-axis .tick")[0];
-							for(var i = 1; i < ticks.length; i += 2){
-								parent.removeChild(ticks[i]);
-							}
-						};
-
-						function returnSource(label, articlesRead) {
-							var tooltipText = label + " - " + articlesRead;
-							return tooltipText;
 						}
 					}
 					
@@ -313,7 +189,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 						var arcSpace = 0.00;
 
 						var width = 480,
-							height = 288;
+								height = 288;
 						var radius = Math.min(width, height) / 2;
 
 						var total = d3.sum(dataset.map(function(d) { return d.count; }));
@@ -434,7 +310,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 							factElem.className = "bubble__data";
 							factElem.appendChild( document.createTextNode(data) );
 							if(data.length > 10) {
-								factElem.setAttribute("style", "font-size: 1.6rem");
+								factElem.setAttribute("style", "font-size: 2rem");
 							}
 
 							var descriptionElem = document.createElement("p");
@@ -474,167 +350,190 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					}
 				}
 
-				var userData = userSnapshot.val();
-				var articlesRead = userData.articles;
+				Promise.all(article_definitions).then(function (articleSnapshots) {
+					appendData("days-back", tranformDates(14) );
 
-				appendData("days-back", tranformDates(14) );
+					createDropdownMenu();
 
-				createDropdownMenu();
+					createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
 
-				createTable(articlesRead, {ids: article_ids, snapshots: articleSnapshots});
+					var myTable = document.querySelector("#table");
+					var dataTable = new DataTable(myTable, {
+						searchable: true,
+						perPage: 25,
+						perPageSelect: [25, 50, 100]
+					});
 
-				var myTable = document.querySelector("#table");
-				var dataTable = new DataTable(myTable, {
-					searchable: true,
-					perPage: 25,
-					perPageSelect: [25, 50, 100]
-				});
+					//Need to find a more logical place to put this
+					document.getElementsByClassName("dataTable-wrapper")[0].className += " card--table";
 
-				//Need to find a more logical place to put this
-				document.getElementsByClassName("dataTable-wrapper")[0].className += " card--table";
+					function appendData(elem, name) {
+						var elem = document.getElementsByClassName(elem)[0];
+						var elemText = elem.innerHTML = " " + name;
+					}
 
-				function appendData(elem, name) {
-					var elem = document.getElementsByClassName(elem)[0];
-					var elemText = elem.innerHTML = " " + name;
-				}
+					function tranformDates(num) {
+						return num < 8 ? num/7 + " Week" : num/7 + " Weeks";
+					}
 
-				function tranformDates(num) {
-					return num < 8 ? num/7 + " Week" : num/7 + " Weeks"
-				}
-				
-				function createTable(userArticleInformation, articleInformation) {
-					var articlesRead = [];
-					var tableElem = document.getElementById("table-body");
+					function createDropdownMenu() {
+						window.onclick = function(e) {
+							if(e.target.matches(".dropdown") || e.target.matches(".sidebar__icon") || e.target.matches(".days-back")  ){
+								toggleDates();
+							}else if(e.target.matches(".dropdown-day") ) {
+								var dropdownMenu = e.target.parentElement;
+								dropdownMenu.classList.remove("show")	
+								var parents = document.getElementsByClassName("card--dashboard");
+								var childBar = document.getElementsByClassName("chart")[0];
+								var childDonut = document.getElementsByClassName("chart")[1];
+								parents[0].removeChild(childBar);
+								parents[1].removeChild(childDonut);
 
-					for (let key in userArticleInformation) {
-						if (userArticleInformation.hasOwnProperty(key)) {
-							var id_index;
-							for (i = 0; i < articleInformation.ids.length; i++) {
-								if (articleInformation.ids[i] === key) {
-									id_index = i;
-									break;
-								}
+								updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
+								appendData("days-back", tranformDates(e.target.dataset.days) );
 							}
-							var currentArticleUserInfo = userArticleInformation[key];
-							var currentArticle = articleInformation.snapshots[id_index].val();
-							var articleInfo = {
-								dateString: '',
-								dateUnix: 0,
-								url: '',
-								sourceUrl: ''
-							};
-							
-							var userEvaluation = currentArticleUserInfo.stars; //to add
-							articleInfo.dateString = new Date(currentArticleUserInfo.dateRead).toString("M/dd/yyyy");
-							articleInfo.dateUnix = currentArticleUserInfo.dateRead;
-							var publisher = currentArticle.source;
-							var title = currentArticle.title;
-							// var type = ""; //to add
-							var author = currentArticle.author;
-							var slant = currentArticle.lean;
-							var read_percentage = currentArticleUserInfo.scrolled_content_ratio;
+						}
 
+						function toggleDates() {
+							document.getElementById("dropdown-dates").classList.toggle("show");
+						}
+					}
+				});
+			}
 
-							articleInfo.url = currentArticle.url;
-							articleInfo.sourceUrl = currentArticle.url.split(".");
+			function onGoalsPage() {
+				var dateStr = Date.today().moveToDayOfWeek(0, -1).toISOString();
+				var dateTime = new Date(dateStr).getTime();
 
-							var articleData = new Array(userEvaluation, articleInfo, publisher, title, author, read_percentage);
-							articlesRead.push(articleData);
+				var articlesReadThisWeek = getArticlesInTimespan(todaysDate, dateTime);
+				var articleTimespanTemplate = createTemplate(articlesReadThisWeek);
+
+				var barchartDataset = createBarChartDataset(articlesReadThisWeek);
+				console.log(barchartDataset);
+
+				createBarChart(barchartDataset);
+
+				function getArticlesInTimespan(end, start) {
+					var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
+					//To-Do: Add support to find articles in between two dates. Should be an easy
+					//fix, just add in another more that sign to check for the end
+					for (let key in articles) {
+						if (articles[key].dateRead < start) {
+							delete articles[key];
+						}
+					}
+					return articles;
+				}
+
+				function getArticleCount(articles) {
+					var totalCount = {};
+					for (let key in articles) {
+						var tempSource = articles[key].source;
+						if( totalCount.hasOwnProperty(tempSource) ){
+							totalCount[tempSource]++;
+						}else {
+							totalCount[tempSource] = 1;
+						}
+					}
+					return totalCount;
+				}
+
+				function createTemplate(articles) {
+					var articleCount = {};
+
+					for (let key in articles) {
+						if (articles.hasOwnProperty(key)) {
+							var article = articles[key];
+							var source = article.source;
+							if (!articleCount.hasOwnProperty(source)) {
+								articleCount[source] = 0;
+							}
+						}
+					}
+					return articleCount;
+				}
+
+				function organizeArticlesByDate(articles, template) {
+					var articleCount = {};
+
+					for (let key in articles) {
+						var article = articles[key];
+						var articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+						articleCount[articleDate] = JSON.parse(JSON.stringify(template));
+					}
+
+					for (let key in articles) {
+						let article = articles[key];
+						let articleSource = articles[key].source;
+						let articleDate = new Date(article.dateRead).toString("M/d/yyyy");
+						articleCount[articleDate][articleSource]++;
+					}
+
+					for (let key in articleCount) {
+						let article = articleCount[key];
+						article.date = key;
+					}
+					return articleCount;
+				}
+
+				/* Creates a very specific array of object that is better suited for D3 parsing
+				 * for creating a stacked bar chart.
+				 *  @articlesToParse -> List of articles that user has read, obtained from JSON file
+				 *  Returns -> Ordered array useful only for the stacked bar chart.
+				 */
+				function createBarChartDataset(articlesToParse) {
+					var articles = organizeArticlesByDate(articlesToParse, articleTimespanTemplate);
+
+					for (let i = 0; i < 7; i++) {
+						let timeToAdd = i * millisecondsPerDay;
+						let currentDay = new Date(dateTime + timeToAdd).toString("M/d/yyyy");
+						if (!articles.hasOwnProperty(currentDay)) {
+							articles[currentDay] = JSON.parse(JSON.stringify(articleTimespanTemplate));
+							articles[currentDay].date = currentDay;
 						}
 					}
 
-					articlesRead.sort(function (a, b) {
-						var articleA = a[1].dateUnix;
-						var articleB = b[1].dateUnix;
-						if (articleA > articleB) {
-							return -1;
-						}
-						if (articleA < articleB) {
-							return 1;
-						}
+					var articlesArray = Object.values(articles);
+					var articleSourcesArray = createArrayOfSources();
+
+					articlesArray.sort(function (a, b) {
+						var dateA = Date.parse(a.date);
+						var dateB = Date.parse(b.date);
+
+						if (dateA < dateB) return -1;
+						if (dateA > dateB) return 1;
 						return 0;
 					});
 
-					for (let i = 0; i < articlesRead.length; i++) {
-						var tr = document.createElement("TR");
-						for (let j = 0; j < articlesRead[i].length; j++) {
-							var td = document.createElement("TD");
-							var content = articlesRead[i][j] ? articlesRead[i][j] : "";
-							if(j === 1) {
-								content = articlesRead[i][j].dateString ? articlesRead[i][j].dateString : "";
-							}
-							else if(j === 2) {
-								var linkElem = document.createElement("a");
-								linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
-								linkElem.target = "_blank";
-								linkElem.href = prependHTTPSIfNeeded(hasSubdomains(articlesRead[i][1].sourceUrl));
-								td.appendChild(linkElem);                                
-							}
-							else if(j === 3) {
-								var linkElem = document.createElement("a");
-								linkElem.appendChild(  document.createTextNode(articlesRead[i][j] ));
-								linkElem.target = "_blank";
-								linkElem.href = prependHTTPSIfNeeded(articlesRead[i][1].url);
-								td.appendChild(linkElem);
-							}
-							else if (j === 5) {
-								content = Math.floor(Number(content) * 100);
-							}
+					var parsedData = d3.layout.stack()(articleSourcesArray.map(function (source) {
+						return articlesArray.map(function (d) {
+							return {
+								x: Date.parse(d.date).toString('dddd'),
+								y: +d[source],
+								label: source
+							};
+						});
+					}));
 
-							if(!td.firstChild){
-								td.appendChild(document.createTextNode(content));
-							}
-							tr.appendChild(td);
-						}
-						tableElem.appendChild(tr);
-					}
+					return parsedData;
 
-					function prependHTTPSIfNeeded(string) {
-						if(string.includes('https://')){
-							return string;
-						}else {
-							return 'https://' + string;
-						}
-					}
-
-					function hasSubdomains(articleSource, isArticle) {
-						if(articleSource.length > 2) {
-							return articleSource[0] + "." + articleSource[1] + ".com";
-						}
-						return articleSource[0] + ".com"; 
+					function createArrayOfSources() {
+						return Object.keys( articleTimespanTemplate ).sort();
 					}
 				}
 
-				function createDropdownMenu() {
-					// document.getElementsByClassName("dropdown")[0].addEventListener("click", toggleDates);
-					// document.getElementsByClassName("sidebar__icon")[0].addEventListener("click", toggleDates);
+				Promise.all(article_definitions).then(function (articleSnapshots) {
+					console.log(articleSnapshots);
+					createTable(articlesReadThisWeek, {ids: article_ids, snapshots: articleSnapshots});
 
-
-					window.onclick = function(e) {
-						console.log(e.target)
-						if(e.target.matches(".dropdown") || e.target.matches(".sidebar__icon") || e.target.matches(".days-back")  ){
-							toggleDates();
-						}else if(e.target.matches(".dropdown-day") ) {
-							var dropdownMenu = e.target.parentElement;
-							dropdownMenu.classList.remove("show")	
-							console.log(dropdownMenu);
-							var parents = document.getElementsByClassName("card--dashboard");
-							var childBar = document.getElementsByClassName("chart")[0];
-							var childDonut = document.getElementsByClassName("chart")[1];
-							parents[0].removeChild(childBar);
-							parents[1].removeChild(childDonut);
-
-							updateCharts( (e.target.dataset.days - 1) * millisecondsPerDay, e.target.dataset.days);
-							appendData("days-back", tranformDates(e.target.dataset.days) );
-						}
-					}
-
-					function toggleDates() {
-						document.getElementById("dropdown-dates").classList.toggle("show");
-					}
-				}
-
-			});		
+					var myTable = document.querySelector("#table");
+					var dataTable = new DataTable(myTable, {
+						searchable: true,
+						perPage: 25,
+						perPageSelect: [25, 50, 100]
+					});
+				});
+			}
 		}).catch(function (error) {
 			console.log(error);
 		});

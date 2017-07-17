@@ -17,7 +17,7 @@
   content: "∨";
   font-size: 1.2rem;
   position: fixed;
-  left: 150px;
+  left: 130px;
 }
 
 .sidebar__items {
@@ -86,6 +86,10 @@
 
 .show {display:block;}
 
+.goals-hidden {
+  visibility: hidden;
+}
+
 /* ------------ ------------Dashboard Styling ------------ ------------ */
 .chart {
   display: block;
@@ -109,13 +113,15 @@
 }
 
 .container--dashboard {
-  margin-left: 16rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
+  margin-left: 18rem; /* MUST ALWAYS BE TWO MORE THAN THE SIDEBAR */
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: space-around;
+/*  height: calc(100vh - 4rem);*/
 }
 
 .card--dashboard {
+  min-height: 330px;  
   width: 100%;
   max-width: 100%;
   padding: 1rem;
@@ -223,8 +229,8 @@ tbody td {
   /*background-color: rgb(0,0,0);*/
   padding: 3px;
   border-radius: 20px; /* IE 9 */ /* Safari */
-  -webkit-transform: translate(0, 50px);
-          transform: translate(0, 50px);
+  -webkit-transform: translate(0, 51px);
+          transform: translate(0, 51px);
   text-align: center;
   color: white;
   font-size: 1.6rem;
