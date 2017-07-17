@@ -35,7 +35,7 @@ function categorizeArticle(article) {
     "use strict";
     if (source && source.category) {
         var url_matching = source.testForArticleUrlMatch(reduceUrl(article.article_data.url));
-        article.article_data.category = source.category.reduce(function (current, categorization) {
+        article.category = source.category.reduce(function (current, categorization) {
             if(!current) {
                 if (categorization.type == "url") {
                     var category = categorization.matcher.url_elements.reduce(function (category, next) {
