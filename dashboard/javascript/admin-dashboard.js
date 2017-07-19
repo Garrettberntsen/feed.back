@@ -6,7 +6,6 @@ function createAdminDashboardLink() {
 	sidebar.appendChild(div);
 }
 
-
 var model = {
 	userData : {
 		userNum: function() { return Object.keys(this.users).length },
@@ -203,7 +202,7 @@ var views = {
 };
 
 if( location.pathname.split("/")[2].split(".")[0] === "admin-dashboard" ) {
-	if(database) {
+	if(typeof database !== "undefined") {
 		model.articleData.articles = database.articles;
 		model.userData.users = database.users;
 		controller.init();
