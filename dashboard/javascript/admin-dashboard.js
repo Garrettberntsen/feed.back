@@ -31,6 +31,7 @@ var model = {
 
 	wordsReadInTimeframe: function(data) {
 		console.log(data.length);
+		console.log(data);
 
 		var wordsRead = 0,
 			multiplier = 1, 
@@ -40,34 +41,15 @@ var model = {
 		var arr = [];
 
 		for(var i = 0; i < data.length; i++) {
-
 			currentArticle = data[i].article;
-			console.log(currentArticle);
-			if( !model.articleData.articles[currentArticle].text ) {
-				arr.push(currentArticle);
-			}
-
-			multiplier = data[i].reads;
-
-			if(currentArticle !== "128159286") {
-				console.log("fuck this guy")
-			}
-
-			if(model.articleData.articles[currentArticle].text && currentArticle !== "128159286"){
-				console.log(model.articleData.articles[currentArticle]);
-				console.log(model.articleData.articles[currentArticle].text);
-				console.log(currentArticle);
-
-
+			if(model.articleData.articles.hasOwnProperty(currentArticle)) {
+				multiplier = data[i].reads;
 				currentText = model.articleData.articles[currentArticle].text;
 				currentTextLen = currentText.split(" ").length * multiplier;
-
 				wordsRead += currentTextLen;
-			} else { console.log("no text!") }
-
+			}
 		}
-		console.log(arr);
-		// return wordsRead;
+		return wordsRead;
 	},
 
 	countWordsRead: function(data) {
@@ -142,7 +124,6 @@ var controller = {
 		this.datepickerInit();
 		views.databaseOverInit();
 		console.log(model);
-
 	},
 
 	datepickerInit: function() {
