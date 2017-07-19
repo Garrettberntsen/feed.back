@@ -47,23 +47,23 @@ var model = {
 				arr.push(currentArticle);
 			}
 
-			// multiplier = data[i].reads;
+			multiplier = data[i].reads;
 
-			// if(currentArticle !== "128159286") {
-			// 	console.log("fuck this guy")
-			// }
+			if(currentArticle !== "128159286") {
+				console.log("fuck this guy")
+			}
 
-			// if(model.articleData.articles[currentArticle].text && currentArticle !== "128159286"){
-			// 	console.log(model.articleData.articles[currentArticle]);
-			// 	console.log(model.articleData.articles[currentArticle].text);
-			// 	console.log(currentArticle);
+			if(model.articleData.articles[currentArticle].text && currentArticle !== "128159286"){
+				console.log(model.articleData.articles[currentArticle]);
+				console.log(model.articleData.articles[currentArticle].text);
+				console.log(currentArticle);
 
 
-			// 	currentText = model.articleData.articles[currentArticle].text;
-			// 	currentTextLen = currentText.split(" ").length * multiplier;
+				currentText = model.articleData.articles[currentArticle].text;
+				currentTextLen = currentText.split(" ").length * multiplier;
 
-			// 	wordsRead += currentTextLen;
-			// } else { console.log("no text!") }
+				wordsRead += currentTextLen;
+			} else { console.log("no text!") }
 
 		}
 		console.log(arr);
@@ -181,7 +181,7 @@ var views = {
 		document.querySelector(".timeframe-data").innerHTML = "";
 
 		this.appendData("articles in timeframe", ".timeframe-data", model.sortedData.articles.length);
-		this.appendData("words read in timeframe", ".timeframe-data", model.sortedData.articles.length);
+		this.appendData("words read in timeframe", ".timeframe-data", model.wordsReadInTimeframe(model.sortedData.articles));
 	},
 
 	appendData: function(string, parentElem, data) {
