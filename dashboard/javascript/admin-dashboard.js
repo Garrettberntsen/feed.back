@@ -154,8 +154,8 @@ var views = {
 		this.appendData("articles/user", ".card-database", model.userData.articlesPerUser());
 
 		this.appendData("full record articles", ".card-database", model.articleData.fullArticles());
-		this.appendData("words read", ".card-database", model.articleData.wordsRead());
-		this.appendData("words read/full record article", ".card-database", model.articleData.wordsPerFullArticle());
+		this.appendData("words scraped", ".card-database", model.articleData.wordsRead());
+		this.appendData("words scraped/full record article", ".card-database", model.articleData.wordsPerFullArticle());
 	},
 
 	addTimeframeData: function() {
