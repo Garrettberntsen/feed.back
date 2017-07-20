@@ -186,9 +186,9 @@ var controller = {
 		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
 		model.articleData.topSources = model.getTopSources(model.sortedData.articles);
 		model.sortedData.topSources = model.sortTopSources(model.articleData.topSources); 
-		console.log(model.sortedData);
 		if(document.contains(document.querySelector("#table"))) {
 			document.querySelector("#table").remove();
+			document.querySelector("#source-table").remove();
 		}
 		views.createTable(model.sortedData.topTwentyArticles, model.sortedData.articles.slice(0, 20), ".top-ten-articles");
 		views.displayTopSources(model.sortedData.topSources, ".top-sources");
@@ -259,7 +259,8 @@ var views = {
 
 		var parent = document.querySelector(parentElem);
 		var elem = document.createElement("table");
-		elem.setAttribute("id", "table");
+		elem.setAttribute("id", "source-table");
+		elem.style.fontSize = "16px";
 		var tr = document.createElement("tr");
 		tr.innerHTML = "<th>source</th> <th>reads</th>";
 		elem.appendChild(tr);
