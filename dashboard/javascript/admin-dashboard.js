@@ -121,7 +121,6 @@ var model = {
 			tempId = sortedArticles[i].article;
 			if(model.articleData.articles.hasOwnProperty(tempId)) {
 				tempArticle = model.articleData.articles[tempId];
-				console.log(tempArticle);
 				if(tempArticle.hasOwnProperty("source")) {
 					tempSource = tempArticle.source;
 					if(articleCounts.hasOwnProperty(tempSource)) {
@@ -146,7 +145,7 @@ var model = {
 		};
 
 		sortedSources.sort(function(a , b){
-			return b.reads - a.reads;
+			return b.uniqueReads - a.uniqueReads;
 		});
 
 		return sortedSources;
@@ -158,9 +157,10 @@ var model = {
 			if(data[i].source === "tutorial") {
 				count += 0;
 			}else {
-				count += data[i];
+				count += data[i].uniqueReads;
 			}
 		}
+
 		return count;
 	}
 };
@@ -184,13 +184,14 @@ var controller = {
 		model.dateend = model.form[1].valueAsNumber;
 		model.sortedData.articles = model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles);
 		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
-		model.articleData.topArticles = model.getTopSources(model.sortedData.articles);
-		model.sortedData.topArticles = model.sortTopSources(model.articleData.topArticles); 
+		model.articleData.topSources = model.getTopSources(model.sortedData.articles);
+		model.sortedData.topSources = model.sortTopSources(model.articleData.topSources); 
 		console.log(model.sortedData);
 		if(document.contains(document.querySelector("#table"))) {
 			document.querySelector("#table").remove();
 		}
 		views.createTable(model.sortedData.topTwentyArticles, model.sortedData.articles.slice(0, 20), ".top-ten-articles");
+		views.displayTopSources(model.sortedData.topSources, ".top-sources");
 		views.addTimeframeData();
 		
 	},
@@ -211,7 +212,7 @@ var views = {
 		document.querySelector(".timeframe-data").innerHTML = "";
 
 		this.appendData("articles in timeframe", ".timeframe-data", model.sortedData.articles.length);
-		this.appendData("reads in timeframe", ".timeframe-data", model.sortedData.topArticles);
+		this.appendData("reads in timeframe", ".timeframe-data", model.getTotalReads(model.sortedData.topSources));
 		this.appendData("words read in timeframe", ".timeframe-data", model.getWordsReadInTimeframe(model.sortedData.articles));
 	},
 
@@ -246,6 +247,31 @@ var views = {
 			reads = dataReads[i].reads;
 			source = data[i].source;
 			tr.innerHTML = `<td>${title}</td> <td>${source}</td> <td>${reads}</td> <td>${url}</td>`;
+			tbody.appendChild(tr);
+		}
+		parent.appendChild(elem);
+	},
+
+	displayTopSources: function(data, parentElem) {
+		var len = data.length;
+		var source,
+			reads;
+
+		var parent = document.querySelector(parentElem);
+		var elem = document.createElement("table");
+		elem.setAttribute("id", "table");
+		var tr = document.createElement("tr");
+		tr.innerHTML = "<th>source</th> <th>reads</th>";
+		elem.appendChild(tr);
+		
+		var tbody = document.createElement("tbody");
+		elem.appendChild(tbody);
+
+		for(var i = 0; i < len; i++){
+			var tr = document.createElement("tr");
+			reads = data[i].uniqueReads;
+			source = data[i].source;
+			tr.innerHTML = `<td>${source}</td> <td>${reads}</td>`;
 			tbody.appendChild(tr);
 		}
 		parent.appendChild(elem);
