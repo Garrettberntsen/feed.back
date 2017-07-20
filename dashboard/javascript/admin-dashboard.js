@@ -150,6 +150,18 @@ var model = {
 		});
 
 		return sortedSources;
+	},
+
+	getTotalReads: function(data) {
+		var count = 0;
+		for(var i = 0; i < data.length; i++) {
+			if(data[i].source === "tutorial") {
+				count += 0;
+			}else {
+				count += data[i];
+			}
+		}
+		return count;
 	}
 };
 
@@ -199,6 +211,7 @@ var views = {
 		document.querySelector(".timeframe-data").innerHTML = "";
 
 		this.appendData("articles in timeframe", ".timeframe-data", model.sortedData.articles.length);
+		this.appendData("reads in timeframe", ".timeframe-data", model.sortedData.topArticles);
 		this.appendData("words read in timeframe", ".timeframe-data", model.getWordsReadInTimeframe(model.sortedData.articles));
 	},
 
