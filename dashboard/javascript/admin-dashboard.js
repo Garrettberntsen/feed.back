@@ -28,10 +28,7 @@ var model = {
 		
 	},
 
-	wordsReadInTimeframe: function(data) {
-		console.log(data.length);
-		console.log(data);
-
+	getWordsReadInTimeframe: function(data) {
 		var wordsRead = 0,
 			multiplier = 1, 
 			currentArticle = "",
@@ -115,6 +112,29 @@ var model = {
 		}
 		return fullArticleData;
 	},
+
+	getTopSources: function(sortedArticles) {
+		var tempId, tempSource;
+		var articleCounts = {};
+
+		for(var i = 0; i < sortedArticles.length; i++) {
+			tempId = sortedArticles[i].article;
+			if(model.articleData.articles.hasOwnProperty(tempId)) {
+				tempArticle = model.articleData.articles[tempId];
+				console.log(tempArticle);
+				if(tempArticle.hasOwnProperty("source")) {
+					tempSource = tempArticle.source;
+					if(articleCounts.hasOwnProperty(tempSource)) {
+						articleCounts[tempSource] += sortedArticles[i].reads;
+					}else {
+						articleCounts[tempSource] = sortedArticles[i].reads;
+					}
+				}
+			}
+		}
+
+		return articleCounts;
+	}
 };
 
 var controller = {
@@ -136,6 +156,7 @@ var controller = {
 		model.dateend = model.form[1].valueAsNumber;
 		model.sortedData.articles = model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles);
 		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
+		model.sortedData.topArticle = model.getTopSources(model.sortedData.articles);
 		console.log(model.sortedData);
 		if(document.contains(document.querySelector("#table"))) {
 			document.querySelector("#table").remove();
@@ -161,7 +182,7 @@ var views = {
 		document.querySelector(".timeframe-data").innerHTML = "";
 
 		this.appendData("articles in timeframe", ".timeframe-data", model.sortedData.articles.length);
-		this.appendData("words read in timeframe", ".timeframe-data", model.wordsReadInTimeframe(model.sortedData.articles));
+		this.appendData("words read in timeframe", ".timeframe-data", model.getWordsReadInTimeframe(model.sortedData.articles));
 	},
 
 	appendData: function(string, parentElem, data) {
