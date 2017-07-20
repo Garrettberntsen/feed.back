@@ -132,8 +132,24 @@ var model = {
 				}
 			}
 		}
-
 		return articleCounts;
+	},
+
+	sortTopSources: function(articleCountObject) {
+		var sortedSources = [];
+
+		for(var article in articleCountObject) {
+			sortedSources.push({
+				source: article,
+				uniqueReads: articleCountObject[article]
+			})
+		};
+
+		sortedSources.sort(function(a , b){
+			return b.reads - a.reads;
+		});
+
+		return sortedSources;
 	}
 };
 
@@ -156,7 +172,8 @@ var controller = {
 		model.dateend = model.form[1].valueAsNumber;
 		model.sortedData.articles = model.getArticlesInTimeSpan(model.userData.users, model.articleData.articles);
 		model.sortedData.topTwentyArticles = model.getTopArticles(model.sortedData.articles);
-		model.sortedData.topArticle = model.getTopSources(model.sortedData.articles);
+		model.articleData.topArticles = model.getTopSources(model.sortedData.articles);
+		model.sortedData.topArticles = model.sortTopSources(model.articleData.topArticles); 
 		console.log(model.sortedData);
 		if(document.contains(document.querySelector("#table"))) {
 			document.querySelector("#table").remove();
