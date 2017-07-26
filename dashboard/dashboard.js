@@ -6,7 +6,10 @@ chrome.runtime.sendMessage({type: "forcePersist"}, function(){
 chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 	chrome.extension.getBackgroundPage()._firebase.then(function (firebase) {
 		firebase.database().ref("users/" + user.id).once("value").then(function (userSnapshot) {
+
 			var articles = userSnapshot.val().articles;
+
+			console.log(articles);
 
 			var article_ids = [];
 			var article_definitions = [];
@@ -24,11 +27,11 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 			var currentPage = location.pathname.split("/")[2].split(".")[0];
 
 			if(currentPage === "dashboard") {
-				console.log("dashboard page");
 				onDashboardPage();
 			}else if(currentPage === "goals") {
-				console.log("goals page");
 				onGoalsPage();
+			}else if(currentPage === "admin-dashboard") {
+
 			}
 
 			function onDashboardPage() {
@@ -49,7 +52,9 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					appendFacts(articleCountInTimespan);
 
 					function getArticlesInTimespan(end, start) {
-						var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
+						// var articles = JSON.parse(JSON.stringify(userSnapshot.val().articles));
+
+						console.log(articles);
 						//To-Do: Add support to find articles in between two dates. Should be an easy
 						//fix, just add in another more that sign to check for the end
 						for (let key in articles) {
@@ -350,7 +355,13 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 					}
 				}
 
+				if(user.id === "leogen17@gmail.com" || "garrett.berntsen@gmail.com" || "mark.steidler@gmail.com") {
+					createAdminDashboardLink();
+				}
+
 				Promise.all(article_definitions).then(function (articleSnapshots) {
+
+					console.log(articleSnapshots);
 					appendData("days-back", tranformDates(14) );
 
 					createDropdownMenu();
@@ -535,7 +546,7 @@ chrome.runtime.sendMessage({type: "getUser"}, function (user) {
 				});
 			}
 		}).catch(function (error) {
-			console.log(error);
+			console.log(error); 
 		});
 	});
 });
