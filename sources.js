@@ -797,6 +797,57 @@ var sources = {
         'text-selector-property': '',
         'title-selector': 'h1.trb_ar_hl_t',
         'title-selector-property': ''
+    }),
+    'thedailybeast': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'thedailybeast.com',
+            'article-url-matcher': {
+                pattern: "{title}",
+                groups: ["title"]
+            }
+        }],
+        'author-selector': 'a.ArticleAuthor__name',
+        'author-selector-property': '',
+        'date-selector': 'h4.ArticleBody__date-time',
+        'date-selector-property': '',
+        'text-selector': 'div.ArticlesContainer > div.ArticleSidebarWrapper',
+        'text-selector-property': '',
+        'title-selector': 'h1.Title',
+        'title-selector-property': ''
+    }),
+    'npr': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'npr.org',
+            'article-url-matcher': {
+            pattern: "{year}/{month}/{day}/{id}/{title}",
+            groups: ["year", "month", "day", "id", "title"]
+            }
+        }],
+        'author-selector': 'p.byline__name > a',
+        'author-selector-property': '',
+        'date-selector': 'time[datetime]',
+        'date-selector-property': '',
+        'text-selector': 'div.storytext',
+        'text-selector-property': '',
+        'title-selector': 'div.storytitle > h1',
+        'title-selector-property': ''
+    }),
+    'mic': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'mic.com',
+            'article-url-matcher': {
+            pattern: "articles/{id}/{title}",
+            groups: ["id", "title"]
+            }
+        }],
+        'author-selector': 'div.article-meta a.article-page-byline-header__author-link',
+        'author-selector-property': '',
+        'date-selector': 'div.article-meta span[itemprop="datePublished"]',
+        'date-selector-property': '',
+        'text-selector': 'div.article-page-body',
+        'text-selector-property': '',
+        'title-selector': 'div.content-container-width h1.headline',
+        'title-selector-property': ''
     })
 };
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
