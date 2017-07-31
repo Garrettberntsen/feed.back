@@ -806,11 +806,12 @@ var sources = {
                 groups: ["title"]
             }
         }],
-        'author-selector': 'a.ArticleAuthor__name',
+        'article-root-element-selector': 'div.ArticleSidebarWrapper:first-child',
+		'author-selector': 'a.ArticleAuthor__name',
         'author-selector-property': '',
         'date-selector': 'h4.ArticleBody__date-time',
         'date-selector-property': '',
-        'text-selector': 'div.ArticlesContainer > div.ArticleSidebarWrapper',
+        'text-selector': 'article.Body',
         'text-selector-property': '',
         'title-selector': 'h1.Title',
         'title-selector-property': ''
@@ -826,7 +827,7 @@ var sources = {
         'author-selector': 'p.byline__name > a',
         'author-selector-property': '',
         'date-selector': 'time[datetime]',
-        'date-selector-property': '',
+        'date-selector-property': 'datetime',
         'text-selector': 'div.storytext',
         'text-selector-property': '',
         'title-selector': 'div.storytitle > h1',
@@ -847,6 +848,65 @@ var sources = {
         'text-selector': 'div.article-page-body',
         'text-selector-property': '',
         'title-selector': 'div.content-container-width h1.headline',
+        'title-selector-property': ''
+    }),
+    'huffingtonpost': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'huffingtonpost.com',
+            'article-url-matcher': {
+            pattern: "entry/{title}_{id}",
+            groups: ["title","id"]
+            }
+        }],
+		'author-selector': 'header.entry__header span.author-card__details__name',
+        'author-selector-property': '',
+        'date-selector': 'header.entry__header span.timestamp__date--published',
+        'date-selector-property': '',
+        'text-selector': 'div.entry__text',
+        'text-selector-property': '',
+        'title-selector': 'header.entry__header h1.headline__title',
+        'title-selector-property': ''
+    }),
+    'espn': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'espn.com',
+            'article-url-matcher': {
+            pattern: "blog/{category}/post/_/{type}/{id}/{title}",
+            groups: ["category", "id", "type", "title"]
+            }
+        },{
+            urlRoot: 'espn.com',
+            'article-url-matcher': {
+            pattern: "{category}/story/_/{type}/{id}/{title}",
+            groups: ["category", "id", "type", "title"]
+            }
+        }],
+        'article-root-element-selector': 'article.article:first-child',
+        'author-selector': 'div.container ul.authors div.author',
+        'author-selector-property': '',
+        'date-selector': 'div.container span[data-date]',
+        'date-selector-property': 'data-date',
+        'text-selector': 'div.container div.article-body',
+        'text-selector-property': '',
+        'title-selector': 'div.container header.article-header > h1',
+        'title-selector-property': ''
+    }),
+    'deadspin': new SourceDefinition({
+        'urls': [{
+            urlRoot: 'deadspin.com',
+            'article-url-matcher': {
+            pattern: "{title}",
+            groups: ["title"]
+            }
+        }],
+        'article-root-element-selector': 'body > div.page',
+		'author-selector': 'div.author > a',
+        'author-selector-property': '',
+        'date-selector': 'time[meta__time]',
+        'date-selector-property': 'datetime',
+        'text-selector': 'div.post-content',
+        'text-selector-property': '',
+        'title-selector': 'h1.headline > a',
         'title-selector-property': ''
     })
 };
