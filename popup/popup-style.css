@@ -4,7 +4,21 @@ body {
   padding:10px;
 }
 
+#title {
+  font-weight: bold;
+}
 
+.rating {
+  margin-bottom: 0.5rem !important;
+}
+
+.br-theme-fontawesome-stars .br-widget a {
+  font-size: 25px;
+}
+
+.has-text-centered-block {
+  display: block;
+}
 
 .dashboard-button {
   margin: 15px 0;
