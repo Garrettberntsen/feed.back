@@ -4,6 +4,10 @@ body {
   padding:10px;
 }
 
+#title {
+  font-weight: bold;
+}
+
 .rating {
   margin-bottom: 0.5rem !important;
 }
