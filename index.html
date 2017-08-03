@@ -5,9 +5,8 @@
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css" rel="stylesheet">
     <link href="bars-movie.css" rel="stylesheet">
-    <link href="popup/popup-style.css" rel="stylesheet">
     <link href="/app-assets/css/loading-icon.css" rel="stylesheet">
-    <title></title>
+    <link href="popup/popup-style.css" rel="stylesheet">
 </head>
 <body>
     <div class="loading has-text-centered" id="form-loading">
@@ -25,9 +24,8 @@
         </div><br>
         <div class="columns is-mobile">
             <div class="column has-text-centered">
-                <h3>Rate the article</h3>
+                <h5 class="title is-5 rating">Rate the article</h5>
                 <select id="starRating">
-                    <option value=""></option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -47,9 +45,7 @@
             </div>
             <div class="column">
                 <div class="message">
-                    <div class="message-header">
-                        Read Count
-                    </div>
+                    <div class="message-header">Read Count</div>
                     <div class="message-body" id="read-count"></div>
                 </div>
             </div>
@@ -61,15 +57,10 @@
     <div class="colums">
         <a class="dashboard-button button is-primary is-large has-text-centered" id="dashboard-link">My Dashboard</a>
     </div>
-    <script src='/d3.min.js'>
-    </script> 
-    <script src='dashboard/libraries/js/date.js'>
-    </script> 
-    <script src="/jquery-3.1.1.min.js">
-    </script> 
-    <script src="/jquery.barrating.min.js">
-    </script> 
-    <script src='/popup.js'>
-    </script>
+    <script src='/d3.min.js'></script> 
+    <script src='dashboard/libraries/js/date.js'></script> 
+    <script src="/jquery-3.1.1.min.js"></script> 
+    <script src="/jquery.barrating.min.js"></script> 
+    <script src='/popup.js'></script>
 </body>
 </html>

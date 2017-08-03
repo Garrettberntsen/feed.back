@@ -4,6 +4,14 @@ body {
   padding:10px;
 }
 
+.rating {
+  margin-bottom: 0.5rem !important;
+}
+
+.br-theme-fontawesome-stars .br-widget a {
+  font-size: 25px;
+}
+
 .dashboard-button {
   margin: 15px 0;
   width: 100%;
