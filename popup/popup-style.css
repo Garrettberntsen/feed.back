@@ -12,6 +12,10 @@ body {
   font-size: 25px;
 }
 
+.has-text-centered-block {
+  display: block;
+}
+
 .dashboard-button {
   margin: 15px 0;
   width: 100%;
