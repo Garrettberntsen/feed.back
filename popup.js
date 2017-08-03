@@ -296,57 +296,9 @@ function refreshDisplayedArticle(article) {
             });
         });
 
-        var articleTags = new Taggle('tags', {
-            tags: article.user_metadata.tags ? article.user_metadata.tags : [],
-            //Update userData.tags when a tag is removed
-            onTagRemove: function (event, tag) {
-                article.user_metadata.tags = articleTags.getTagValues()
-                if (article.user_metadata.tags.length) {
-                    chrome.runtime.sendMessage({
-                        type: "analytics",
-                        message: {
-                            hitType: "event",
-                            command: "send",
-                            eventCategory: "User Action",
-                            eventAction: "Article Tags Set"
-                        }
-                    });
-                }
-                chrome.runtime.sendMessage({
-                    type: "update_article",
-                    message: article
-                });
-            }
-        });
         updateLeanAverage(article);
         updateRatingAverage(article);
 
-        //Keep track of any tags that user adds.
-        $("#tags").keyup(function () {
-            if (article.user_metadata.tags === undefined) {
-                article.user_metadata.tags = [];
-            }
-
-            if (article.user_metadata.tags.length !== articleTags.getTagValues().length) {
-                chrome.runtime.sendMessage({
-                    type: "analytics",
-                    message: {
-                        hitType: "event",
-                        command: "send",
-                        eventCategory: "User Action",
-                        eventAction: "Article Tags Set"
-                    }
-                });
-
-                article.user_metadata.tags = articleTags.getTagValues()
-                console.log(article.user_metadata.tags);
-
-                chrome.runtime.sendMessage({
-                    type: "update_article",
-                    message: article
-                });
-            }
-        })
         $(".loading").fadeOut(500, function () {
             $(".loading").remove();
             $("form").show();

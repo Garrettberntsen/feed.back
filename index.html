@@ -5,7 +5,6 @@
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css" rel="stylesheet">
     <link href="bars-movie.css" rel="stylesheet">
-    <link href="taggle.css" rel="stylesheet">
     <link href="popup/popup-style.css" rel="stylesheet">
     <link href="/app-assets/css/loading-icon.css" rel="stylesheet">
     <title></title>
@@ -46,36 +45,6 @@
                     </option>
                 </select>
             </div>
-            <div class="political-slant column has-text-centered">
-                <p>rate the slant</p>
-                <div class="columns is-mobile">
-                    <figure class="image is-pulled-right is-32x32">
-                        <img src="donkey.png">
-                    </figure><select id="leanRating">
-                        <option selected value="">
-                            None
-                        </option>
-                        <option value="1">
-                            Very Liberal
-                        </option>
-                        <option value="2">
-                            Liberal
-                        </option>
-                        <option value="3">
-                            Neutral
-                        </option>
-                        <option value="4">
-                            Conservative
-                        </option>
-                        <option value="5">
-                            Very Conservative
-                        </option>
-                    </select>
-                    <figure class="image is-32x32">
-                        <img src="elephant.png">
-                    </figure>
-                </div>
-            </div>
         </div>
         <div class="columns is-mobile has-text-centered">
             <div class="column">
@@ -96,18 +65,6 @@
                     <div class="message-body" id="read-count"></div>
                 </div>
             </div>
-            <div class="column">
-                <div class="message" hidden="" id="avg-lean-message">
-                    <div class="message-header">
-                        Avg Lean
-                    </div>
-                    <div class="message-body" id="avg-lean"><img class="loading" src="gears-50px.gif"></div>
-                </div>
-            </div>
-        </div>
-        <div id="tags"></div>
-        <div class="colums">
-            <textarea class="user-notes taggle_input" id="notes-area" placeholder="Enter notes here..."></textarea>
         </div>
     </form>
     <div class="colums">
@@ -123,8 +80,6 @@
     <script src="/jquery-3.1.1.min.js">
     </script> 
     <script src="/jquery.barrating.min.js">
-    </script> 
-    <script src='/taggle.js'>
     </script> 
     <script src='/popup.js'>
     </script>
