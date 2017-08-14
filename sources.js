@@ -806,7 +806,7 @@ var sources = {
                 groups: ["title"]
             }
         }],
-        'article-root-element-selector': 'div.ArticleSidebarWrapper:first-child',
+        'article-root-element-selector': 'div.ArticleSidebarWrapper:last-child',
 		'author-selector': 'a.ArticleAuthor__name',
         'author-selector-property': '',
         'date-selector': 'h4.ArticleBody__date-time',
@@ -881,7 +881,7 @@ var sources = {
             groups: ["category", "id", "type", "title"]
             }
         }],
-        'article-root-element-selector': 'article.article:first-child',
+        'article-root-element-selector': 'article.article:last-child',
         'author-selector': 'div.container ul.authors div.author',
         'author-selector-property': '',
         'date-selector': 'div.container span[data-date]',
