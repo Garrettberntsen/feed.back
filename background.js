@@ -64,8 +64,8 @@ chrome.runtime.onInstalled.addListener(function (object){
                 chrome.tabs.create({url: "tutorial/tutorial-page.html"});
                 tutorial = true;
             } else if (object.reason === 'update') {
-                chrome.tabs.create({url: "tutorial/tutorial-page.html"});
-                tutorial = true;
+                /*chrome.tabs.create({url: "tutorial/tutorial-page.html"});
+                tutorial = true;*//*We do not want someone getting the tutorial page when the app updates.*/
             }
         } else {
             var ok = confirm("Feed.back attempted to start, but requires that you be signed in to your Google account to work. Sign in to continue or click cancel to go back to where you were.")
