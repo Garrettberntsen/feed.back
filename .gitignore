@@ -1,3 +1,6 @@
 app-assets/open-iconic-master-svg
 node_modules
 *dist*
+
+rest app/lib
+rest app/venv
