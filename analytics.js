@@ -17,8 +17,8 @@
 (function (i, s, o, g, r, a, m) {
     i['GoogleAnalyticsObject'] = r;
     i[r] = i[r] || function () {
-            (i[r].q = i[r].q || []).push(arguments)
-        }, i[r].l = 1 * new Date();
+        (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date();
     a = s.createElement(o),
         m = s.getElementsByTagName(o)[0];
     a.async = 1;
@@ -26,46 +26,27 @@
     m.parentNode.insertBefore(a, m)
 })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 window.ga_debug = {trace: true};
-var analytics = Promise.resolve(_firebase).then(function (firebase) {
-    return new Promise(function (resolve, reject) {
-        chrome.identity.getProfileUserInfo(function (userInfo) {
-            firebase.database().ref("users/" + userInfo.id).once("value").then(function (userSnapshot) {
-                var user = userSnapshot.val();
-                if (!user) {
-                    user = userInfo;
-                }
-                if (!user.analytics_id) {
-                    firebase.database().ref("users").orderByChild("analytics_id").limitToLast(1).on("child_added", function (child) {
-                        var next_id = child.val().analytics_id + 1;
-                        if (!next_id) {
-                            next_id = 1;
-                        }
-                        //Without this check, updating the user will cause this handler to fire again.
-                        if (!user.analytics_id) {
-                            user.analytics_id = next_id;
-                            firebase.database().ref("users/" + userInfo.id).set(user);
-                        }
-                    });
-                }
-                ga("create", "UA-90713326-2", {
-                    storage: "none",
-                    clientId: user.analytics_id
-                });
-                ga("set", "checkProtocolTask", null);
-
-                //Uncomment to disable sending event to analytics during development.
-                //ga("set", "sendHitTask", null);
-                ga(function (tracker) {
-                    console.log("Initialized analytics.");
-                    resolve(tracker);
-                });
-            }).catch(function (error) {
-                reject(error);
-            })
+var analytics = new Promise(function (resolve, reject) {
+    current_user.then(function (user) {
+        if(!user){
+            throw "User was null";
+        }
+        ga("create", "UA-90713326-2", {
+            storage: "none",
+            clientId: user.id
         });
+        ga("set", "checkProtocolTask", null);
+
+        //Uncomment to disable sending event to analytics during development.
+        //ga("set", "sendHitTask", null);
+        ga(function (tracker) {
+            console.log("Initialized analytics.");
+            resolve(tracker);
+        });
+    }).catch(function (error) {
+        reject(error);
     })
 });
-//Need to disable protocol check, GA only allows from http/https by default.
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
@@ -75,9 +56,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 switch (request.message.hitType) {
                     case "event":
                     case "exception":
-                        switch (request.message.eventCategory){
+                        switch (request.message.eventCategory) {
                             case "Tracking":
                                 request.message.eventLabel = last_visited_url;
+                            //Intentional fall-through
                             default:
                                 response = triggerGoogleAnalyticsEvent(request.message);
                         }
