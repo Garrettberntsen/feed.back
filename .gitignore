@@ -4,3 +4,4 @@ node_modules
 
 rest app/lib
 rest app/venv
+rest app/cloud_sql_proxy.exe
