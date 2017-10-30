@@ -14,6 +14,17 @@
  */
 
 /**
+ * Type representing the user.
+ */
+class User{
+    constructor(email, google_id, id){
+        this.id = id;
+        this.email = email;
+        this.google_id = google_id;
+    }
+}
+
+/**
  * A promise which resolves to the currently Authenticated Google User.
  * @type {Promise}
  */
@@ -24,8 +35,13 @@ var current_user = new Promise(function (resolve, reject) {
             var message = "It looks like you aren't logged in to Google.";
             console.error(message);
             reject(message);
+        } else {
+            database.getUser(userInfo.id).then(function(database_user){
+                resolve(new User(database_user.google_id, database_user.email, database_user.id));
+            }, function(){
+                resolve(database.saveUser(new User(userInfo.email, userInfo.id)));
+            })
         }
-        resolve(userInfo);
     });
 });
 /**
@@ -42,7 +58,6 @@ chrome.identity.onSignInChanged.addListener(function () {
                     console.error(message);
                     reject(message);
                 }
-
                 if (token) {
                     resolve(userInfo);
                 } else {
