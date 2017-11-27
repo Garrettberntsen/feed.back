@@ -16,8 +16,8 @@
 /**
  * Type representing the user.
  */
-class User{
-    constructor(email, google_id, id){
+class User {
+    constructor(google_id, email, id) {
         this.id = id;
         this.email = email;
         this.google_id = google_id;
@@ -36,10 +36,17 @@ var current_user = new Promise(function (resolve, reject) {
             console.error(message);
             reject(message);
         } else {
-            database.getUser(userInfo.id).then(function(database_user){
-                resolve(new User(database_user.google_id, database_user.email, database_user.id));
-            }, function(){
-                resolve(database.saveUser(new User(userInfo.email, userInfo.id)));
+            database.getUserByGoogleId(userInfo.id).then(function (database_user) {
+                if (database_user) {
+                    resolve(new User(database_user.google_id, database_user.email || userInfo.email, database_user.id));
+                } else {
+                    database.saveUser(new User(null, userInfo.email, userInfo.id))
+                        .then(function (newUser) {
+                            resolve(newUser);
+                        });
+                }
+            }, function () {
+
             })
         }
     });
@@ -78,7 +85,7 @@ chrome.identity.onSignInChanged.addListener(function () {
 
 chrome.runtime.onMessage.addListener(function (request, requester, sendResponse) {
     switch (request.type) {
-        case "getUser":
+        case "getUserByGoogleId":
             current_user.then(function (user) {
                 sendResponse(user);
             });

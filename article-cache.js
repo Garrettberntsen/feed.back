@@ -33,8 +33,8 @@ function resolveArticleForUrl(url) {
         else {
             articles[url] = current_user.then(function (user) {
                 return Promise.all([
-                    getArticle(url.hashCode()),
-                    getUser(user.id)]).then(function (resolved) {
+                    database.getArticle(url.hashCode()),
+                    user]).then(function (resolved) {
                     if (resolved[0]) {
                         var article_data = resolved[0];
                         var hashCode = url.hashCode();

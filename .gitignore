@@ -3,5 +3,5 @@ node_modules
 *dist*
 
 rest app/lib
-rest app/venv
+rest app/venvF
 rest app/cloud_sql_proxy.exe

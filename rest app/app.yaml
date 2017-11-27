@@ -1,0 +1,20 @@
+runtime: python27
+api_version: 1
+threadsafe: false
+service: feedback-backend
+
+handlers:
+  - url: /api/.*
+    script: Rest.app
+
+env_variables:
+    # Replace user, password, database, and instance connection name with the values obtained
+    # when configuring your Cloud SQL instance.
+    SQLALCHEMY_DATABASE_URI:
+      mysql+pymysql://feedback-backend@/feedbackmysql?unix_socket=/cloudsql/feedback-f33cf:us-east1:feedbackmysql
+
+beta_settings:
+    cloud_sql_instances: feedback-f33cf:us-east1:feedbackmysql
+
+skip_files:
+  venv/*

@@ -10,53 +10,28 @@
  * - message: none
  *
  */
-String.prototype.hashCode = function () {
-    var hash = 0,
-        i, chr, len;
-    if (this.length === 0) return hash;
-    for (i = 0, len = this.length; i < len; i++) {
-        chr = this.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-};
-/**
- * The article definitions, mapped from reduced url to article.
- * @type {{}}
- */
-
 /**
  * Maps tab ids to arrays of urls of the articles they were displayed in.
  * @type {{}}
  */
 var tab_urls = {};
+/**
+ *   URLS which are in the process of being scraped.
+ */
 var scraping_in_progress = {};
 var last_visited_url;
 
-/**
- * Resolves the article definition for the given url. First, it determines if the cache contains a promise for the given
- * url. If it does not, it gets the definition from firebase and loads it into the cache.
- * @param url   the url to retrieve the article for
- * @returns {Promise.<TResult>} promise wrapping the article definition for the given url
- */
-
-
 debug = true;
 
-function addCurrentuserToArticleReaders(article) {
+function addCurrentUserToArticleReaders(article_container) {
     return current_user.then(function (user) {
         "use strict";
-        if (!article.article_data.readers) {
-            article.article_data.readers = {};
+        if (!article_container.article_data.readers) {
+            article_container.article_data.readers = {};
         }
-        if(!article.user_metadata.source){
-            article.user_metadata.source = article.article_data.source;
-        }
-        article.user_metadata.dateRead = new Date().getTime();
-        article.article_data.readers[user.id] = true;
+        article_container.article_data.readers[user.id] = true;
         console.log("Added article reader");
-        return article;
+        return article_container;
     }, function (reason) {
         "use strict";
         console.error("Failed to resolve current user while trying to update article readers: " + reason);
@@ -83,7 +58,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                                         reject(message.message.error);
                                     } else if (message.message.article) {
                                         var url = reduceUrl(message.message.url);
-                                        addCurrentuserToArticleReaders(message.message.article).then(function (article) {
+                                        addCurrentUserToArticleReaders(message.message.article).then(function (article) {
                                                 article.article_data.url = reduceUrl(article.article_data.url);
                                                 resolve(article);
                                             },
@@ -91,9 +66,9 @@ chrome.runtime.onConnect.addListener(function (port) {
                                                 reject(reason);
                                             })
                                     } else {
-                                        resolveArticleForUrl(reduceUrl(message.message.url)).then(function(article){
-                                            return addCurrentuserToArticleReaders(article);
-                                        }).then(function(article){
+                                        resolveArticleForUrl(reduceUrl(message.message.url)).then(function (article) {
+                                            return addCurrentUserToArticleReaders(article);
+                                        }).then(function (article) {
                                             resolve(article);
                                         });
                                     }
@@ -110,7 +85,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                                 Promise.all([result, current_user])
                                     .then(function (resolved) {
                                         "use strict";
-                                        writeArticleData(resolved[0], resolved[1]);
+                                        database.saveArticle(resolved[0]);
+                                        database.saveUser(resolved[1])
                                     })
                             }
                         }, function (reason) {
@@ -139,13 +115,12 @@ function updateTabUrls(tabId, url) {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     "use strict";
     switch (request.type) {
-        case "update_article":
-        {
+        case "update_article": {
             if (sender.tab) {
                 updateTabUrls(sender.tab.id, request.message.article_data.url);
             }
             request.message.article_data.url = reduceUrl(request.message.article_data.url);
-            Promise.all([addCurrentuserToArticleReaders(request.message), current_user]).then(function (resolved) {
+            Promise.all([addCurrentUserToArticleReaders(request.message), current_user]).then(function (resolved) {
                 insertArticleForUrlIntoCache(resolved[0], reduceUrl(resolved[0].article_data.url));
                 return writeArticleData(resolved[0], resolved[1]);
             }, function (reason) {
@@ -178,8 +153,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             });
             return true;
         }
-        case "getCurrentArticle" :
-        {
+        case "getCurrentArticle" : {
             var request_start_time = new Date().getTime();
             var sourceName = Object.keys(sources).find(function (sourceName) {
                 return sources[sourceName].urls.find(function (def) {
@@ -190,59 +164,60 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             var last_url;
             if (sourceName) {
                 last_url = reduceUrl(last_visited_url);
-            }
-            if (scraping_in_progress[last_url] && request.message && request.message.waitForScrape) {
-                scraping_in_progress[last_url].then(function (article) {
-                    if (article) {
-                        sendResponse(article);
-                    } else {
-                        resolveArticleForUrl(last_url).then(function (article) {
+                if (scraping_in_progress[last_url] && request.message && request.message.waitForScrape) {
+                    scraping_in_progress[last_url].then(function (article) {
+                        if (article) {
                             sendResponse(article);
-                        })
-                    }
-                });
-            } else {
-                if (!sender.tab) {
-                    console.log("Request from a non-tab origin.");
-                    console.log("Requesting previous visit url.");
-                    var resolution = resolveArticleForUrl(reduceUrl(last_url)).then(function (article) {
-                        "use strict";
-                        console.log("Sending article response");
-                        console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
-                        sendResponse(article);
-                    }, function (err) {
-                        console.error(err);
-                        triggerGoogleAnalyticsEvent({
-                            hitType: "exception",
-                            exDescription: err
-                        });
-                        sendResponse("There was an error resolving the article");
+                        } else {
+                            resolveArticleForUrl(last_url).then(function (article) {
+                                sendResponse(article);
+                            })
+                        }
                     });
                 } else {
-                    var resolution = resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
-                        sendResponse(current_article);
-                    }, function (err) {
-                        console.error(err);
-                        triggerGoogleAnalyticsEvent({
-                            hitType: "exception",
-                            exDescription: err
+                    if (!sender.tab) {
+                        console.log("Request from a non-tab origin.");
+                        console.log("Requesting previous visit url.");
+                        var resolution = resolveArticleForUrl(reduceUrl(last_url)).then(function (article) {
+                            "use strict";
+                            console.log("Sending article response");
+                            console.log("Response took " + (new Date().getTime() - request_start_time) + " ms.");
+                            sendResponse(article);
+                        }, function (err) {
+                            console.error(err);
+                            triggerGoogleAnalyticsEvent({
+                                hitType: "exception",
+                                exDescription: err
+                            });
+                            sendResponse("There was an error resolving the article");
                         });
-                        sendResponse("There was an error resolving the article");
-                    });
+                    } else {
+                        var resolution = resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (current_article) {
+                            sendResponse(current_article);
+                        }, function (err) {
+                            console.error(err);
+                            triggerGoogleAnalyticsEvent({
+                                hitType: "exception",
+                                exDescription: err
+                            });
+                            sendResponse("There was an error resolving the article");
+                        });
+                    }
                 }
+                return true;
             }
-            return true;
+            return false;
         }
         case
-        "updateScrollMetric":
-        {
+        "updateScrollMetric": {
             resolveArticleForUrl(reduceUrl(sender.tab.url)).then(function (article) {
-                article.user_metadata.scrolled_content_ratio = request.message;
+                if (article && article.user_canceled) {
+                    article.user_metadata.scrolled_content_ratio = request.message;
+                }
             });
             break;
         }
-        case"getAverageRating":
-        {
+        case"getAverageRating": {
             resolveArticleForUrl(request.message).then(function (article) {
                 calculateAverageRatingForArticle(request.message).then(function (rating) {
                     "use strict";
@@ -251,16 +226,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             })
             return true;
         }
-        case "getAverageLean":
-        {
+        case "getAverageLean": {
             calculateAverageLeanForArticle(request.message).then(function (rating) {
                 "use strict";
                 sendResponse(rating);
             })
             return true;
         }
-        case "forcePersist":
-        {
+        case "forcePersist": {
             for (var tabId of Object.keys(tab_urls)) {
                 for (var url of tab_urls[tabId]) {
                     persistArticle(url);
@@ -498,19 +471,25 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
     }
 });
 
-function writeArticleData(article, user) {
-    if (!article || !article.article_data || !article.user_metadata.dateRead || !article.article_data.url) {
-        if (!article) {
-            console.error("writeArticleData null article passed.");
+/**
+ *
+ * @param article_container container for article data and user metadata
+ * @param user  the user who read the article
+ * @returns {Promise.<TResult>}
+ */
+function writeArticleData(article_container, user) {
+    if (!article_container || !article_container.article_data || !article_container.user_metadata.dateRead || !article_container.article_data.url) {
+        if (!article_container) {
+            console.error("writeArticleData null article_container passed.");
         } else {
-            if (!article.article_data) {
+            if (!article_container.article_data) {
                 console.error("writeArticleData was called with no data.");
             } else {
-                if (!article.article_data.url) {
+                if (!article_container.article_data.url) {
                     console.error("writeArticleData called without defined url");
                 }
 
-                if (!article.user_metadata.dateRead) {
+                if (!article_container.user_metadata.dateRead) {
                     console.error("writeArticleData date read not set");
                 }
             }
@@ -518,26 +497,24 @@ function writeArticleData(article, user) {
 
         return;
     }
-    var article_data = article.article_data;
+    var article_data = article_container.article_data;
 
     var article_key = article_data.url.hashCode();
 
-    //Check if the article has already been scraped or the new record is not a partial record.
-    return Promise.all([getArticle(article_key).then(function (article) {
-        if (!article || !article_data.partialRecord) {
-            return setArticle(article_key, article_data)
-        }
-    }), getUser(user.id).then(function (firebase_user) {
-        "use strict";
-        if(!article_data.partialRecord) {
-            firebase_user.email = user.email;
-            if (!firebase_user.articles) {
-                firebase_user.articles = {};
+    //Check if the article_container has already been scraped or the new record is not a partial record.
+    return Promise.all([
+        database.getArticle(article_key).then(function (article) {
+            if (!article || !article_data.partialRecord) {
+                return database.saveArticle({
+                    article_data: article_data
+                });
             }
-            firebase_user.articles[article_key] = article.user_metadata;
-            return setUser(user.id, firebase_user);
-        }
-    })]).then(function () {
+        }),
+        getUser(user.id).then(function (firebase_user) {
+            "use strict";
+            if (!article_data.partialRecord) {
+            }
+        })]).then(function () {
         "use strict";
         console.log("feed.back data written to firebase!");
     })

@@ -10,63 +10,9 @@
  *  - message: {user_id, user}
  *  - response: a promise that resolves after the write completes
  */
-//We guarantee that firebase is initialized before trying to access.
-function initializeFirebase() {
-    "use strict";
-    return Promise.all([firebase, current_user]).then(function (resolved) {
-        var firebase = resolved[0];
-        var user = resolved[1];
-        var config = {
-            apiKey: "AIzaSyBb2F9FgRd69-B_tPgShM2CWF9lp5zJ9DI",
-            authDomain: "chrome-extension://fjmjfjkiigcdeiaeofkappkccmcedeeb",
-            //authDomain: "feedback-f33cf.firebaseapp.com",
-            databaseURL: "https://feedback-f33cf.firebaseio.com",
-            storageBucket: "feedback-f33cf.appspot.com",
-            messagingSenderId: "17295082044"
-        };
-        if (firebase.apps.length == 0) {
-            firebase.initializeApp(config);
-        }
-        var signIn = function (token) {
-            firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(null, token))
-                .catch(function (error) {
-                    console.error(error.message);
-                });
-        }
-        try {
-            chrome.identity.getAuthToken(function (token) {
-                signIn(token).then(function(){}, function(){
-                    chrome.identity.removeCachedAuthToken(token, function () {
-                        signIn(token)
-                    });
-                });
-            });
-        } catch (ex) {
-            console.error(ex);
-        }
-        firebase.database().ref("users/" + user.id).once("value").then(function (snapshot) {
-            if (!snapshot.exists()) {
-                firebase.database().ref("users/" + user.id).set(user);
-            }
-        });
-        return firebase;
-    }).catch(function (reason) {
-        console.error("Failed to initialize firebase: " + reason);
-    });
-}
-var _firebase = initializeFirebase();
-//When signin changes, reauthenticate firebase.
-chrome.identity.onSignInChanged.addListener(function (accountInfo, signedIn) {
-    if (signedIn) {
-        _firebase = initializeFirebase();
-    } else {
-        _firebase = Promise.reject("User is not authenticated.");
-    }
-});
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.type) {
-        case "getUser":
+        case "getUserByGoogleId":
             current_user.then(function (user) {
                 "use strict";
                 return getUser(user.id);
@@ -78,78 +24,136 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 });
 
-/**
- * Returns a Promise that resolves to the firebase user with the given id pulled from the database.
- * @param   user_id the id of the user to get
- */
-function getUser(user_id) {
-    if (!user_id) {
-        throw new Error("getUser called with no id set");
-    }
-    return _firebase.then(function (firebase) {
-        return firebase.database().ref("users/" + user_id).once("value");
-    }).then(function (snapshot) {
-        if (snapshot.exists()) {
-            return snapshot.val();
-        } else {
-            return null;
+var database = {
+    /**
+     * The url of the backend rest API to the database.
+     */
+    //api_location: "https://feedback-backend-dot-feedback-f33cf.appspot.com/",
+    api_location: "http://localhost:8080/",
+    /**
+     * Returns a Promise that resolves to the user with the given id pulled from the database or fails if it cannot be
+     * found.
+     * @param   google_id the id of the user to get
+     */
+    getUserByGoogleId: function (google_id) {
+        if (!google_id) {
+            throw new Error("getUserByGoogleId called with no id.");
         }
-    });
-}
-
-/**
- * Sets the user at the location users/user_id with the given user information.
- * @param user_id
- * @param user
- */
-function setUser(user_id, user) {
-    if (!user_id) {
-        throw new Error("setUser called with no id set");
+        var location = this.api_location;
+        return new Promise(function (resolve, reject) {
+            "use strict";
+            $.get({
+                url: location + "api/users",
+                data: {
+                    "q": JSON.stringify({
+                        filters: [{
+                            name: "google_id",
+                            op: "equals",
+                            val: google_id
+                        }]
+                    })
+                },
+                crossDomain: true,
+                timeout: 10000
+            }).done(function (result) {
+                if (result.num_results == 1) {
+                    resolve(result.objects[0]);
+                } else {
+                    resolve(null);
+                }
+            }).fail(function (reason) {
+                if (reason.statusText === "timeout") {
+                    reject("The request to contact the database timed out.")
+                } else {
+                    reject(reason);
+                }
+            });
+        })
+    },
+    /**
+     * Save the given user by posting it to the given api endpoint
+     */
+    saveUser: function (user) {
+        return $.ajax({
+            method: 'POST',
+            url: this.api_location + "api/users",
+            data: JSON.stringify(user),
+            success: function (response) {
+                "use strict";
+                console.log("Saved new user to database.")
+            },
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+    },
+    /**
+     *   Get the article with the given id.
+     */
+    getArticle: function (article_id) {
+        var location = this.api_location;
+        return new Promise(function (resolve) {
+            $.get(location + "api/articles/" + article_id)
+                .done(function (result) {
+                    resolve(result);
+                }).fail(function (reason) {
+                "use strict";
+                if (reason.status === 404) {
+                    resolve(null);
+                }
+            });
+        });
+    },
+    saveArticle: function (articleToSave) {
+        var api_location = this.api_location;
+        this.getArticle(articleToSave.article_data.url.hashCode()).then(function (existing_article) {
+            "use strict";
+            if (existing_article) {
+                return [
+                    $.ajax({
+                        method: 'PUT',
+                        url: api_location + "api/articles/" + articleToSave.id,
+                        data: JSON.stringify(articleToSave.article_data),
+                        success: function () {
+                            "use strict";
+                            console.log("Updated article in database.");
+                        },
+                        error: function (cause) {
+                            console.log(cause);
+                        },
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    }),
+                ];
+            } else {
+                var article = {
+                    url: articleToSave.article_data.url,
+                    article_source: articleToSave.article_data.source,
+                    title: articleToSave.article_data.title,
+                    date_published: articleToSave.article_data.date,
+                    author: articleToSave.article_data.author,
+                    text: articleToSave.article_data.text,
+                    partial_record: articleToSave.article_data.partial_record !== undefined ?
+                        articleToSave.article_data.partial_record : true
+                };
+                var readers = Object.keys(articleToSave.article_data.readers);
+                return $.ajax({
+                    method: 'POST',
+                    url: api_location + "api/articles",
+                    data: JSON.stringify(article),
+                    success: function (response) {
+                        "use strict";
+                        console.log("Saved new article to database.")
+                    },
+                    error: function (cause) {
+                        console.log(cause);
+                    },
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+            }
+        })
     }
-    return _firebase.then(function (firebase) {
-        firebase.database().ref("users/" + user_id).set(user);
-    }).then(function () {
-        return true;
-    });
-}
-
-/**
- * Returns the article information for the article with the given key.
- * @param article_id
- */
-function getArticle(article_id) {
-
-    console.log("Getting article from firebase");
-    var request_time = new Date().getTime();
-    return _firebase.then(function (firebase) {
-        return firebase.database().ref("articles/" + article_id).once("value");
-    }).then(function (snapshot) {
-        console.log("Article resolved from firebase");
-        console.log("Spent " + (new Date().getTime() - request_time) + " ms in database.");
-        //For some reason, calling val on a non-existent object is slower than checking exists.
-        if (snapshot.exists()) {
-            return snapshot.val();
-        } else {
-            return null;
-        }
-    });
-}
-
-/**
- * Writes the given article into the database at the location indicated as a child of articles at the given id.
- * @param article_id
- * @param article_data
- * @returns {!Thenable.<R>}
- */
-function setArticle(article_id, article_data) {
-    return _firebase.then(function (firebase) {
-        firebase.database().ref("articles/" + article_id).set(article_data);
-    }).then(function () {
-        return true;
-    });
-}
-
-function setArticleMetaData(article_id, user_id, user_metadata) {
-    "use strict";
-    return
 }

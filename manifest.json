@@ -10,11 +10,11 @@
   },
   "background": {
     "scripts": [
-      "firebase.js",
+      "jquery-3.1.1.min.js",
+      "database.js",
       "identity.js",
       "articles.js",
       "article-cache.js",
-      "database.js",
       "analytics.js",
       "background.js",
       "sources.js",
